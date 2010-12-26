@@ -4,12 +4,27 @@
 ;; conflect with 
 ;; (local-set-key (kbd "(") 'skeleton-pair-insert-maybe)
 ;; when complete constructor 
+
 (ajc-init)
+;;hooks 
+(defun ajc-java-complete-hook ()
+  (ajc-init-when-load-first-java-file)
+    (setq ac-sources (append 
+                      '( ac-source-ajc-class
+                         ac-source-ajc-import 
+                         ac-source-ajc-constructor 
+                         ac-source-ajc-method
+                         ac-source-ajc-keywords ) ac-sources))
 ;; auto import all Class in source file    
-(global-set-key (kbd "C-c i") (quote ajc-import-all-unimported-class))
+(local-set-key (kbd "C-c i") (quote ajc-import-all-unimported-class))
 ;; import Class where under point 
-(global-set-key (kbd "C-c m") (quote ajc-import-class-under-point))
-;; sources 
+(local-set-key (kbd "C-c m") (quote ajc-import-class-under-point))
+    )
+
+(add-hook 'java-mode-hook 'ajc-java-complete-hook)
+;(add-hook 'emacs-lisp-mode-hook 'ajc-java-complete-hook)
+
+;; sources for auto complete
 (ac-define-source ajc-import
   '((candidates . (ajc-import-package-candidates))
    (prefix . "^[ \t]*import[ \t]+\\(.*\\)") 
@@ -42,18 +57,8 @@
 ) )
 ;; end of sources
 
-(defun ajc-java-complete-hook ()
-  (ajc-init-when-load-first-java-file)
-    (setq ac-sources (append 
-                      '( ac-source-ajc-class
-                         ac-source-ajc-import 
-                         ac-source-ajc-constructor 
-                         ac-source-ajc-method
-                         ac-source-ajc-keywords ) ac-sources)) )
 
-(add-hook 'java-mode-hook 'ajc-java-complete-hook)
-;(add-hook 'emacs-lisp-mode-hook 'ajc-java-complete-hook)
-
+;;;; actions after complete 
 ;;action after finished complete constructor.
 ;;it will try to find out the  templete from  a hashtable
 ;;named `ajc-constructor-templetes-4-yasnippet' for the
