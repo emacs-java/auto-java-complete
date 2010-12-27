@@ -111,4 +111,6 @@
 
 ;;     restart your emacs ,and enjoy.
 
-
+;;---------------------------------------------
+;; you download a Video demo (2.8M) 
+ wget --no-check-certificate https://github.com/jixiuf/screencast-repos/raw/master/auto-java-complete-demo-2010-12-25.mp4.bz2    
