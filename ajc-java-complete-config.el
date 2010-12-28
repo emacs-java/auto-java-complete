@@ -1,3 +1,5 @@
+;;; ajc-java-complete-config.el --- Auto Java Completion  for GNU Emacs
+        
 (require 'auto-complete)
 (require 'yasnippet)
 (require 'ajc-java-complete)

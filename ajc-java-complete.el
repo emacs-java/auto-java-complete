@@ -183,8 +183,18 @@ and  use this class like this
   "the length of class name at dropdown-menu ,if the class
 name is shorter than this value ,then empty string are append
 .and return type are at position 37 " )
-(defcustom ajc-return-type-char ":")
-(defcustom ajc-throws-char " #")
+(defcustom ajc-return-type-char ":"
+  "the char  before return type when
+  completing methods."
+  :type 'string
+  :group 'ajc-java-complete
+  )
+(defcustom ajc-throws-char " #"
+  "the char  before Exceptions  when completing
+  method"
+  :type 'string
+  :group 'ajc-java-complete
+  )
 
 ;;private variables
 (defvar ajc-all-sorted-class-items nil "this is a list,
