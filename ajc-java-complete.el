@@ -3,6 +3,7 @@
 ;; plesase send Bug reports and suggestions to 'Joseph at <jixiuf@gmail.com>
 
 ;;{{{ License 
+
 ;;  License
         
 ;; Copyright (C) 2010  joseph <jixiuf@gmail.com> Limited
@@ -23,6 +24,7 @@
 
 ;; Firstly I am not an English Speaker ,so forgive my bad English .
 ;;;this is "Auto Java Complete". 
+
 ;;}}}
 
 ;;{{{ Commentary 
@@ -177,7 +179,14 @@ and  use this class like this
   )
 ;(setq ajc-show-more-info-when-complete-class-and-method t)
 
+(defcustom ajc-default-length-of-class 36
+  "the length of class name at dropdown-menu ,if the class
+name is shorter than this value ,then empty string are append
+.and return type are at position 37 " )
+(defcustom ajc-return-type-char ":")
+(defcustom ajc-throws-char " #")
 
+;;private variables
 (defvar ajc-all-sorted-class-items nil "this is a list,
 all the element are sorted class-item
 this variable should work with ajc-two-char-list,
@@ -241,12 +250,6 @@ we may stop complete class depending on this variable . " )
 
 (defvar ajc-class-name-candidates-hashmap
   (make-hash-table :test 'equal ))
-(defvar ajc-default-length-of-class 39
-  "the length of class name at dropdown-menu ,if the class
-name is shorter than this value ,then empty string are append
-.and return type are at position 40 " )
-(defvar ajc-return-type-char ":")
-(defvar ajc-throws-char " #")
 
 (defun ajc-goto-line ( line-num &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -422,7 +425,19 @@ name is shorter than this value ,then empty string are append
       )
     method-string ) )
 
-
+(defun ajc-class-to-string(class-item)
+  (let* ((class-string (car class-item)) (len (length class-string)))
+    (when ajc-show-more-info-when-complete-class-and-method
+      (if (< len ajc-default-length-of-class )
+          (setq class-string
+                (concat class-string
+                        (make-string (- ajc-default-length-of-class len ) 32 )));;32 mean whitespace
+        (setq class-string (concat class-string "     ")) )
+      (setq class-string (concat class-string  (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item)))))
+      )
+    class-string
+    )
+  )
 ;; (yas/expand-snippet(ajc-method-to-yasnippet-templete    (car 
 ;; (ajc-find-members (car  (ajc-find-out-matched-class-item-without-package-prefix "FileWriter" t )) "write" ))))
 ;; (ajc-method-to-string    (car 
@@ -1122,13 +1137,13 @@ return a list of each line string (exclude keyword 'import') "
     (setq is-available is-available)
     ) )
 
-(defun ajc-complete-class-candidates-1 () 
-  "complete class name with (current-word) as class-prefix"
-  (interactive)
-  (when (ajc-is-available-4-complete-class-p)
-    (ajc-build-list-with-nth-on-each-element
-     (ajc-complete-class-with-cache ajc-current-class-prefix-4-complete-class) 0)
-    ))
+;; (defun ajc-complete-class-candidates-1 () 
+;;   "complete class name with (current-word) as class-prefix"
+;;   (interactive)
+;;   (when (ajc-is-available-4-complete-class-p)
+;;     (ajc-build-list-with-nth-on-each-element
+;;      (ajc-complete-class-with-cache ajc-current-class-prefix-4-complete-class) 0)
+;;     ))
 
 
 (defun ajc-complete-class-candidates-2 () 
@@ -1139,17 +1154,18 @@ return a list of each line string (exclude keyword 'import') "
           (class-items (ajc-complete-class-with-cache ajc-current-class-prefix-4-complete-class)))
       (clrhash ajc-class-name-candidates-hashmap)
       (dolist (class-item class-items)
-        (setq candidate  (concat  (car class-item) "   " (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item)))))
+        (setq candidate  (ajc-class-to-string class-item))
         (puthash candidate (car class-item) ajc-class-name-candidates-hashmap )
         (add-to-list 'candidates candidate t)
      ) candidates
       ) ))
 
 (defun ajc-complete-class-candidates ()
-(if ajc-show-more-info-when-complete-class-and-method
+;(if ajc-show-more-info-when-complete-class-and-method
     (ajc-complete-class-candidates-2)
-    (ajc-complete-class-candidates-1)
- ))
+ ;   (ajc-complete-class-candidates-1)
+; )
+)
 
 
 (defun ajc-complete-class-with-cache ( class-prefix )
