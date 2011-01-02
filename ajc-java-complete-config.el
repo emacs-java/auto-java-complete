@@ -66,9 +66,10 @@
 ;;named `ajc-constructor-templetes-4-yasnippet' for the
 ;;last-complete if found ,expand it  use yasnippet; if not
 ;;do nothing.
+
 (defun ajc-expand-constructor-yasnippet-templete-with-ac ()
   (let* ((last-complete-string (cdr ac-last-completion))
-         (yasnippet-templete (gethash last-complete-string ajc-constructor-templetes-4-yasnippet-hashmap )))
+         (yasnippet-templete (get-text-property 0 'templete last-complete-string)))
     (when  yasnippet-templete
       (delete-backward-char (length last-complete-string))
       (yas/expand-snippet yasnippet-templete))))
@@ -81,7 +82,7 @@
 ;;do nothing.
 (defun ajc-expand-method-yasnippet-templete-with-ac ()
   (let* ((last-complete-string (cdr ac-last-completion))
-         (yasnippet-templete (gethash last-complete-string ajc-method-templetes-4-yasnippet-hashmap )))
+         (yasnippet-templete (get-text-property 0 'templete last-complete-string)))
     (when yasnippet-templete
       (delete-backward-char (length last-complete-string)  )
       (yas/expand-snippet yasnippet-templete))))
@@ -93,28 +94,28 @@
 ;;      (delete-backward-char (length last-complete-string)  )
 ;;       (insert class-name))))
 
-(defadvice ac-selected-candidate  (around ajc ) ""
-  ad-do-it
-  (let* ((original-return-string ad-return-value)
-         (value (gethash original-return-string
-                         ajc-full-short-candidate-hashmap)))
-    (when value
-      (add-text-properties 0
-                           (length value)
-                           (text-properties-at 0 ad-return-value)
-                           value  )
-      (setq ad-return-value value ))
+;; (defadvice ac-selected-candidate  (around ajc ) ""
+;;   ad-do-it
+;;   (let* ((original-return-string ad-return-value)
+;;          (value (gethash original-return-string
+;;                          ajc-full-short-candidate-hashmap)))
+;;     (when value
+;;       (add-text-properties 0
+;;                            (length value)
+;;                            (text-properties-at 0 ad-return-value)
+;;                            value  )
+;;       (setq ad-return-value value ))
 
-    )
-  )
-(ad-activate 'ac-selected-candidate)
+;;     )
+;;   )
+;; (ad-activate 'ac-selected-candidate)
 
-(defadvice  ac-expand-common (before ajc-expand-common) ""
-  (when (and ac-common-part ajc-full-short-candidate-hashmap)
-      (setq ac-common-part
-            (gethash ac-common-part ajc-full-short-candidate-hashmap ac-common-part))
-      ))
-(ad-activate 'ac-expand-common)
+;; (defadvice  ac-expand-common (before ajc-expand-common) ""
+;;   (when (and ac-common-part ajc-full-short-candidate-hashmap)
+;;       (setq ac-common-part
+;;             (gethash ac-common-part ajc-full-short-candidate-hashmap ac-common-part))
+;;       ))
+;; (ad-activate 'ac-expand-common)
 
 (provide 'ajc-java-complete-config)
 
