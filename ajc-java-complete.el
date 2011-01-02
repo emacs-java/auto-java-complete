@@ -134,6 +134,13 @@
 ;;  2. you should have installed  auto-complete and yasnippet.
 ;;     about how to install and config them ,you should find
 ;;     it on the net.
+;;     after installed auto-complete ,you should do some
+;;       patch on auto-complete-1.3/popup.el
+;;       tow choice :
+;;        1. put the popup.el into auto-complete-1.3/ (recommand)
+;;        2. cd auto-complete-1.3/
+;;           patch -p0 <popup-patch.diff
+
 
 ;;  3. then  add this lines  in .emacs
 
