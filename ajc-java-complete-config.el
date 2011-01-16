@@ -43,7 +43,7 @@
   '((candidates . (ajc-complete-constructor-candidates ))
    (cache)
    (prefix . "\\bnew[ \t]+\\([A-Z][a-zA-Z0-9_]*[ \t]*(?\\)")
-   (action . ajc-expand-constructor-yasnippet-templete-with-ac)
+   (action . ajc-expand-yasnippet-templete-with-ac)
 ))
 
 (ac-define-source ajc-method
@@ -51,40 +51,21 @@
   (cache)
   (requires . 0)
   (prefix . "\\.\\(.*\\)") 
-  (action .  ajc-expand-method-yasnippet-templete-with-ac)
+  (action .  ajc-expand-yasnippet-templete-with-ac)
 ))
 
 (ac-define-source ajc-keywords
   '((candidates . (ajc-java-keywords-candidates))
 ) )
+
+
 ;; end of sources
 
-
-;;;; actions after complete 
-;;action after finished complete constructor.
-;;it will try to find out the  templete from  a hashtable
-;;named `ajc-constructor-templetes-4-yasnippet' for the
-;;last-complete if found ,expand it  use yasnippet; if not
-;;do nothing.
-
-(defun ajc-expand-constructor-yasnippet-templete-with-ac ()
+(defun ajc-expand-yasnippet-templete-with-ac ()
   (let* ((last-complete-string (cdr ac-last-completion))
          (yasnippet-templete (get-text-property 0 'templete last-complete-string)))
     (when  yasnippet-templete
       (delete-backward-char (length last-complete-string))
-      (yas/expand-snippet yasnippet-templete))))
-
-
-;;action after finished complete constructor.
-;;it will try to find out the  templete from  a hashtable
-;;named `ajc-method-templetes-4-yasnippet' for the
-;;last-complete if found ,expand it  use yasnippet; if not
-;;do nothing.
-(defun ajc-expand-method-yasnippet-templete-with-ac ()
-  (let* ((last-complete-string (cdr ac-last-completion))
-         (yasnippet-templete (get-text-property 0 'templete last-complete-string)))
-    (when yasnippet-templete
-      (delete-backward-char (length last-complete-string)  )
       (yas/expand-snippet yasnippet-templete))))
 
 ;; (defun ajc-remove-package-name-when-complete-class-with-ac ()
