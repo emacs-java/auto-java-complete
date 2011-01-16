@@ -55,6 +55,7 @@
 ;;}}}
 
 ;;{{{ Features 
+
 ;;; Features
 
 ;; 1. support importing.
@@ -97,6 +98,7 @@
                                       
 ;; 5. support complete constructor
 ;;    after keyword 'new' it would try to complete constructor
+
 ;;}}}
 
 ;;{{{ Install 
@@ -857,7 +859,6 @@ tag buffer file "
 (defun ajc-import-package-candidates(  )
   "this function is the candidates , so you can bind it with a key sequence 
   it will return a list, for example '( java.lang ,java.ref)" 
-  (interactive )
   (save-excursion 
     (let* (  (package-prefix ) (class-prefix )
             (line-string   (buffer-substring-no-properties (line-beginning-position) (point)))
@@ -956,12 +957,10 @@ what you need to do next, is just import the unimported class  "
 )
 
 (defun ajc-import-all-unimported-class ()
-     (interactive)
     (ajc-insert-import-at-head-of-source-file (ajc-caculate-all-unimported-class-items) )
 )
 
 (defun ajc-import-class-under-point ( )
-  (interactive)
   (let ((cur-word (current-word))  )
     (when (and cur-word  (> (length cur-word) 0)   )
       (if (string-match "[^a-zA-Z0-9_]\\([a-zA-Z0-9_]+\\)$" cur-word)
@@ -1085,7 +1084,6 @@ return a list of each line string (exclude keyword 'import') "
 
 
 (defun ajc-complete-constructor-candidates ()
-  (interactive)
   (let ((return-matched-list));;if find keyword:new ,then do constructor complete ,then do class complete
     (setq case-fold-search nil)
     (if (looking-back "\\bnew[ \t]+\\([A-Z][a-zA-Z0-9_]*\\)[ \t]*([ \t]*"  (line-beginning-position) )
@@ -1158,7 +1156,6 @@ return a list of each line string (exclude keyword 'import') "
 
 (defun ajc-complete-class-candidates () 
   "complete class name with (current-word) as class-prefix"
-  (interactive)
   (when (ajc-is-available-4-complete-class-p)
     (let ((candidate)(candidates)
           (class-items (ajc-complete-class-with-cache ajc-current-class-prefix-4-complete-class)))
@@ -1267,7 +1264,6 @@ empty string it will return all members under class-item"
   )
 
 (defun ajc-complete-method-candidates ()
-  (interactive)
   (let( (stack-list  (ajc-parse-splited-line-4-complete-method)) (is-dot-last)
       (top) (return-list)(return-string-list nil) )
     ( if (and stack-list (> (length stack-list) 0))
