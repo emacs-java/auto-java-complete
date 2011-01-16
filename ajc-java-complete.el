@@ -632,7 +632,11 @@ we may stop complete class depending on this variable . " )
   (setq ajc-tag-file (file-truename (expand-file-name ajc-tag-file  )))
   (if (file-exists-p  ajc-tag-file)
       (progn 
-            (setq ajc-tag-buffer (find-file-noselect ajc-tag-file ) ) 
+            (setq ajc-tag-buffer  )
+            (with-current-buffer (find-file-noselect ajc-tag-file )
+              ;; a buffer name starts with empth string,means hidden this buffer
+              (rename-buffer " *java-base.tag*")
+              (setq ajc-tag-buffer " *java-base.tag*"))
             (with-current-buffer ajc-tag-buffer 
               (setq ajc-package-first-ln  (string-to-number (ajc-read-line 3)) )
               (setq ajc-class-first-ln    (string-to-number  (ajc-read-line 4) ))
@@ -651,7 +655,11 @@ we may stop complete class depending on this variable . " )
   "check if the ajc-tag-buffer is still live ,if not reload it "
   (if (not ajc-tag-buffer) (ajc-init) )
   (if  (not (buffer-live-p ajc-tag-buffer) )
-      (setq ajc-tag-buffer (find-file-noselect  ajc-tag-file))
+      (with-current-buffer (find-file-noselect ajc-tag-file)
+              ;; a buffer name starts with empth string,means hidden this buffer
+              (rename-buffer " *java-base.tag*")
+              (setq ajc-tag-buffer " *java-base.tag*") )
+;;      (setq ajc-tag-buffer (find-file-noselect  ajc-tag-file))
     ajc-tag-buffer))
 
 (defun ajc-find-out-matched-pkg-item (pkg-prefix
