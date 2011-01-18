@@ -236,13 +236,13 @@ and  use this class like this
   :type 'string
   :group 'ajc-java-complete)
 
-(defcustom ajc-show-more-info-when-complete-class-and-method t
-" when this is not null ,then when
-  complete class it will show it's package behand class name,
-  when complete method it will show return type and Exceptions,
-  but you must press more times  `<RET>' to active the action
-  after completion to remove the unneeded package name ,return type."
-  )
+;; (defcustom ajc-show-more-info-when-complete-class-and-method t
+;; " when this is not null ,then when
+;;   complete class it will show it's package behand class name,
+;;   when complete method it will show return type and Exceptions,
+;;   but you must press more times  `<RET>' to active the action
+;;   after completion to remove the unneeded package name ,return type."
+;;   )
 ;(setq ajc-show-more-info-when-complete-class-and-method t)
 
 (defcustom ajc-default-length-of-class 36
@@ -310,14 +310,13 @@ it is the last line number in tag file" )
 ;;  it will save current class-name in this variable ,so
 ;;  (ajc-complete-constructor-candidates) can reuse it.")
 
-(defvar ajc-is-importing-packages-p nil
-"when importing packages,if current-word is a class Name
-(start with [A-Z]) , then it will trigger the complete of
-class name ,and stop the importing of package .to stop it I
-add this variable , if it ni not null then we know it is trying
-to import packages, so in (ajc-complete-class-candidates)
-we may stop complete class depending on this variable . " )
-
+;; (defvar ajc-is-importing-packages-p nil
+;; "when importing packages,if current-word is a class Name
+;; (start with [A-Z]) , then it will trigger the complete of
+;; class name ,and stop the importing of package .to stop it I
+;; add this variable , if it ni not null then we know it is trying
+;; to import packages, so in (ajc-complete-class-candidates)
+;; we may stop complete class depending on this variable . " )
 
 (defun ajc-goto-line ( line-num &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -493,19 +492,21 @@ we may stop complete class depending on this variable . " )
       )
     method-string ) )
 
-(defun ajc-class-to-string(class-item)
+(defun ajc-class-to-string(class-item &optional  with-package-name-append)
   (let* ((class-string (car class-item)) (len (length class-string)))
-    (when ajc-show-more-info-when-complete-class-and-method
+    (when with-package-name-append
       (if (< len ajc-default-length-of-class )
           (setq class-string
                 (concat class-string
                         (make-string (- ajc-default-length-of-class len ) 32 )));;32 mean whitespace
         (setq class-string (concat class-string "     ")) )
-      (setq class-string (concat class-string  (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item)))))
+      (setq class-string (concat class-string ajc-return-type-char
+                                 (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item)))))
       )
     class-string
     )
   )
+
 ;; (yas/expand-snippet(ajc-method-to-yasnippet-templete    (car 
 ;; (ajc-find-members (car  (ajc-find-out-matched-class-item-without-package-prefix "FileWriter" t )) "write" ))))
 ;; (ajc-method-to-string    (car 
@@ -942,7 +943,7 @@ tag buffer file "
               (dolist ( element  (ajc-find-out-matched-class-item package-prefix class-prefix))
                 (add-to-list 'matched-pkg-strings (concat package-prefix "." (car element))))            
               )))
-        (setq ajc-is-importing-packages-p t)
+;;        (setq ajc-is-importing-packages-p t)
         (setq ajc-previous-matched-import-prefix prefix-string) ;;
         (setq  ajc-matched-import-cache-list matched-pkg-strings)
         ) ) ) )
@@ -1200,23 +1201,33 @@ return a list of each line string (exclude keyword 'import') "
  return-complete-list))
 
 
+;; (defun ajc-is-available-4-complete-class-p ()
+;;   "only when this function return t ,then ajc-complete-class-candidates
+;;     will try to find out candidates  "
+;;   (let  (    (is-available nil) (class-prefix (current-word) )
+;;              (current-line-string) )
+;;     (setq case-fold-search nil)
+;;     (when  ajc-is-importing-packages-p ;;when it is t ,check out if it is really importing packages.
+;;           (save-excursion (setq current-line-string ( ajc-read-line (line-number-at-pos (point))) ))
+;;           (when (not (string-match "\\bimport\\b"  current-line-string) )
+;;           (setq ajc-is-importing-packages-p nil) )
+;;         )
+;;     (if (not ajc-is-importing-packages-p)
+;;         (when  (and class-prefix  (> (length class-prefix ) 0) (string-match "^[A-Z][a-zA-Z0-9_]*$" class-prefix))
+;;            (setq ajc-current-class-prefix-4-complete-class class-prefix) 
+;;            (setq is-available t)) 
+;;         )
+;;     is-available
+;;     ) )
 (defun ajc-is-available-4-complete-class-p ()
   "only when this function return t ,then ajc-complete-class-candidates
     will try to find out candidates  "
-  (let  (    (is-available nil) (class-prefix (current-word) )
-             (current-line-string) )
+  (let ((class-prefix (current-word)) (is-available))
     (setq case-fold-search nil)
-    (when  ajc-is-importing-packages-p ;;when it is t ,check out if it is really importing packages.
-          (save-excursion (setq current-line-string ( ajc-read-line (line-number-at-pos (point))) ))
-          (when (not (string-match "^[ \t]*import\\b"  current-line-string) )
-          (setq ajc-is-importing-packages-p nil) )
-        )
-    (if (not ajc-is-importing-packages-p)
         (when  (and class-prefix  (> (length class-prefix ) 0) (string-match "^[A-Z][a-zA-Z0-9_]*$" class-prefix))
            (setq ajc-current-class-prefix-4-complete-class class-prefix) 
            (setq is-available t)) 
-        )
-    (setq is-available is-available)
+    is-available
     ) )
 
 
@@ -1228,11 +1239,12 @@ return a list of each line string (exclude keyword 'import') "
       (dolist (class-item class-items)
         (setq candidate  (car class-item))
         (setplist 'props nil )
-        (put 'props 'view (ajc-class-to-string class-item))
+        (put 'props 'view (ajc-class-to-string class-item t))
         (add-text-properties 0 (length candidate) (symbol-plist  'props)  candidate)
         (add-to-list 'candidates candidate t)
      ) candidates
-      ) ))
+      )
+    ))
 
 
 (defun ajc-complete-class-with-cache ( class-prefix )
