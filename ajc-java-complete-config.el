@@ -12,31 +12,46 @@
 (defun ajc-java-complete-hook ()
   (ajc-init-when-load-first-java-file)
     (setq ac-sources (append 
-                      '( ac-source-ajc-class
-                         ac-source-ajc-import 
-                         ac-source-ajc-constructor 
-                         ac-source-ajc-method
-                         ac-source-ajc-keywords ) ac-sources))
+                      '(ac-source-ajc-import
+                        ac-source-ajc-constructor 
+                        ac-source-ajc-class
+                        ac-source-ajc-method
+                        ac-source-ajc-keywords ) ac-sources))
 ;; auto import all Class in source file    
 (local-set-key (kbd "C-c i") (quote ajc-import-all-unimported-class))
 ;; import Class where under point 
 (local-set-key (kbd "C-c m") (quote ajc-import-class-under-point))
     )
 
-(add-hook 'java-mode-hook 'ajc-java-complete-hook)
+(add-hook 'java-mode-hook 'ajc-java-complete-hook t)
 ;(add-hook 'emacs-lisp-mode-hook 'ajc-java-complete-hook)
 
+;;    if you want Auto Java Complete works  when you edit
+;;    jsp file ,you just need to do something like this
+;;   (add-hook 'nxml-mode-hook 'ajc-java-complete-hook t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;add support for jsp when import ,but you should trigger it by key-binding
+;;for example (define-key ac-mode-map (kbd "M-1") 'auto-complete)
+;;<%@ page language="java" import="java.io.File,java.util.Map,javax.sw-|-"%>
+(defun prefix-support-jsp-importing ()
+  (when   (re-search-backward "\\(import=\"\\(.*[ \t\n]*,[ \t\n]*\\)*\\)\\|\\(import[ \t]+\\)"  nil t)
+    (match-end 0))
+  )
 ;; sources for auto complete
 (ac-define-source ajc-import
   '((candidates . (ajc-import-package-candidates))
-   (prefix . "^[ \t]*import[ \t]+\\(.*\\)") 
-))
+;;    (prefix . "\\bimport[ \t]+\\(.*\\)")
+    (prefix . prefix-support-jsp-importing )
+    ))
 
 (ac-define-source ajc-class
   '((candidates . (ajc-complete-class-candidates ))
    (prefix . "\\b\\([A-Z][a-zA-Z0-9_]*\\)")
    (cache)
-;   (action . ajc-remove-package-name-when-complete-class-with-ac)
 ))
 
 (ac-define-source ajc-constructor
@@ -67,36 +82,6 @@
     (when  yasnippet-templete
       (delete-backward-char (length last-complete-string))
       (yas/expand-snippet yasnippet-templete))))
-
-;; (defun ajc-remove-package-name-when-complete-class-with-ac ()
-;;   (let* ((last-complete-string (cdr ac-last-completion))
-;;          (class-name (gethash last-complete-string ajc-class-name-candidates-hashmap )))
-;;     (when class-name
-;;      (delete-backward-char (length last-complete-string)  )
-;;       (insert class-name))))
-
-;; (defadvice ac-selected-candidate  (around ajc ) ""
-;;   ad-do-it
-;;   (let* ((original-return-string ad-return-value)
-;;          (value (gethash original-return-string
-;;                          ajc-full-short-candidate-hashmap)))
-;;     (when value
-;;       (add-text-properties 0
-;;                            (length value)
-;;                            (text-properties-at 0 ad-return-value)
-;;                            value  )
-;;       (setq ad-return-value value ))
-
-;;     )
-;;   )
-;; (ad-activate 'ac-selected-candidate)
-
-;; (defadvice  ac-expand-common (before ajc-expand-common) ""
-;;   (when (and ac-common-part ajc-full-short-candidate-hashmap)
-;;       (setq ac-common-part
-;;             (gethash ac-common-part ajc-full-short-candidate-hashmap ac-common-part))
-;;       ))
-;; (ad-activate 'ac-expand-common)
 
 (provide 'ajc-java-complete-config)
 

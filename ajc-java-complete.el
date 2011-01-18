@@ -27,9 +27,15 @@
 
 ;;}}}
 
-;;{{{ Commentary 
+;;{{{ Summary
+;;;this is "Auto Java Complete".
+;;; read README.txt  first .
 
-;;; Commentary:
+;; you can download a Video demo (2.8M) 
+
+;; actually the default config is in ajc-java-complete.el file ,just load it ,or write 
+;; your own config file if you don't want to  use auto-complete.
+
 
 ;;1. it depends on auto complete ,so it would complete
 ;;   everything by dropdowning a menu.
@@ -43,42 +49,43 @@
 ;;   so that you can jump from a paramter to another one .
 
 ;;4. when completing method ,it can show return type behind
-;;   each candidate on dropdown menu. but there is a problem:
-;;   because auto complete 1.3 now would treat all the string
-;;   on the dropdown-menu row as the candidates ,so I must
-;;   find a way to delete the return type string . I use the
-;;   'action' property of ac-source to do it. so you need
-;;   always  press <RET> to active the 'action function'
-;;   you can choose do not showing return type by customing
-;;   ajc-show-more-info-when-complete-class-and-method  .
+;;   each candidate on dropdown menu.
+;;   I want to show
+;;       toString() :String         on menu ,but just insert
+;;       toString()                 in buffer ,
+;;   but there is a problem:
+;;   auto complete 1.3 now doesn't support it .
+;;   I patched  popup.el in auto-complete-1.3/  ,
+;;   the patched file is ajc-java-complete/popup.el, please
+;;   put this file into auto-complete-1.3/ ,or use
+;;      ajc-java-complete/popup-patch.diff
+;;
+;;      cp  ajc-java-complete/popup-patch.diff auto-complete-1.3/
+;;      cd auto-complete-1.3/
+;;      patch -p0 < popup-patch.diff
+;;}}} 
 
-;;}}}
-
-;;{{{ Features 
-
-;;; Features
-
+;;{{{ Features
 ;; 1. support importing.
 ;;    when you type in  import javax.s
 ;;    it would drop down a menu like this
-;;               import  javax.s
-;;                       javax.sql
-;;                       javax.swing
-;;                       javax.sound
-;;                       
+;;             import  javax.s
+
+;;                     javax.sql
+;;                     javax.swing
+;;                     javax.sound
+                       
 ;; 2. support import class with keybindings
-;;         auto import all Class in source file
-;;
+;;         auto import all Class in source file    
 ;;    (local-set-key (kbd "C-c i") (quote ajc-import-all-unimported-class))
 ;;         import Class where under point 
 ;;    (local-set-key (kbd "C-c m") (quote ajc-import-class-under-point))
-;;
-;;
+
 ;; 3. support completing class name ,you just need  typing
 ;;    in a Word beginning with [A-Z] ,then it would auto find
 ;;    matched class and list it with dropdown menu.
-;;
-;;
+
+
 ;; 4. support complete method.
 ;;    for example
 ;;    List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
@@ -99,11 +106,26 @@
 ;; 5. support complete constructor
 ;;    after keyword 'new' it would try to complete constructor
 
-;;}}}
 
-;;{{{ Install 
+;; 6. support completing in jsp files.
+      
+;;    if you want Auto Java Complete works  when you edit
+;;    jsp file ,you just need to do something like this
+      
+;;      (add-hook 'nxml-mode-hook 'ajc-java-complete-hook t)
+      
+;;    now it can complete class name,method ,constructor
+;;    it also support complete importing ,but it isn't auto completed,
+;;    you must trigger it by a key binding
+;;    for example (define-key ac-mode-map (kbd "M-1") 'auto-complete)
+;;    <%@ page language="java" import="java.io.File,java.util.Map,javax.sw-|-"%>
+;;    now you can  press M-1 to show the menu.
+;;    it does not support importing Class(importing Class under point
+;;    ,and importing all Class in buffer) by keybinding ,I will try to make
+;;    it work later.
+;;}}} 
 
-;;; Install
+;;{{{ Install
 
 ;; 1. generate the tag file .
 ;;
@@ -142,7 +164,7 @@
 ;;        1. put the popup.el into auto-complete-1.3/ (recommand)
 ;;        2. cd auto-complete-1.3/
 ;;           patch -p0 <popup-patch.diff
-
+            
 
 ;;  3. then  add this lines  in .emacs
 
@@ -152,12 +174,43 @@
 ;;     read ajc-java-complete-config.el  for more info .
 
 ;;     restart your emacs ,and enjoy.
-
 ;;}}}
 
-;; actually the default config is in ajc-java-complete.el file ,just load it ,or write 
-;; your own config file if you don't want to  use auto-complete.
+;;{{{ History
+;; tag 0.2.2
+;;     support completion in jsp files.
+    
+;;     if you want Auto Java Complete works  when you edit
+;;     jsp file ,just need to do something like this
+    
+;;       (add-hook 'nxml-mode-hook 'ajc-java-complete-hook t)
+      
+;;     now it can complete class name,method ,constructor
+;;     it also support complete importing ,but it isn't auto completed,
+;;     you must trigger it by a key binding
+;;     for example (define-key ac-mode-map (kbd "M-1") 'auto-complete)
+;;     <%@ page language="java" import="java.io.File,java.util.Map,javax.sw-|-"%>
+;;     now you can  press M-1 to show the menu.
+    
+;;     it does not support importing Class(importing Class under point
+;;     ,and importing all Class in buffer) by keybinding ,I will try to make
+;;     it works later.
 
+
+;; tag 0.2.1  same to tag 0.2 ,just add comments in README .
+
+;; tag 0.2
+;;    add popup.el and popup-patch.diff
+;;    support of showing return type behind each method candidate ,
+;;    by make a patch on auto-complete-1.3/popup.el
+   
+
+;; tag 0.1.1
+;;    add support of showing return type behind each method candidate,
+;;    by define an advice on  (ac-expand-common) and (ac-selected-candidates)
+;;    but if auto-complete.el is byte-compiled ,this advice doesn't work
+;;}}}   
+;;---------------------------------------------
 ;;; Code.
 
 (defgroup ajc-java-complete nil
@@ -825,7 +878,7 @@ then we search AbstractC ,we just need to search line number from 1 3 "
 (defun ajc-build-map-4-search-class (two-char-prefix ajc-tmp-sorted-class-buffer  start-search-line-num)
   "suppose two-char-prefix is 'Ab' and ajc-tmp-sorted-class-buffer is the buffer
  ,all lines in it is the classname has been sorted by classname 
-(it is cut from tag file between ajc-class-first-ln and ajc-member-first-ln ,and sorted by (sort-lines))
+it is cut from tag file between ajc-class-first-ln and ajc-member-first-ln ,and sorted by (sort-lines)
 then this function is try to find out className begin with two-char-prefix ,and got the start line-number 
 and end-line-number ,record in a list ,when search class name begin with two-char-prefix ,we just need to
 find it from the start line number to the end line number ,it is faster than directly searching the unsorted 
@@ -863,35 +916,35 @@ tag buffer file "
          (setq return-item return-item) )
 ))
 
-
 (defun ajc-import-package-candidates(  )
   "this function is the candidates , so you can bind it with a key sequence 
-  it will return a list, for example '( java.lang ,java.ref)" 
+  it will return a list, for example `( java.lang ,java.ref)"
   (save-excursion 
-    (let* (  (package-prefix ) (class-prefix )
-            (line-string   (buffer-substring-no-properties (line-beginning-position) (point)))
-            (matched-list nil) (matched-pkg-items)(matched-class-items)
-            (index_of_last_dot))
+    (let* ( (prefix-string) (matched-pkg-strings) )
       (setq case-fold-search nil)
-      (when (string-match "^[ \t]*import[ \t]+\\([a-zA-Z_0-9_\\.]+\\)" line-string)
-        (setq line-string  (match-string-no-properties 1 line-string))
-        (when (and ajc-matched-import-cache-list  
-                   (string-match (concat "^"  ajc-previous-matched-import-prefix   ) line-string ) )
-          ;;if there are some items in cache list then try to find out from it 
-          (dolist (element ajc-matched-import-cache-list)
-            (if (string-match  (regexp-quote line-string)   element) (add-to-list 'matched-list element) ) ))
-        (when (= (length matched-list ) 0 ) ;;if there are 0 matched in cache then find it out from tag files 
-          (setq matched-pkg-items (ajc-shrunk-matched-pkgs line-string  (ajc-find-out-matched-pkg-item line-string) ) ) 
-          (setq index_of_last_dot    (string-match "\\.[a-zA-Z_0-9]*$" line-string))
-          (when index_of_last_dot
-            (setq package-prefix (substring-no-properties line-string 0 index_of_last_dot))
-            (setq class-prefix (substring-no-properties line-string (+ 1 index_of_last_dot)  ))
-            (setq matched-class-items (ajc-find-out-matched-class-item package-prefix class-prefix)) ) 
-          (setq matched-list   (append matched-list matched-pkg-items))
-          (dolist ( element matched-class-items )(add-to-list 'matched-list (concat package-prefix "." (car element)))))
+      (when
+          (re-search-backward ;;search import string in java file or jsp file ,now support jsp 
+           "\\(?:\\(?:import=\"\\(?:.*[ \t\n]*,[ \t\n]*\\)*\\)\\|\\(?:import[ \t]+\\)\\)\\([a-zA-Z0-9_\\.]*\\)"
+           nil t)
+        (setq prefix-string (match-string-no-properties 1 ))
+        (when (and ajc-matched-import-cache-list  ;;first try completion from cache 
+                   (string-match (concat "^"  ajc-previous-matched-import-prefix   ) prefix-string ) )
+          (setq matched-pkg-strings (all-completions prefix-string ajc-matched-import-cache-list)))
+        (when (= (length matched-pkg-strings ) 0 ) ;;if there are 0 matched in cache then find it out from tag files 
+          (setq matched-pkg-strings ;;add pkgs 
+                (append matched-pkg-strings
+                        (ajc-shrunk-matched-pkgs prefix-string  (ajc-find-out-matched-pkg-item prefix-string) )))
+          (let* ((index_of_last_dot (string-match "\\.[a-zA-Z_0-9]*$" prefix-string));;add classes
+                 (package-prefix)(class-prefix))
+            (when index_of_last_dot
+              (setq package-prefix (substring-no-properties prefix-string 0 index_of_last_dot))
+              (setq class-prefix (substring-no-properties prefix-string (+ 1 index_of_last_dot)  ))
+              (dolist ( element  (ajc-find-out-matched-class-item package-prefix class-prefix))
+                (add-to-list 'matched-pkg-strings (concat package-prefix "." (car element))))            
+              )))
         (setq ajc-is-importing-packages-p t)
-        (setq ajc-previous-matched-import-prefix line-string) ;;
-        (setq  ajc-matched-import-cache-list matched-list)
+        (setq ajc-previous-matched-import-prefix prefix-string) ;;
+        (setq  ajc-matched-import-cache-list matched-pkg-strings)
         ) ) ) )
 
 (defun ajc-find-out-class-by-parse-source ()
@@ -965,10 +1018,12 @@ what you need to do next, is just import the unimported class  "
 )
 
 (defun ajc-import-all-unimported-class ()
+  (interactive)
     (ajc-insert-import-at-head-of-source-file (ajc-caculate-all-unimported-class-items) )
 )
 
 (defun ajc-import-class-under-point ( )
+  (interactive)
   (let ((cur-word (current-word))  )
     (when (and cur-word  (> (length cur-word) 0)   )
       (if (string-match "[^a-zA-Z0-9_]\\([a-zA-Z0-9_]+\\)$" cur-word)
@@ -1040,7 +1095,6 @@ before that it will use y-or-n-p ask user to confirm "
                          (insert (concat "import "
                                            (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 ele )))
                                             "." (car  ele) ";\n"))) ))) )))) )
-
 (defun ajc-find-out-import-line ()
  "make a regex to match the packages in the import statements ,
 return a list of each line string (exclude keyword 'import') "
@@ -1051,12 +1105,16 @@ return a list of each line string (exclude keyword 'import') "
         (let* (  (class-start (save-excursion
            (re-search-forward
             "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[\n \t]*\\({\\|extends\\|implements\\)\\)" nil 't))))
-          (if (not class-start)
-              (error "this not a java class or interface") )
-          (while (re-search-forward "^[ \t]*import[ \t]+\\([a-zA-Z0-9_\\.\\*]+\\)[ \t]*;" class-start 't)
-            (add-to-list 'imported-lines  (match-string-no-properties 1))
-            (end-of-line)))) )
-    (setq imported-lines imported-lines) ))
+          (if class-start ;;if found class or interface key words ,then this is a java file  ,if not  it is a jsp file 
+              (while (re-search-forward "^[ \t]*import[ \t]+\\([a-zA-Z0-9_\\.\\*]+\\)[ \t]*;" class-start 't)
+                (add-to-list 'imported-lines  (match-string-no-properties 1))
+                (end-of-line))
+            ;;may be this is a jsp file
+            (while (re-search-forward "\\bimport=\"\\(.*\\)[ \t]*\"[ \t]+"  (point-max) 't)
+              (setq imported-lines (append imported-lines  (split-string (match-string-no-properties 1) "[ \t,]" t) ))
+              (end-of-line))
+               ))))
+    imported-lines ))
 
 (defun ajc-caculate-all-imported-class-items (&optional exclude_java_lang)
   "find out all imported class  ,default include class in java.lang.*"
@@ -1449,6 +1507,3 @@ then this function split it to
 (provide 'ajc-java-complete)
 
 ;; End.
-
-
-
