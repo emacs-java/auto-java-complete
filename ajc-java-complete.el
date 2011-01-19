@@ -66,6 +66,7 @@
 ;;}}} 
 
 ;;{{{ Features
+
 ;; 1. support importing.
 ;;    when you type in  import javax.s
 ;;    it would drop down a menu like this
@@ -123,6 +124,7 @@
 ;;    it does not support importing Class(importing Class under point
 ;;    ,and importing all Class in buffer) by keybinding ,I will try to make
 ;;    it work later.
+
 ;;}}} 
 
 ;;{{{ Install
@@ -952,7 +954,7 @@ tag buffer file "
   "find out class in current  java source file, then will import  them if they haven't been imported   "
   (save-excursion 
     (save-match-data
-      (let* ( (matched-class-strings)
+      (let ((matched-class-strings)
             (return-type-regexp  "\\(\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\| *\t*\\[ *\t*]\\)+\\)" )
             (split-char-regexp "\\(,\\|<\\|>\\|]\\|\\[\\| \\|\t\\|\n\\)") );;a list of split char like ", \t<>[]"
        (goto-char (point-min))  (setq case-fold-search nil)
@@ -963,11 +965,11 @@ tag buffer file "
           (setq matched-class-strings (append matched-class-strings  (list(match-string-no-properties 1 )))))
         (goto-char (point-min))
         (while   (search-forward-regexp     "\\([a-zA-Z0-9_]+\\)\\.getInstance[ \t]*(" (point-max) 't)
-          (setq matched-class-strings (append matched-class-strings  (list(match-string-no-properties 1 )))))
+          (setq matched-class-strings (append matched-class-strings  (list (match-string-no-properties 1)))))
        (goto-char (point-min))
         ;;find out all statement of variable ,for example
         ;; String name;      Map<String,<String,Ojbect>>[] map=  
-        (while (search-forward-regexp       "^[ \t]*\\(public\\|private\\|static\\|final\\|native\\|synchronized\\|transient\\|volatile\\|strictfp\\| \\|\t\\)*\\(\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\| *\t*\\[ *\t*]\\)+\\)[ \t]+[a-zA-Z0-9_]+[ \t]*[;=]"  (point-max) 't)
+        (while (search-forward-regexp       "^[ \t]*\\(public\\|private\\|static\\|final\\|native\\|synchronized\\|transient\\|volatile\\|strictfp\\| \\|\t\\)*\\([A-Z]\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\| *\t*\\[ *\t*]\\)+\\)[ \t]+[a-zA-Z0-9_]+[ \t]*[;=]"  (point-max) 't)
           (setq matched-class-strings (append matched-class-strings  (split-string (match-string-no-properties 2 ) split-char-regexp  t))) )
        (goto-char (point-min));; find ClassName after "catch" keywords  for example :catch(IOException e )
         (while   (search-forward-regexp "catch[ \t]*(\\([a-zA-Z0-9_]+\\)[ \t]+"  (point-max) 't)
@@ -1003,20 +1005,35 @@ tag buffer file "
   "this function will find out all unimported Class itmes , it just do a subtration 
    (ajc-find-out-class-by-parse-source) -(ajc-caculate-all-imported-class-items) 
 what you need to do next, is just import the unimported class  "
-  (let ((imported-class-items (ajc-caculate-all-imported-class-items)   ) 
-         (class-strings-in-source (ajc-find-out-class-by-parse-source) )  
-         (unimported-class-items )(ele ) )
-           (dolist (ele class-strings-in-source)
-                   (let ((is_class_hava_imported) (index 0)) 
-                     (while  (and (< index (length imported-class-items)) (not is_class_hava_imported) ) 
-                           (if (string-equal ele  (car (nth index imported-class-items))) 
-                               (setq  is_class_hava_imported t))  (setq index (+ index 1))  )
-                     (if (not is_class_hava_imported) 
-                      (setq unimported-class-items
-;                           (append unimported-class-items (ajc-find-out-matched-class-item nil ele t ))))))
-                    (append unimported-class-items   (ajc-find-out-matched-class-item-without-package-prefix ele t)  )))))
-           (setq unimported-class-items unimported-class-items));; return
-)
+  (let ((imported-class-names (mapcar 'car (ajc-caculate-all-imported-class-items)))
+        (class-names-in-source (ajc-find-out-class-by-parse-source))  
+        (unimported-class-items))
+    (print class-names-in-source)
+    (dolist (ele class-names-in-source)
+      (unless (member ele imported-class-names)
+        (setq unimported-class-items
+              (append unimported-class-items
+                      (ajc-find-out-matched-class-item-without-package-prefix ele t)))))
+    unimported-class-items))
+
+;; (defun ajc-caculate-all-unimported-class-items()
+;;   "this function will find out all unimported Class itmes , it just do a subtration 
+;;    (ajc-find-out-class-by-parse-source) -(ajc-caculate-all-imported-class-items) 
+;; what you need to do next, is just import the unimported class  "
+;;   (let ((imported-class-items (ajc-caculate-all-imported-class-items)   ) 
+;;          (class-strings-in-source (ajc-find-out-class-by-parse-source) )  
+;;          (unimported-class-items )(ele ) )
+;;            (dolist (ele class-strings-in-source)
+;;                    (let ((is_class_hava_imported) (index 0)) 
+;;                      (while  (and (< index (length imported-class-items)) (not is_class_hava_imported) ) 
+;;                            (if (string-equal ele  (car (nth index imported-class-items))) 
+;;                                (setq  is_class_hava_imported t))  (setq index (+ index 1))  )
+;;                      (if (not is_class_hava_imported) 
+;;                       (setq unimported-class-items
+;; ;                           (append unimported-class-items (ajc-find-out-matched-class-item nil ele t ))))))
+;;                     (append unimported-class-items   (ajc-find-out-matched-class-item-without-package-prefix ele t)  )))))
+;;            (setq unimported-class-items unimported-class-items));; return
+;; )
 
 (defun ajc-import-all-unimported-class ()
   (interactive)
@@ -1074,8 +1091,18 @@ before that it will use y-or-n-p ask user to confirm "
     (let* ((class-start (save-excursion
                 (re-search-forward
                  "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[ \t\n]*\\({\\|extends\\|implements\\)\\)"  nil 't))))
-      (if (not class-start)(error "this not a java class or interface ") )
-      (if(re-search-forward "^[ \t]*import[ \t]+[a-zA-Z0-9_\\.\\*]+[ \t]*;" class-start 't) 
+      (if (not class-start);; then this is a jsp file
+          (let ((all-class-strings ""))
+            (dolist (class-item class-items)
+              (setq all-class-strings
+                    (concat all-class-strings
+                            (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 class-item ))) "." (car class-item)
+                            ",")))
+            (unless (string-equal "" all-class-strings);;delete last char ","
+                (setq all-class-strings (substring all-class-strings 0 (1- (string-width all-class-strings)))))
+            (goto-char (point-min))
+            (insert (concat "<%@ page import=\"" all-class-strings "\" %>\n"  )))
+        (if(re-search-forward "^[ \t]*import[ \t]+[a-zA-Z0-9_\\.\\*]+[ \t]*;" class-start 't) 
           ;;if find 'import' insert before it 
           (progn (beginning-of-line )(insert "\n")(forward-line -1)
              (dolist (ele class-items)(insert 
@@ -1095,7 +1122,8 @@ before that it will use y-or-n-p ask user to confirm "
                 (dolist (ele class-items)
                          (insert (concat "import "
                                            (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 ele )))
-                                            "." (car  ele) ";\n"))) ))) )))) )
+                                            "." (car  ele) ";\n"))) ))))
+           )))))
 (defun ajc-find-out-import-line ()
  "make a regex to match the packages in the import statements ,
 return a list of each line string (exclude keyword 'import') "
@@ -1111,7 +1139,7 @@ return a list of each line string (exclude keyword 'import') "
                 (add-to-list 'imported-lines  (match-string-no-properties 1))
                 (end-of-line))
             ;;may be this is a jsp file
-            (while (re-search-forward "\\bimport=\"\\(.*\\)[ \t]*\"[ \t]+"  (point-max) 't)
+            (while (re-search-forward "\\bimport=\"\\(.*?\\)[ \t]*\"[ \t]+"  (point-max) 't)
               (setq imported-lines (append imported-lines  (split-string (match-string-no-properties 1) "[ \t,]" t) ))
               (end-of-line))
                ))))
