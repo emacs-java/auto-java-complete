@@ -177,6 +177,14 @@
 ;;}}}
 
 ;;{{{ History
+;; tag  0.2.4
+;;      a litter change of tag file.
+;;      replace toString`25:784`` to   toString`784`` in tag file
+;;      package line 25 is not needn't now .
+;;      so the old tag file doesn't work with this version.
+;;      you need regenerate it by using Tags.java
+
+
 ;; tag 0.2.3
 ;;     support importing class under point ,and importing
 ;;     all class in buffer when editing jsp files 

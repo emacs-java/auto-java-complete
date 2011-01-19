@@ -28,6 +28,7 @@
 ;;}}}
 
 ;;{{{ Summary
+
 ;;;this is "Auto Java Complete".
 ;;; read README.txt  first .
 
@@ -63,6 +64,7 @@
 ;;      cp  ajc-java-complete/popup-patch.diff auto-complete-1.3/
 ;;      cd auto-complete-1.3/
 ;;      patch -p0 < popup-patch.diff
+
 ;;}}} 
 
 ;;{{{ Features
@@ -176,9 +178,17 @@
 ;;     read ajc-java-complete-config.el  for more info .
 
 ;;     restart your emacs ,and enjoy.
+
 ;;}}}
 
 ;;{{{ History
+;; tag  0.2.4
+;;      a litter change of tag file.
+;;      replace toString`25:784`` to   toString`784`` in tag file
+;;      package line 25 is not needn't now .
+;;      so the old tag file doesn't work with this version.
+;;      you need regenerate it by using Tags.java
+
 ;; tag 0.2.3
 ;;     support importing class under point ,and importing
 ;;     all class in buffer when editing jsp files 
@@ -380,19 +390,16 @@ it is the last line number in tag file" )
 
 (defun ajc-split-field (field-line-string)
   (let* ((field-item)
-    (field-line-string (substring-no-properties field-line-string 1))
-    (split-list (split-string  field-line-string "`"))
-    (return-type (nth 1 split-list)))
+         (field-line-string (substring-no-properties field-line-string 1))
+         (split-list (split-string  field-line-string "`"))
+         (return-type (nth 1 split-list)))
     ;;handle field name
     (add-to-list  'field-item  (car split-list) t)
     (if (string-match  "^~" return-type )
         (add-to-list 'field-item (substring-no-properties  return-type 1) t)
-      (progn (string-match ".*:\\(.*\\)"  return-type )  
-             (add-to-list 'field-item
-                          (ajc-split-class-item-by-class-ln 
-                           (string-to-number
-                            (match-string-no-properties 1 return-type))) t))) 
-  field-item ))
+      (add-to-list 'field-item (ajc-split-class-item-by-class-ln 
+                                (string-to-number return-type)) t))
+    field-item ))
 
 ;(ajc-field-to-string (ajc-split-field " in`24:691" ))
 (defun ajc-field-to-string (field-item &optional with-return-type)
@@ -522,9 +529,8 @@ it is the last line number in tag file" )
     (setq return-type (nth 1 split-list))
     (if (string-match  "^~" return-type )
         (add-to-list 'method-item (substring-no-properties  return-type 1) t)
-      (progn (string-match ".*:\\(.*\\)"  return-type )  
-             (add-to-list 'method-item  (ajc-split-class-item-by-class-ln 
-                      (string-to-number (match-string-no-properties 1 return-type ))) t)))
+      (add-to-list 'method-item  (ajc-split-class-item-by-class-ln 
+                                  (string-to-number return-type)) t))
     ;;handle params if exists
     (if (not  (string-equal "" (nth 2 split-list)))
         (let ((params)(param-split-list)) 
@@ -532,10 +538,8 @@ it is the last line number in tag file" )
           (dolist (param param-split-list)
             (if (string-match  "^~" param )
                 (setq params  (append  params  (list (substring-no-properties param 1 ))))
-              (progn 
-                (string-match ".*:\\(.*\\)"  param  )  
                 (setq params (append params (list (ajc-split-class-item-by-class-ln 
-                                                   (string-to-number (match-string-no-properties 1 param))))))))) 
+                                                   (string-to-number param)))))))
           (setq method-item (append method-item (list params)))) 
       (setq method-item (append method-item  (list ""))))
     (if (not  (string-equal "" (nth 3 split-list)))
@@ -544,10 +548,8 @@ it is the last line number in tag file" )
           (dolist (exception exception-split-list)
             (if (string-match  "^~" exception )
                 (setq exceptions  (append  exceptions  (list (substring-no-properties exception 1 ))))
-              (progn 
-                (string-match ".*:\\(.*\\)"  exception  )  
                 (setq exceptions (append exceptions (list (ajc-split-class-item-by-class-ln 
-                                      (string-to-number (match-string-no-properties 1 exception))))))))) 
+                                      (string-to-number exception)))))))
           (setq method-item (append method-item (list exceptions)))) 
       (setq method-item (append method-item  (list ""))))   
       method-item))
@@ -565,10 +567,8 @@ it is the last line number in tag file" )
           (dolist (param param-split-list)
             (if (string-match  "^~" param )
                 (setq params  (append  params  (list (substring-no-properties param 1 ))))
-              (progn 
-                (string-match ".*:\\(.*\\)"  param  )  
                 (setq params (append params (list (ajc-split-class-item-by-class-ln 
-                                                   (string-to-number (match-string-no-properties 1 param))))))))) 
+                                                   (string-to-number param)))))))
           (setq constructor-item (append constructor-item (list params)))) 
       (setq constructor-item (append constructor-item  (list ""))))
     (if (not  (string-equal "" (nth 2 split-list)))
@@ -578,9 +578,8 @@ it is the last line number in tag file" )
             (if (string-match  "^~" exception )
                 (setq exceptions  (append  exceptions  (list (substring-no-properties exception 1 ))))
               (progn 
-                (string-match ".*:\\(.*\\)"  exception  )  
                 (setq exceptions (append exceptions (list (ajc-split-class-item-by-class-ln 
-                                               (string-to-number (match-string-no-properties 1 exception))))))))) 
+                                               (string-to-number exception)))))))) 
           (setq constructor-item (append constructor-item (list exceptions)))) 
       (setq constructor-item (append constructor-item  (list ""))))
     constructor-item))

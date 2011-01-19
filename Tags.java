@@ -589,7 +589,7 @@ class MemberItem implements Comparable<MemberItem>{
             if ( params!=null){
                 for( PkgClsKV param:params){
                     if( param.alternativeString!=null) returnStr.append( "~"+param.alternativeString+",");
-                    else  returnStr.append( param.cItem.pkgItem.lineNum+":"+param.cItem.lineNum+",");
+                    else  returnStr.append(param.cItem.lineNum+",");
                 }
                 if(params.size( )>0) returnStr.deleteCharAt(returnStr.length( )-1 );
             }
@@ -598,7 +598,7 @@ class MemberItem implements Comparable<MemberItem>{
             if ( exceptions!=null){
                 for( PkgClsKV exp:exceptions){
                     if( exp.alternativeString!=null) returnStr.append( "~"+exp.alternativeString+",");
-                    else  returnStr.append( exp.cItem.pkgItem.lineNum+":"+exp.cItem.lineNum+",");
+                    else  returnStr.append(exp.cItem.lineNum+",");
                 }
                 if(  exceptions.size( )>0) returnStr.deleteCharAt(returnStr.length( )-1 );
             }
@@ -607,7 +607,7 @@ class MemberItem implements Comparable<MemberItem>{
             //    returnStr.append( cItem.lineNum+"`");
             //apend the field type
             if( returnType.alternativeString!=null) returnStr.append("~"+returnType.alternativeString );
-            else returnStr.append(returnType.cItem.pkgItem.lineNum+":"+returnType.cItem.lineNum );
+            else returnStr.append(returnType.cItem.lineNum );
         }else if ( method!=null){
             returnStr.append( name+"`");
             //append returnType
@@ -619,14 +619,14 @@ class MemberItem implements Comparable<MemberItem>{
                   System.out.println( method.getDeclaringClass( ).getName( ));
                     
                 }
-                     returnStr.append(returnType.cItem.pkgItem.lineNum+":"+returnType.cItem.lineNum );
+                     returnStr.append(returnType.cItem.lineNum );
             }
             returnStr.append( "`");
             //append params
             if ( params!=null){
                 for( PkgClsKV param:params){
                     if( param.alternativeString!=null) returnStr.append( "~"+param.alternativeString+",");
-                    else  returnStr.append( param.cItem.pkgItem.lineNum+":"+param.cItem.lineNum+",");
+                    else  returnStr.append(param.cItem.lineNum+",");
                 }
                 if(params.size( )>0) returnStr.deleteCharAt(returnStr.length( )-1 );
             }
@@ -635,7 +635,7 @@ class MemberItem implements Comparable<MemberItem>{
             if ( exceptions!=null){
                 for( PkgClsKV exp:exceptions){
                     if( exp.alternativeString!=null) returnStr.append( "~"+exp.alternativeString+",");
-                    else  returnStr.append( exp.cItem.pkgItem.lineNum+":"+exp.cItem.lineNum+",");
+                    else  returnStr.append(exp.cItem.lineNum+",");
                 }
                 if(  exceptions.size( )>0) returnStr.deleteCharAt(returnStr.length( )-1 );
             }
