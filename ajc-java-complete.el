@@ -238,14 +238,6 @@ and  use this class like this
   :type 'string
   :group 'ajc-java-complete)
 
-;; (defcustom ajc-show-more-info-when-complete-class-and-method t
-;; " when this is not null ,then when
-;;   complete class it will show it's package behand class name,
-;;   when complete method it will show return type and Exceptions,
-;;   but you must press more times  `<RET>' to active the action
-;;   after completion to remove the unneeded package name ,return type."
-;;   )
-;(setq ajc-show-more-info-when-complete-class-and-method t)
 
 (defcustom ajc-default-length-of-class 36
   "the length of class name at dropdown-menu ,if the class
@@ -298,27 +290,12 @@ it is the last line number in tag file" )
   "when complete a import ,sometimes we can use
  the last completed items for next complete  ")
 (defvar ajc-previous-matched-import-prefix nil
- "previous matched prefix for import Class at head of source" )
+ "previous matched prefix for import Class at head of source")
 
 (defvar ajc-current-class-prefix-4-complete-class nil
  "when (ajc-is-available-4-complete-class-p ) return true,
  it will save current class-prefix in this variable ,so
- (ajc-complete-class-candidates) can reuse it . "
-  )
-
-;;unused variable  
-;; (defvar ajc-current-class-name-4-complete-constructor nil
-;;  "when (ajc-is-available-4-complete-constructor-p ) return true,
-;;  it will save current class-name in this variable ,so
-;;  (ajc-complete-constructor-candidates) can reuse it.")
-
-;; (defvar ajc-is-importing-packages-p nil
-;; "when importing packages,if current-word is a class Name
-;; (start with [A-Z]) , then it will trigger the complete of
-;; class name ,and stop the importing of package .to stop it I
-;; add this variable , if it ni not null then we know it is trying
-;; to import packages, so in (ajc-complete-class-candidates)
-;; we may stop complete class depending on this variable . " )
+ (ajc-complete-class-candidates) can reuse it . ")
 
 (defun ajc-goto-line ( line-num &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -327,15 +304,13 @@ it is the last line number in tag file" )
     (forward-line (1- line-num )))
     )
   )
-( defun ajc-read-line ( line-number  &optional buffer  )
+
+(defun ajc-read-line(line-number  &optional buffer)
   "read a line  and return the string"
-  (if buffer (with-current-buffer
-          buffer ( ajc-goto-line line-number)
-          (buffer-substring-no-properties
-           (line-beginning-position) (line-end-position)) )
-     (progn (ajc-goto-line line-number)
-       (buffer-substring-no-properties
-        (line-beginning-position) (line-end-position)) ) ) )
+  (with-current-buffer (or buffer (current-buffer))
+    (ajc-goto-line line-number)
+    (buffer-substring-no-properties
+     (line-beginning-position) (line-end-position))))
 
 (defun ajc-split-string-with-separator(str regexp &optional replacement OMIT-NULLS)
   "this function is a tool like split-string,
@@ -687,21 +662,17 @@ it is the last line number in tag file" )
   "find java tag file and do some initial works, like  populate some variables "
   (setq ajc-tag-file (file-truename (expand-file-name ajc-tag-file  )))
   (if (file-exists-p  ajc-tag-file)
-      (progn 
-            (setq ajc-tag-buffer  )
             (with-current-buffer (find-file-noselect ajc-tag-file )
               ;; a buffer name starts with empth string,means hidden this buffer
               (rename-buffer " *java-base.tag*")
-              (setq ajc-tag-buffer " *java-base.tag*"))
-            (with-current-buffer ajc-tag-buffer 
+              (setq ajc-tag-buffer " *java-base.tag*")
+              (setq buffer-read-only t)
+              (setq case-fold-search nil) 
               (setq ajc-package-first-ln  (string-to-number (ajc-read-line 3)) )
               (setq ajc-class-first-ln    (string-to-number  (ajc-read-line 4) ))
               (setq ajc-member-first-ln   (string-to-number (ajc-read-line 5) ))
               (setq ajc-member-end-ln     (string-to-number (ajc-read-line 6) )) )
-        (with-current-buffer ajc-tag-buffer
-            (setq buffer-read-only t)
-            (setq case-fold-search nil) ))
-      (message  ( concat ajc-tag-file "doesn't exists !!!" )) ) )
+      (message  ( concat ajc-tag-file " doesn't exists !!!"))))
 
 (defun ajc-init-when-load-first-java-file() "just add in a hook "
   (if (not ajc-all-sorted-class-items)
