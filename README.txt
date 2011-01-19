@@ -177,6 +177,10 @@
 ;;}}}
 
 ;;{{{ History
+;; tag 0.2.3
+;;     support importing class under point ,and importing
+;;     all class in buffer when editing jsp files 
+;;
 ;; tag 0.2.2
 ;;     support completion in jsp files.
     
