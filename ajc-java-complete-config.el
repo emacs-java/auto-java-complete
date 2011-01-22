@@ -1,5 +1,26 @@
 ;;; ajc-java-complete-config.el --- Auto Java Completion  for GNU Emacs
-        
+
+;;  Install
+
+;; add these line in your emacs init file .
+;; (add-to-list 'load-path  "~/.emacs.d/ajc-java-complete/")
+;; (require 'ajc-java-complete-config)
+;; (add-hook 'java-mode-hook 'ajc-java-complete-mode)
+;; (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
+
+;; to enable Auto Java Complete ,just need to add ajc-java-complete-mode
+;; minor-mode in your mode hook, for example
+;;         (add-hook 'java-mode-hook 'ajc-java-complete-mode)
+;;  If your want to enable  ajc-java-complete-mode when openning
+;;  a jsp file. you can
+;;         (add-hook 'jsp-mode 'ajc-java-complete-mode)
+;;  if you has a jsp-mode,
+;;  if not ,you can do it like this
+;;         (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
+
+
+;;  Code
+
 (require 'auto-complete)
 (require 'yasnippet)
 (require 'ajc-java-complete)
@@ -7,31 +28,13 @@
 ;; (local-set-key (kbd "(") 'skeleton-pair-insert-maybe)
 ;; when complete constructor 
 
-(ajc-init)
-;;hooks 
-(defun ajc-java-complete-hook ()
-  (ajc-init-when-load-first-java-file)
-    (setq ac-sources (append 
-                      '(ac-source-ajc-import
-                        ac-source-ajc-constructor 
-                        ac-source-ajc-class
-                        ac-source-ajc-method
-                        ac-source-ajc-keywords ) ac-sources))
-;; auto import all Class in source file    
-(local-set-key (kbd "C-c i") (quote ajc-import-all-unimported-class))
-;; import Class where under point 
-(local-set-key (kbd "C-c m") (quote ajc-import-class-under-point))
-    )
 
-(add-hook 'java-mode-hook 'ajc-java-complete-hook t)
-;(add-hook 'emacs-lisp-mode-hook 'ajc-java-complete-hook)
-
-;;    if you want Auto Java Complete works  when you edit
-;;    jsp file ,you just need to do something like this
-;;   (add-hook 'nxml-mode-hook 'ajc-java-complete-hook t)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun ajc-expand-yasnippet-templete-with-ac ()
+  (let* ((last-complete-string (cdr ac-last-completion))
+         (yasnippet-templete (get-text-property 0 'templete last-complete-string)))
+    (when  yasnippet-templete
+      (delete-backward-char (length last-complete-string))
+      (yas/expand-snippet yasnippet-templete))))
 
 
 ;;add support for jsp when import ,but you should trigger it by key-binding
@@ -44,44 +47,72 @@
 ;; sources for auto complete
 (ac-define-source ajc-import
   '((candidates . (ajc-import-package-candidates))
-;;    (prefix . "\\bimport[ \t]+\\(.*\\)")
-    (prefix . prefix-support-jsp-importing )
-    ))
+    (prefix . prefix-support-jsp-importing)))
 
 (ac-define-source ajc-class
   '((candidates . (ajc-complete-class-candidates ))
    (prefix . "\\b\\([A-Z][a-zA-Z0-9_]*\\)")
-   (cache)
-))
+   (cache)))
 
 (ac-define-source ajc-constructor
   '((candidates . (ajc-complete-constructor-candidates ))
    (cache)
    (prefix . "\\bnew[ \t]+\\([A-Z][a-zA-Z0-9_]*[ \t]*(?\\)")
-   (action . ajc-expand-yasnippet-templete-with-ac)
-))
+   (action . ajc-expand-yasnippet-templete-with-ac)))
 
 (ac-define-source ajc-method
-  '((candidates . (ajc-complete-method-candidates ))
+  '((candidates . (ajc-complete-method-candidates))
   (cache)
   (requires . 0)
   (prefix . "\\.\\(.*\\)") 
-  (action .  ajc-expand-yasnippet-templete-with-ac)
-))
+  (action .  ajc-expand-yasnippet-templete-with-ac)))
 
 (ac-define-source ajc-keywords
-  '((candidates . (ajc-java-keywords-candidates))
-) )
-
-
+  '((candidates . (ajc-java-keywords-candidates))))
 ;; end of sources
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun ajc-expand-yasnippet-templete-with-ac ()
-  (let* ((last-complete-string (cdr ac-last-completion))
-         (yasnippet-templete (get-text-property 0 'templete last-complete-string)))
-    (when  yasnippet-templete
-      (delete-backward-char (length last-complete-string))
-      (yas/expand-snippet yasnippet-templete))))
+;;hooks
+(defun ajc-java-complete-init()
+  (ajc-init)
+  (add-to-list 'ac-sources 'ac-source-ajc-keywords)
+  (add-to-list 'ac-sources 'ac-source-ajc-method)
+  (add-to-list 'ac-sources 'ac-source-ajc-class)
+  (add-to-list 'ac-sources 'ac-source-ajc-constructor)
+  (add-to-list 'ac-sources 'ac-source-ajc-import)
+;; auto import all Class in source file    
+(local-set-key (kbd "C-c i") 'ajc-import-all-unimported-class)
+;; import Class where under point 
+(local-set-key (kbd "C-c m") 'ajc-import-class-under-point))
+
+(defun ajc-java-complete-exit()
+  (setq ac-sources (delete 'ac-source-ajc-constructor ac-sources))
+  (setq ac-sources (delete 'ac-source-ajc-class ac-sources))
+  (setq ac-sources (delete 'ac-source-ajc-method ac-sources))
+  (setq ac-sources (delete 'ac-source-ajc-keywords ac-sources))
+  (setq ac-sources (delete 'ac-source-ajc-import ac-sources)))
+
+
+(defvar ajc-java-complete-mode-hook nil)
+;;define minor-mode
+(define-minor-mode ajc-java-complete-mode
+  "AutoJavaComplete mode"
+  :lighter " ajc"
+  ;;  :keymap ajc-mode-map
+  :group 'ajc-java-complete
+  (if ajc-java-complete-mode
+      (when (featurep 'auto-complete)
+        (unless auto-complete-mode (auto-complete-mode))
+        (ajc-java-complete-init))
+    (ajc-java-complete-exit)))
+
+;; (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
+(defun ajc-4-jsp-find-file-hook ()
+  (let ((file-name-ext (file-name-extension (buffer-file-name)) ))
+    (when (and file-name-ext (string-match "jsp" file-name-ext))
+    (ajc-java-complete-mode))
+  ))
 
 (provide 'ajc-java-complete-config)
 

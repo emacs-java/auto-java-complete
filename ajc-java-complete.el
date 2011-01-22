@@ -271,6 +271,7 @@ name is shorter than this value ,then empty string are append
   )
 
 ;;private variables
+(defvar ajc-is-running nil "after (ajc-init) it will become true")
 (defvar ajc-all-sorted-class-items nil "this is a list,
 all the element are sorted class-item
 this variable should work with ajc-two-char-list,
@@ -638,27 +639,31 @@ it is the last line number in tag file" )
             ))
         (setq constructor-string  (replace-regexp-in-string  " , $" ")$0" constructor-string ))))
     (setq constructor-string constructor-string)))
-    
+
 ;; find tag file 
 (defun ajc-init()
   "find java tag file and do some initial works, like  populate some variables "
-  (setq ajc-tag-file (file-truename (expand-file-name ajc-tag-file  )))
-  (if (file-exists-p  ajc-tag-file)
-      (with-current-buffer (find-file-noselect ajc-tag-file )
-        ;; a buffer name starts with empth string,means hidden this buffer
-        (rename-buffer " *java-base.tag*")
-        (setq ajc-tag-buffer " *java-base.tag*")
-        (setq buffer-read-only t)
-        (setq case-fold-search nil) 
-        (setq ajc-package-first-ln  (string-to-number (ajc-read-line 3)))
-        (setq ajc-class-first-ln    (string-to-number  (ajc-read-line 4)))
-        (setq ajc-member-first-ln   (string-to-number (ajc-read-line 5)))
-        (setq ajc-member-end-ln     (string-to-number (ajc-read-line 6))))
-    (message  ( concat ajc-tag-file " doesn't exists !!!"))))
+  (unless ajc-is-running
+    (setq ajc-tag-file (file-truename (expand-file-name ajc-tag-file  )))
+    (if (file-exists-p  ajc-tag-file)
+        (with-current-buffer (find-file-noselect ajc-tag-file )
+          ;; a buffer name starts with empth string,means hidden this buffer
+          (rename-buffer " *java-base.tag*")
+          (setq ajc-tag-buffer " *java-base.tag*")
+          (setq buffer-read-only t)
+          (setq case-fold-search nil) 
+          (setq ajc-package-first-ln  (string-to-number (ajc-read-line 3)))
+          (setq ajc-class-first-ln    (string-to-number  (ajc-read-line 4)))
+          (setq ajc-member-first-ln   (string-to-number (ajc-read-line 5)))
+          (setq ajc-member-end-ln     (string-to-number (ajc-read-line 6)))
+          (ajc-load-all-sorted-class-items-to-memory))
+      (message  ( concat ajc-tag-file " doesn't exists !!!")))
+    (setq ajc-is-running t)
+    ))
 
-(defun ajc-init-when-load-first-java-file() "just add in a hook "
-  (if (not ajc-all-sorted-class-items)
-      (ajc-load-all-sorted-class-items-to-memory)))
+;; (defun ajc-init-when-load-first-java-file() "just add in a hook "
+;;   (if (not ajc-all-sorted-class-items)
+;;       (ajc-load-all-sorted-class-items-to-memory)))
 
 (defun ajc-reload-tag-buffer-maybe( ) 
   "check if the ajc-tag-buffer is still live ,if not reload it "
