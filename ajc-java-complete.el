@@ -182,6 +182,7 @@
 ;;}}}
 
 ;;{{{ History
+
 ;; tag  0.2.4
 ;;      a litter change of tag file.
 ;;      replace toString`25:784`` to   toString`784`` in tag file
@@ -225,6 +226,7 @@
 ;;    add support of showing return type behind each method candidate,
 ;;    by define an advice on  (ac-expand-common) and (ac-selected-candidates)
 ;;    but if auto-complete.el is byte-compiled ,this advice doesn't work
+
 ;;}}}   
 ;;---------------------------------------------
 ;;; Code.
@@ -1112,10 +1114,7 @@ return a list of each line string (exclude keyword 'import') "
   (let ((return-matched-list));;if find keyword:new ,then do constructor complete ,if not do class complete
     (setq case-fold-search nil)
     (if (looking-back "\\bnew[ \t]+\\([A-Z][a-zA-Z0-9_]*\\)[ \t]*([ \t]*"  (line-beginning-position))
-        (setq return-matched-list (ajc-complete-constructor (match-string-no-properties 1)))
-      (if (looking-back "\\b\\([A-Z][a-zA-Z0-9_]*\\)"  ) ;;complete class name 
-          (setq return-matched-list (ajc-build-list-with-nth-on-each-element 
-                             (ajc-complete-class-with-cache (match-string-no-properties 1)) 0))))
+        (setq return-matched-list (ajc-complete-constructor (match-string-no-properties 1))))
       return-matched-list))
 
 (defun ajc-complete-constructor (class-prefix)
