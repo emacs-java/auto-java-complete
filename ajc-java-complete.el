@@ -6,7 +6,7 @@
 
 ;;  License
         
-;; Copyright (C) 2010  joseph <jixiuf@gmail.com> Limited
+;; Copyright (C) 2011  joseph <jixiuf@gmail.com> Limited
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,12 +30,8 @@
 ;;{{{ Summary
 
 ;;;this is "Auto Java Complete".
-;;; read README.txt  first .
 
-;; you can download a Video demo (2.8M) 
-
-;; actually the default config is in ajc-java-complete.el file ,just load it ,or write 
-;; your own config file if you don't want to  use auto-complete.
+;; you can download a Video demo (2.8M) (url I will put it here later)
 
 
 ;;1. it depends on auto complete ,so it would complete
@@ -64,22 +60,25 @@
 ;;      cp  ajc-java-complete/popup-patch.diff auto-complete-1.3/
 ;;      cd auto-complete-1.3/
 ;;      patch -p0 < popup-patch.diff
+;;
+;;     don't forget to byte-compile it 
+
 
 ;;}}} 
 
 ;;{{{ Features
 
 ;; 1. support importing.
-;;    when you type in  import javax.s
+;;    when you type in  import javax.s-|-
 ;;    it would drop down a menu like this
 ;;             import  javax.s
-
+;;
 ;;                     javax.sql
 ;;                     javax.swing
 ;;                     javax.sound
                        
-;; 2. support import class with keybindings
-;;         auto import all Class in source file    
+;; 2. support import class with keybindings (even in jsp file)
+;;         auto import all Class in source file
 ;;    (local-set-key (kbd "C-c i") (quote ajc-import-all-unimported-class))
 ;;         import Class where under point 
 ;;    (local-set-key (kbd "C-c m") (quote ajc-import-class-under-point))
@@ -114,8 +113,13 @@
       
 ;;    if you want Auto Java Complete works  when you edit
 ;;    jsp file ,you just need to do something like this
-      
-;;      (add-hook 'nxml-mode-hook 'ajc-java-complete-hook t)
+
+;;    If your want to enable  ajc-java-complete-mode when openning
+;;    a jsp file. you can
+;;          (add-hook 'jsp-mode 'ajc-java-complete-mode)
+;;    if you has a jsp-mode,
+;;    if not ,you can do it like this
+;;         (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
       
 ;;    now it can complete class name,method ,constructor
 ;;    it also support complete importing ,but it isn't auto completed,
@@ -123,9 +127,7 @@
 ;;    for example (define-key ac-mode-map (kbd "M-1") 'auto-complete)
 ;;    <%@ page language="java" import="java.io.File,java.util.Map,javax.sw-|-"%>
 ;;    now you can  press M-1 to show the menu.
-;;    it does not support importing Class(importing Class under point
-;;    ,and importing all Class in buffer) by keybinding ,I will try to make
-;;    it work later.
+;;    
 
 ;;}}} 
 
@@ -165,23 +167,38 @@
 ;;     after installed auto-complete ,you should do some
 ;;       patch on auto-complete-1.3/popup.el
 ;;       tow choice :
-;;        1. put the popup.el into auto-complete-1.3/ (recommand)
+;;        1. put the ajc-java-complete/popup.el into auto-complete-1.3/
+;;           (recommand)
 ;;        2. cd auto-complete-1.3/
 ;;           patch -p0 <popup-patch.diff
             
 
 ;;  3. then  add this lines  in .emacs
 
-;;       (add-to-list 'load-path (   "~/.emacs.d/ajc-java-complete/"))
+;;       (add-to-list 'load-path "~/.emacs.d/ajc-java-complete/")
 ;;       (require 'ajc-java-complete-config)
+;;       (add-hook 'java-mode-hook 'ajc-java-complete-mode)
+;;       (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
+;;       read ajc-java-complete-config.el  for more info .
 
-;;     read ajc-java-complete-config.el  for more info .
 
 ;;     restart your emacs ,and enjoy.
-
 ;;}}}
 
 ;;{{{ History
+;; tag  0.2.5
+;;    define minor-mode (ajc-java-complete-mode).
+;;    add function (ajc-4-jsp-find-file-hook).
+;;    to enable Auto Java Complete ,just need to add this minor-mode in
+;;    your mode hook, for example
+;;          (add-hook 'java-mode-hook 'ajc-java-complete-mode)
+;;    If your want to enable  ajc-java-complete-mode when openning
+;;    a jsp file. you can
+;;          (add-hook 'jsp-mode 'ajc-java-complete-mode)
+;;    if you has a jsp-mode,
+;;    if not ,you can do it like this
+;;         (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
+
 
 ;; tag  0.2.4
 ;;      a litter change of tag file.
