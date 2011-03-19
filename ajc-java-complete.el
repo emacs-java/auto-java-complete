@@ -27,13 +27,14 @@
 
 ;;}}}
 
-;;{{{ Summary
+;;{{{ Commentary
 
 ;;;this is "Auto Java Complete".
 
-;; you can download a Video demo (2.8M) (url I will put it here later)
-
-
+;; you can download a Video demo (2.8M)
+;;http://screencast-repos.googlecode.com/files/auto-java-complete-demo-editing-jsp-2011-01-20.mp4
+;;http://screencast-repos.googlecode.com/files/auto-java-complete-demo-2010-12-25.mp4.bz2
+;;
 ;;1. it depends on auto complete ,so it would complete
 ;;   everything by dropdowning a menu.
 
@@ -56,13 +57,11 @@
 ;;   the patched file is ajc-java-complete/popup.el, please
 ;;   put this file into auto-complete-1.3/ ,or use
 ;;      ajc-java-complete/popup-patch.diff
-;;
 ;;      cp  ajc-java-complete/popup-patch.diff auto-complete-1.3/
 ;;      cd auto-complete-1.3/
 ;;      patch -p0 < popup-patch.diff
 ;;
 ;;     don't forget to byte-compile it 
-
 
 ;;}}} 
 
@@ -171,7 +170,7 @@
 ;;           (recommand)
 ;;        2. cd auto-complete-1.3/
 ;;           patch -p0 <popup-patch.diff
-            
+;;        and don't forget to byte compile it. 
 
 ;;  3. then  add this lines  in .emacs
 
@@ -248,16 +247,18 @@
 ;;---------------------------------------------
 ;;; Code.
 
-(defgroup ajc-java-complete nil
+
+(defgroup auto-java-complete nil
   "Auto Java Completion."
-  :group 'emacs)
+  :group 'convenience
+  :prefix "auto-java-complete")
 
 (defcustom ajc-use-short-class-name t
   "if it is not nil then ,when complete method and constructor,
   params and exceptions will use short class name ,
   instead of full class name"
   :type 'boolean
-  :group 'ajc-java-complete)
+  :group 'auto-java-complete)
 
 (defcustom ajc-tag-file "~/.java_base.tag"
   "the tag file is  used for java complete ,it  is generate by a Tags.java ,
@@ -269,24 +270,27 @@ and  use this class like this
          java Tags   com.whatever.* 
  just tag class under com.whatever packages "
   :type 'string
-  :group 'ajc-java-complete)
+  :group 'auto-java-complete)
 
 
 (defcustom ajc-default-length-of-class 36
   "the length of class name at dropdown-menu ,if the class
 name is shorter than this value ,then empty string are append
-.and return type are at position 37 " )
+.and return type are at position 37 "
+  :type 'integer
+  :group 'auto-java-complete)
+
 (defcustom ajc-return-type-char ":"
   "the char  before return type when
   completing methods."
   :type 'string
-  :group 'ajc-java-complete
+  :group 'auto-java-complete
   )
 (defcustom ajc-throws-char "   #"
   "the char  before Exceptions  when completing
   method"
   :type 'string
-  :group 'ajc-java-complete
+  :group 'auto-java-complete
   )
 
 ;;private variables
@@ -632,7 +636,7 @@ it is the last line number in tag file" )
                                              (car (ajc-split-pkg-item-by-pkg-ln (nth 1 exception)))  "."  
                                              (car exception)  " , " )))))
       (setq constructor-string  (replace-regexp-in-string  ", $" "" constructor-string )))) 
-    (setq constructor-string constructor-string)))
+    constructor-string))
 
 (defun ajc-constructor-to-yasnippet-templete (constructor-item)
   (let((constructor-string  (car constructor-item))
@@ -999,11 +1003,13 @@ what you need to do next, is just import the unimported class  "
     unimported-class-items))
 
 (defun ajc-import-all-unimported-class()
+  "import all unimported class ."
   (interactive)
     (ajc-insert-import-at-head-of-source-file
      (ajc-caculate-all-unimported-class-items)))
 
 (defun ajc-import-class-under-point ()
+  "import class under point."
   (interactive)
   (let ((cur-word (current-word)))
     (when (and cur-word  (> (length cur-word) 0))
@@ -1126,53 +1132,42 @@ return a list of each line string (exclude keyword 'import') "
         (setq return-class-items return-class-items )
       (setq return-class-items  (append return-class-items  (ajc-find-out-matched-class-item "java.lang" nil )))
       )))
-
 (defun ajc-complete-constructor-candidates ()
-  (let ((return-matched-list));;if find keyword:new ,then do constructor complete ,if not do class complete
+  (let (andidates class-items);;if find keyword:new ,then do constructor complete ,if not do class complete
     (setq case-fold-search nil)
-    (if (looking-back "\\bnew[ \t]+\\([A-Z][a-zA-Z0-9_]*\\)[ \t]*([ \t]*"  (line-beginning-position))
-        (setq return-matched-list (ajc-complete-constructor (match-string-no-properties 1))))
-      return-matched-list))
+    (when (looking-back "\\bnew[ \t]+\\([A-Z][a-zA-Z0-9_]*\\)[ \t]*(?[ \t]*"  (line-beginning-position))
+      (setq class-items (ajc-complete-class-with-cache (match-string-no-properties 1)))
+      (dolist (class-item class-items)
+        (setq candidates (append candidates (ajc-complete-constructor (car class-item))))
+        ))
+    candidates
+    ))
 
 (defun ajc-complete-constructor (class-prefix)
-  (let ((matched-class-item (ajc-find-out-matched-class-item-without-package-prefix class-prefix t))
-          (matched-constructor-items) (return-complete-list)) 
+  (let ((matched-class-items (ajc-find-out-matched-class-item-without-package-prefix class-prefix t))
+        (matched-constructor-items) (return-complete-list)) 
     ;;when matched class > 1 ,then ask user to import one of them ,
     ;;then we can got the imported class item , we complete its constructor
-      (when (> (length matched-class-item ) 1 )  
-        (let* ((imported-class-items (ajc-caculate-all-imported-class-items))
-               (is-class-imported nil) (index 0) (ele)
-               (length-of-imported-class-items (length imported-class-items)))
-          (while (and (not is-class-imported)   (< index length-of-imported-class-items))
-            (setq ele (nth index imported-class-items))
-                        (when (string-match (concat "^" class-prefix) (car ele))
-                              (setq matched-class-item (list ele))  
-                              (setq is-class-imported t))
-            (setq index (+ index 1)))
-          (if (not  is-class-imported )
-        (setq matched-class-item  (ajc-insert-import-at-head-of-source-file matched-class-item))))) 
-    (if (= (length matched-class-item ) 1);; when only 1 class-item ,then complete its constructor
-        (let ((line-num     (nth 2 (car matched-class-item)))  (matching-constructor t)  
-              (end-line-num (nth 3 (car matched-class-item))) (current-line))
-          (while (and matching-constructor  (< line-num end-line-num ))
-            (setq current-line (ajc-read-line line-num (ajc-reload-tag-buffer-maybe)))
-            (if (string-match "^  "  current-line)   
-                (add-to-list 'matched-constructor-items (ajc-split-constructor current-line))
-                (setq matching-constructor nil))
-            (setq line-num (+ line-num 1)))
-          (dolist (constructor matched-constructor-items)
-            (let ((constructor-full-string (ajc-constructor-to-string constructor t))
-                  (constructor-short-string (ajc-constructor-to-string constructor nil)))
+    (dolist (matched-class-item matched-class-items)
+      (let ((line-num     (nth 2  matched-class-item))  (matching-constructor t)  
+            (end-line-num (nth 3  matched-class-item)) (current-line))
+        (while (and matching-constructor  (< line-num end-line-num ))
+          (setq current-line (ajc-read-line line-num (ajc-reload-tag-buffer-maybe)))
+          (if (string-match "^  "  current-line)   
+              (add-to-list 'matched-constructor-items (ajc-split-constructor current-line))
+            (setq matching-constructor nil))
+          (setq line-num (+ line-num 1)))
+        (dolist (constructor matched-constructor-items)
+          (let ((constructor-full-string (ajc-constructor-to-string constructor t))
+                (constructor-short-string (ajc-constructor-to-string constructor nil)))
             (add-to-list 'return-complete-list  constructor-short-string t)
             (setplist 'props nil )
             (put 'props 'view constructor-full-string)
             (put 'props 'templete (ajc-constructor-to-yasnippet-templete constructor))
             (add-text-properties 0 (length constructor-short-string)
                                  (symbol-plist  'props)  constructor-short-string)
-            
-            )))) 
- return-complete-list))
-
+            ))))
+    return-complete-list))
 
 (defun ajc-is-available-4-complete-class-p ()
   "only when this function return t ,then ajc-complete-class-candidates

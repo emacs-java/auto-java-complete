@@ -57,6 +57,7 @@
 (ac-define-source ajc-constructor
   '((candidates . (ajc-complete-constructor-candidates ))
    (cache)
+   (requires . 3)
    (prefix . "\\bnew[ \t]+\\([A-Z][a-zA-Z0-9_]*[ \t]*(?\\)")
    (action . ajc-expand-yasnippet-templete-with-ac)))
 
