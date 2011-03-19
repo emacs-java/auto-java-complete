@@ -30,6 +30,7 @@
 //you must find out all jars it depends on ,and put it in your classpath.
 //or if you think this class is not very important ,you can just ignore this
 //exception, it will not be indexed.
+//maybe this link may do help to you :http://www.findjar.com
 
 import java.io.*;
 import java.lang.reflect.*;

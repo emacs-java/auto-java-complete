@@ -185,6 +185,13 @@
 ;;}}}
 
 ;;{{{ History
+;; tag  0.2.6
+;;     no new feature ,just Bugfix,and improve Tags.java
+;;     make Tags.java  more strong.
+;;     and complete constructor gently.
+;;     read comments in Tags.java
+;;     
+;;
 ;; tag  0.2.5
 ;;    define minor-mode (ajc-java-complete-mode).
 ;;    add function (ajc-4-jsp-find-file-hook).
