@@ -396,7 +396,7 @@ it is the last line number in tag file" )
    string2number return a list of pkg info of line-number "
   (ajc-split-pkg-item
    (ajc-read-line pkg-line-number
-                  (or buffer (ajc-reload-tag-buffer-maybe)))  ))
+                  (or buffer (ajc-reload-tag-buffer-maybe)))))
 
 (defun ajc-split-class-item ( class-line-string )
  "the format of class-line-string is
@@ -420,39 +420,41 @@ it is the last line number in tag file" )
                    (ajc-reload-tag-buffer-maybe)))) 
 
 (defun ajc-split-field (field-line-string)
-  (let* ((field-item)
-         (field-line-string (substring-no-properties field-line-string 1))
-         (split-list (split-string  field-line-string "`"))
-         (return-type (nth 1 split-list)))
-    ;;handle field name
-    (add-to-list  'field-item  (car split-list) t)
-    (if (string-match  "^~" return-type )
-        (add-to-list 'field-item (substring-no-properties  return-type 1) t)
-      (add-to-list 'field-item (ajc-split-class-item-by-class-ln 
-                                (string-to-number return-type)) t))
-    field-item ))
+  (when field-line-string
+    (let* ((field-item)
+           (field-line-string (substring-no-properties field-line-string 1))
+           (split-list (split-string  field-line-string "`"))
+           (return-type (nth 1 split-list)))
+      ;;handle field name
+      (add-to-list  'field-item  (car split-list) t)
+      (if (string-match  "^~" return-type )
+          (add-to-list 'field-item (substring-no-properties  return-type 1) t)
+        (add-to-list 'field-item (ajc-split-class-item-by-class-ln 
+                                  (string-to-number return-type)) t))
+      field-item )))
 
 ;(ajc-field-to-string (ajc-split-field " in`24:691" ))
 (defun ajc-field-to-string (field-item &optional with-return-type)
-  (if  with-return-type 
-      (let ((field-string  (car field-item)) (return-type (nth 1 field-item)))
-        (let ((len (length field-string)));; insert whitespace between classname and return type
-      (if (< len (- ajc-default-length-of-class 3))
-          (setq field-string
-                (concat field-string
-                        (make-string (- (- ajc-default-length-of-class 3) len ) 32 )));;32 mean whitespace
-         (setq field-string (concat field-string "     "))))
-        (setq field-string (concat field-string ajc-return-type-char))
-        (when (stringp return-type)
-          (setq field-string (concat field-string return-type )   ))
-        (when (listp return-type)
-          (if ajc-use-short-class-name
-              (setq field-string (concat field-string   (car return-type)))
-            (setq field-string (concat field-string 
-                                       (car (ajc-split-pkg-item-by-pkg-ln (nth 1 return-type)))  "."  
-                                       (car return-type)))))
-        field-string)
-    (car field-item)))
+  (when field-item
+    (if  with-return-type 
+        (let ((field-string  (car field-item)) (return-type (nth 1 field-item)))
+          (let ((len (length field-string)));; insert whitespace between classname and return type
+            (if (< len (- ajc-default-length-of-class 3))
+                (setq field-string
+                      (concat field-string
+                              (make-string (- (- ajc-default-length-of-class 3) len ) 32 )));;32 mean whitespace
+              (setq field-string (concat field-string "     "))))
+          (setq field-string (concat field-string ajc-return-type-char))
+          (when (stringp return-type)
+            (setq field-string (concat field-string return-type )   ))
+          (when (listp return-type)
+            (if ajc-use-short-class-name
+                (setq field-string (concat field-string   (car return-type)))
+              (setq field-string (concat field-string 
+                                         (car (ajc-split-pkg-item-by-pkg-ln (nth 1 return-type)))  "."  
+                                         (car return-type)))))
+          field-string)
+      (car field-item))))
 
 
 (defun ajc-method-to-string (method-item &optional  with-return-type-and-throws )
@@ -460,12 +462,13 @@ it is the last line number in tag file" )
    when param with-detail is not null, it will include
   return type and exceptions, default it only include method name
   and params"
-  (let ((method-string  (car method-item))
-       (return-type (nth 1 method-item)   )
-       (params (nth 2 method-item)   )
-       (exceptions (nth 3 method-item)))
-    (if (stringp params )
-        (setq method-string (concat method-string "()")) 
+  (when method-item
+    (let ((method-string  (car method-item))
+          (return-type (nth 1 method-item)   )
+          (params (nth 2 method-item)   )
+          (exceptions (nth 3 method-item)))
+      (if (stringp params )
+          (setq method-string (concat method-string "()")) 
         (setq method-string (concat method-string "("))                
         (dolist (param  params )
           (when (stringp param )
@@ -479,48 +482,49 @@ it is the last line number in tag file" )
                             (car param)  " , " )))))
         (setq method-string
               (replace-regexp-in-string  " , $" ")" method-string )))
-    (when with-return-type-and-throws
-      (let ((len (length method-string)));; insert whitespace between classname and return type
-      (if (< len ajc-default-length-of-class )
-          (setq method-string
-                (concat method-string
-                        (make-string (- ajc-default-length-of-class len ) 32 )));;32 mean whitespace
-         (setq method-string (concat method-string "     "))))
-      (if (stringp return-type)
-          (setq method-string (concat method-string ajc-return-type-char  return-type  ))
-        (when (listp return-type)
-          (if ajc-use-short-class-name
-              (setq method-string (concat method-string ajc-return-type-char  (car return-type)))
-            (setq method-string (concat method-string ajc-return-type-char
-                                        (car (ajc-split-pkg-item-by-pkg-ln (nth 1 return-type)))  "."  
-                                        (car return-type))))))
-      (when (listp exceptions )  
-        (setq method-string (concat method-string ajc-throws-char))                
-        (dolist (exception  exceptions )
-          (when (stringp exception ) (setq method-string (concat method-string exception " , " )))
-          (when (listp exception) 
-            (if ajc-use-short-class-name 
-                (setq method-string (concat method-string  (car exception)  " , " )) 
-              (setq method-string (concat method-string
-                                          (car (ajc-split-pkg-item-by-pkg-ln (nth 1 exception)))  "."  
-                                          (car exception)  " , " )))))
-        (setq method-string  (replace-regexp-in-string  ", $" "" method-string ))) 
-      )
-    method-string ))
+      (when with-return-type-and-throws
+        (let ((len (length method-string)));; insert whitespace between classname and return type
+          (if (< len ajc-default-length-of-class )
+              (setq method-string
+                    (concat method-string
+                            (make-string (- ajc-default-length-of-class len ) 32 )));;32 mean whitespace
+            (setq method-string (concat method-string "     "))))
+        (if (stringp return-type)
+            (setq method-string (concat method-string ajc-return-type-char  return-type  ))
+          (when (listp return-type)
+            (if ajc-use-short-class-name
+                (setq method-string (concat method-string ajc-return-type-char  (car return-type)))
+              (setq method-string (concat method-string ajc-return-type-char
+                                          (car (ajc-split-pkg-item-by-pkg-ln (nth 1 return-type)))  "."  
+                                          (car return-type))))))
+        (when (listp exceptions )  
+          (setq method-string (concat method-string ajc-throws-char))                
+          (dolist (exception  exceptions )
+            (when (stringp exception ) (setq method-string (concat method-string exception " , " )))
+            (when (listp exception) 
+              (if ajc-use-short-class-name 
+                  (setq method-string (concat method-string  (car exception)  " , " )) 
+                (setq method-string (concat method-string
+                                            (car (ajc-split-pkg-item-by-pkg-ln (nth 1 exception)))  "."  
+                                            (car exception)  " , " )))))
+          (setq method-string  (replace-regexp-in-string  ", $" "" method-string ))) 
+        )
+      method-string )))
 
 (defun ajc-class-to-string(class-item &optional  with-package-name-append)
-  (let* ((class-string (car class-item)) (len (length class-string)))
-    (when with-package-name-append
-      (if (< len ajc-default-length-of-class )
-          (setq class-string
-                (concat class-string
-                        (make-string (- ajc-default-length-of-class len ) 32 )));;32 mean whitespace
-        (setq class-string (concat class-string "     ")))
-      (setq class-string
-            (concat class-string ajc-return-type-char
-                    (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item))))))
-    class-string
-    ))
+  (when class-item
+    (let* ((class-string (car class-item)) (len (length class-string)))
+      (when with-package-name-append
+        (if (< len ajc-default-length-of-class )
+            (setq class-string
+                  (concat class-string
+                          (make-string (- ajc-default-length-of-class len ) 32 )));;32 mean whitespace
+          (setq class-string (concat class-string "     ")))
+        (setq class-string
+              (concat class-string ajc-return-type-char
+                      (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item))))))
+      class-string
+      )))
 
 ;; (yas/expand-snippet(ajc-method-to-yasnippet-templete    (car 
 ;; (ajc-find-members (car  (ajc-find-out-matched-class-item-without-package-prefix "FileWriter" t )) "write" ))))
@@ -529,146 +533,173 @@ it is the last line number in tag file" )
 ;; "split(String , int)"
 ;(yas/expand-snippet "split(${1:String} , ${2:int})"
 (defun ajc-method-to-yasnippet-templete (method-item)
-  (let ((method-string  (car method-item))
-       (params (nth 2 method-item)   )
-       (exceptions (nth 3 method-item)))
-    (if (stringp params ) (setq method-string (concat method-string "()")) 
-      (progn 
-        (setq method-string (concat method-string "("))
-        (let ((index 0) (length-of-params (length params))(param))
-          (while (< index length-of-params)
-            (setq param (nth index params ))
-            (when (stringp param ) (setq method-string
-                                      (concat  method-string "${" (number-to-string (+ index 1)) ":"
-                                                param "} , " )))
-            (when (listp param) 
-              (if ajc-use-short-class-name 
-                  (setq method-string (concat method-string "${" (number-to-string (+ 1 index )) ":"
+  (when method-item
+    (let ((method-string  (car method-item))
+          (params (nth 2 method-item)   )
+          (exceptions (nth 3 method-item)))
+      (if (stringp params ) (setq method-string (concat method-string "()")) 
+        (progn 
+          (setq method-string (concat method-string "("))
+          (let ((index 0) (length-of-params (length params))(param))
+            (while (< index length-of-params)
+              (setq param (nth index params ))
+              (when (stringp param ) (setq method-string
+                                           (concat  method-string "${" (number-to-string (+ index 1)) ":"
+                                                    param "} , " )))
+              (when (listp param) 
+                (if ajc-use-short-class-name 
+                    (setq method-string (concat method-string "${" (number-to-string (+ 1 index )) ":"
                                                 (car param)  "} , " )) 
-                (setq method-string (concat method-string "${" (number-to-string (+ 1 index)) ":"
-                                            (car (ajc-split-pkg-item-by-pkg-ln (nth 1 param)))  "."  
-                                            (car param)  "} , " ))))
-            (setq index (+ 1 index ))))
-        (setq method-string  (replace-regexp-in-string  " , $" ")$0" method-string ))))
-    (setq method-string method-string)))
+                  (setq method-string (concat method-string "${" (number-to-string (+ 1 index)) ":"
+                                              (car (ajc-split-pkg-item-by-pkg-ln (nth 1 param)))  "."  
+                                              (car param)  "} , " ))))
+              (setq index (+ 1 index ))))
+          (setq method-string  (replace-regexp-in-string  " , $" ")$0" method-string ))))
+      (setq method-string method-string))
+    )
+  )
+(defun ajc-method-item-to-candidate(method-item)
+  "translate `method-item' to candidate ,`method-item'
+can be a method item ,or a field item"
+  (let ((candidate))
+    (if (= 2   (length method-item ));; lenth of field is 2 (only field and returntype )
+        (let ((field-full-string (ajc-field-to-string method-item t))
+              (field-short-string (ajc-field-to-string method-item nil)))
+          (setplist 'props nil ) (put 'props 'view field-full-string)
+          (add-text-properties 0 (length field-short-string)
+                               (symbol-plist  'props)  field-short-string)
+          (setq candidate field-short-string)
+          )
+      (let((method-full-string  (ajc-method-to-string method-item t))
+           (method-short-string (ajc-method-to-string method-item nil)))
+        (setplist 'props nil ) (put 'props 'view method-full-string)
+        (put 'props 'templete (ajc-method-to-yasnippet-templete method-item))
+        (add-text-properties 0 (length method-short-string)
+                             (symbol-plist  'props)  method-short-string)
+        (setq candidate method-short-string)))
+    candidate))
 
 (defun ajc-split-method ( method-line-string )
-  (let ((method-item) (split-list)(return-type))
-    (setq split-list (split-string  method-line-string "`"))
-    ;;handle method name
-    (add-to-list  'method-item  (car split-list) t)
-    (setq return-type (nth 1 split-list))
-    (if (string-match  "^~" return-type )
-        (add-to-list 'method-item (substring-no-properties  return-type 1) t)
-      (add-to-list 'method-item  (ajc-split-class-item-by-class-ln 
-                                  (string-to-number return-type)) t))
-    ;;handle params if exists
-    (if (not  (string-equal "" (nth 2 split-list)))
-        (let ((params)(param-split-list)) 
-          (setq param-split-list (split-string (nth 2 split-list)  "," t))
-          (dolist (param param-split-list)
-            (if (string-match  "^~" param )
-                (setq params  (append  params  (list (substring-no-properties param 1 ))))
+  (when method-line-string
+    (let ((method-item) (split-list)(return-type))
+      (setq split-list (split-string  method-line-string "`"))
+      ;;handle method name
+      (add-to-list  'method-item  (car split-list) t)
+      (setq return-type (nth 1 split-list))
+      (if (string-match  "^~" return-type )
+          (add-to-list 'method-item (substring-no-properties  return-type 1) t)
+        (add-to-list 'method-item  (ajc-split-class-item-by-class-ln 
+                                    (string-to-number return-type)) t))
+      ;;handle params if exists
+      (if (not  (string-equal "" (nth 2 split-list)))
+          (let ((params)(param-split-list)) 
+            (setq param-split-list (split-string (nth 2 split-list)  "," t))
+            (dolist (param param-split-list)
+              (if (string-match  "^~" param )
+                  (setq params  (append  params  (list (substring-no-properties param 1 ))))
                 (setq params (append params (list (ajc-split-class-item-by-class-ln 
                                                    (string-to-number param)))))))
-          (setq method-item (append method-item (list params)))) 
-      (setq method-item (append method-item  (list ""))))
-    (if (not  (string-equal "" (nth 3 split-list)))
-        (let ((exceptions)(exception-split-list)) 
-          (setq exception-split-list (split-string (nth 3 split-list)  "," t))
-          (dolist (exception exception-split-list)
-            (if (string-match  "^~" exception )
-                (setq exceptions  (append  exceptions  (list (substring-no-properties exception 1 ))))
+            (setq method-item (append method-item (list params)))) 
+        (setq method-item (append method-item  (list ""))))
+      (if (not  (string-equal "" (nth 3 split-list)))
+          (let ((exceptions)(exception-split-list)) 
+            (setq exception-split-list (split-string (nth 3 split-list)  "," t))
+            (dolist (exception exception-split-list)
+              (if (string-match  "^~" exception )
+                  (setq exceptions  (append  exceptions  (list (substring-no-properties exception 1 ))))
                 (setq exceptions (append exceptions (list (ajc-split-class-item-by-class-ln 
-                                      (string-to-number exception)))))))
-          (setq method-item (append method-item (list exceptions)))) 
-      (setq method-item (append method-item  (list ""))))   
-      method-item))
+                                                           (string-to-number exception)))))))
+            (setq method-item (append method-item (list exceptions)))) 
+        (setq method-item (append method-item  (list ""))))   
+      method-item)))
 
 (defun ajc-split-constructor(constructor-line-string)
-  (let ((constructor-item) (split-list))
-    (setq constructor-line-string (substring-no-properties constructor-line-string 2))
-    (setq split-list (split-string  constructor-line-string "`"))
-    ;;handle constructor name
-    (add-to-list  'constructor-item  (car split-list) t)
-    ;;handle params if exists
-    (if (not  (string-equal "" (nth 1 split-list)))
-        (let ((params)(param-split-list)) 
-          (setq param-split-list (split-string (nth 1 split-list)  "," t))
-          (dolist (param param-split-list)
-            (if (string-match  "^~" param )
-                (setq params  (append  params  (list (substring-no-properties param 1 ))))
+  (when constructor-line-string
+    (let ((constructor-item) (split-list))
+      (setq constructor-line-string (substring-no-properties constructor-line-string 2))
+      (setq split-list (split-string  constructor-line-string "`"))
+      ;;handle constructor name
+      (add-to-list  'constructor-item  (car split-list) t)
+      ;;handle params if exists
+      (if (not  (string-equal "" (nth 1 split-list)))
+          (let ((params)(param-split-list)) 
+            (setq param-split-list (split-string (nth 1 split-list)  "," t))
+            (dolist (param param-split-list)
+              (if (string-match  "^~" param )
+                  (setq params  (append  params  (list (substring-no-properties param 1 ))))
                 (setq params (append params (list (ajc-split-class-item-by-class-ln 
                                                    (string-to-number param)))))))
-          (setq constructor-item (append constructor-item (list params)))) 
-      (setq constructor-item (append constructor-item  (list ""))))
-    (if (not  (string-equal "" (nth 2 split-list)))
-        (let ((exceptions)(exception-split-list)) 
-          (setq exception-split-list (split-string (nth 2 split-list)  "," t))
-          (dolist (exception exception-split-list)
-            (if (string-match  "^~" exception )
-                (setq exceptions  (append  exceptions  (list (substring-no-properties exception 1 ))))
-              (progn 
-                (setq exceptions (append exceptions (list (ajc-split-class-item-by-class-ln 
-                                               (string-to-number exception)))))))) 
-          (setq constructor-item (append constructor-item (list exceptions)))) 
-      (setq constructor-item (append constructor-item  (list ""))))
-    constructor-item))
+            (setq constructor-item (append constructor-item (list params)))) 
+        (setq constructor-item (append constructor-item  (list ""))))
+      (if (not  (string-equal "" (nth 2 split-list)))
+          (let ((exceptions)(exception-split-list)) 
+            (setq exception-split-list (split-string (nth 2 split-list)  "," t))
+            (dolist (exception exception-split-list)
+              (if (string-match  "^~" exception )
+                  (setq exceptions  (append  exceptions  (list (substring-no-properties exception 1 ))))
+                (progn 
+                  (setq exceptions (append exceptions (list (ajc-split-class-item-by-class-ln 
+                                                             (string-to-number exception)))))))) 
+            (setq constructor-item (append constructor-item (list exceptions)))) 
+        (setq constructor-item (append constructor-item  (list ""))))
+      constructor-item)))
 
 (defun ajc-constructor-to-string (constructor-item &optional is-with-exceptions)
-  (let((constructor-string  (car constructor-item))
-       (params (nth 1 constructor-item)   )
-       (exceptions (nth 2 constructor-item)))
-    (if (stringp params ) (setq constructor-string (concat constructor-string "()")) 
-      (progn 
-        (setq constructor-string (concat constructor-string "("))                
-        (dolist (param  params )
-          (when (stringp param ) (setq constructor-string (concat constructor-string param " , " )))
-          (when (listp param) 
-            (if ajc-use-short-class-name 
-                (setq constructor-string (concat constructor-string  (car param)  " , " )) 
-              (setq constructor-string (concat constructor-string
-                                               (car (ajc-split-pkg-item-by-pkg-ln (nth 1 param)))  "."  
-                                               (car param)  " , " )))))
-        (setq constructor-string  (replace-regexp-in-string  " , $" ")" constructor-string ))))
-    (when is-with-exceptions
-    (when (listp exceptions )  
-      (setq constructor-string (concat constructor-string ajc-throws-char))
-      (dolist (exception  exceptions )
-        (when (stringp exception ) (setq constructor-string (concat constructor-string exception " , " )))
-        (when (listp exception) 
-          (if ajc-use-short-class-name 
-              (setq constructor-string (concat constructor-string  (car exception)  " , " )) 
-            (setq constructor-string (concat constructor-string
-                                             (car (ajc-split-pkg-item-by-pkg-ln (nth 1 exception)))  "."  
-                                             (car exception)  " , " )))))
-      (setq constructor-string  (replace-regexp-in-string  ", $" "" constructor-string )))) 
-    constructor-string))
-
-(defun ajc-constructor-to-yasnippet-templete (constructor-item)
-  (let((constructor-string  (car constructor-item))
-       (params (nth 1 constructor-item)   )
-       (exceptions (nth 2 constructor-item)))
-    (if (stringp params ) (setq constructor-string (concat constructor-string "()")) 
-      (progn 
-        (setq constructor-string (concat constructor-string "("))
-        (let ((index 0) (length-of-params (length params))(param))
-          (while (< index length-of-params)
-            (setq param (nth index params ))
-            (when (stringp param ) (setq constructor-string
-                                          (concat  constructor-string "${" (number-to-string (+ index 1)) ":"
-                                                    param "} , " )))
+  (when constructor-item
+    (let((constructor-string  (car constructor-item))
+         (params (nth 1 constructor-item)   )
+         (exceptions (nth 2 constructor-item)))
+      (if (stringp params ) (setq constructor-string (concat constructor-string "()")) 
+        (progn 
+          (setq constructor-string (concat constructor-string "("))                
+          (dolist (param  params )
+            (when (stringp param ) (setq constructor-string (concat constructor-string param " , " )))
             (when (listp param) 
               (if ajc-use-short-class-name 
-                  (setq constructor-string (concat constructor-string "${" (number-to-string (+ 1 index )) ":"
-                                                (car param)  "} , " )) 
-                (setq constructor-string (concat constructor-string "${" (number-to-string (+ 1 index)) ":"
-                                            (car (ajc-split-pkg-item-by-pkg-ln (nth 1 param)))  "."  
-                                            (car param)  "} , " ))))
-            (setq index (+ 1 index ))
-            ))
-        (setq constructor-string  (replace-regexp-in-string  " , $" ")$0" constructor-string ))))
-    (setq constructor-string constructor-string)))
+                  (setq constructor-string (concat constructor-string  (car param)  " , " )) 
+                (setq constructor-string (concat constructor-string
+                                                 (car (ajc-split-pkg-item-by-pkg-ln (nth 1 param)))  "."  
+                                                 (car param)  " , " )))))
+          (setq constructor-string  (replace-regexp-in-string  " , $" ")" constructor-string ))))
+      (when is-with-exceptions
+        (when (listp exceptions )  
+          (setq constructor-string (concat constructor-string ajc-throws-char))
+          (dolist (exception  exceptions )
+            (when (stringp exception ) (setq constructor-string (concat constructor-string exception " , " )))
+            (when (listp exception) 
+              (if ajc-use-short-class-name 
+                  (setq constructor-string (concat constructor-string  (car exception)  " , " )) 
+                (setq constructor-string (concat constructor-string
+                                                 (car (ajc-split-pkg-item-by-pkg-ln (nth 1 exception)))  "."  
+                                                 (car exception)  " , " )))))
+          (setq constructor-string  (replace-regexp-in-string  ", $" "" constructor-string )))) 
+      constructor-string)))
+
+(defun ajc-constructor-to-yasnippet-templete (constructor-item)
+  (when constructor-item
+    (let((constructor-string  (car constructor-item))
+         (params (nth 1 constructor-item)   )
+         (exceptions (nth 2 constructor-item)))
+      (if (stringp params ) (setq constructor-string (concat constructor-string "()")) 
+        (progn 
+          (setq constructor-string (concat constructor-string "("))
+          (let ((index 0) (length-of-params (length params))(param))
+            (while (< index length-of-params)
+              (setq param (nth index params ))
+              (when (stringp param ) (setq constructor-string
+                                           (concat  constructor-string "${" (number-to-string (+ index 1)) ":"
+                                                    param "} , " )))
+              (when (listp param) 
+                (if ajc-use-short-class-name 
+                    (setq constructor-string (concat constructor-string "${" (number-to-string (+ 1 index )) ":"
+                                                     (car param)  "} , " )) 
+                  (setq constructor-string (concat constructor-string "${" (number-to-string (+ 1 index)) ":"
+                                                   (car (ajc-split-pkg-item-by-pkg-ln (nth 1 param)))  "."  
+                                                   (car param)  "} , " ))))
+              (setq index (+ 1 index ))
+              ))
+          (setq constructor-string  (replace-regexp-in-string  " , $" ")$0" constructor-string ))))
+      (setq constructor-string constructor-string))))
 
 ;; find tag file 
 (defun ajc-init()
@@ -680,6 +711,7 @@ it is the last line number in tag file" )
           ;; a buffer name starts with empth string,means hidden this buffer
           (rename-buffer " *java-base.tag*")
           (setq ajc-tag-buffer " *java-base.tag*")
+          (buffer-disable-undo)
           (setq buffer-read-only t)
           (setq case-fold-search nil) 
           (setq ajc-package-first-ln  (string-to-number (ajc-read-line 3)))
@@ -691,9 +723,13 @@ it is the last line number in tag file" )
     (setq ajc-is-running t)
     ))
 
-;; (defun ajc-init-when-load-first-java-file() "just add in a hook "
-;;   (if (not ajc-all-sorted-class-items)
-;;       (ajc-load-all-sorted-class-items-to-memory)))
+(defun ajc-reload()
+  "restart Auto Java Complete ,when your tag file changed,
+you can use this function restart AutoJavaComplete "
+  (interactive)
+  (setq ajc-is-running nil)
+  (ajc-init)
+  )
 
 (defun ajc-reload-tag-buffer-maybe( ) 
   "check if the ajc-tag-buffer is still live ,if not reload it "
@@ -1291,65 +1327,107 @@ if member-prefix is nil or empty string it will return all members under class-i
           (setq top (pop var-stack))))
       ) matched-class-name))
 
-(defun ajc-complete-method-candidates ()
-  (let((stack-list  (ajc-parse-splited-line-4-complete-method)) (is-dot-last)
-      (top) (return-list)(return-string-list nil))
-    ( if (and stack-list (> (length stack-list) 0))
-        (when (ajc-validate-splited-line-items-4-method-complete  stack-list)
-          (if (= (% (length stack-list ) 2 ) 0) (setq is-dot-last t))
-          (setq stack-list (remove "." stack-list ))
-          (setq  top (pop stack-list))
-          (let ((class-item ))
-          (if (string-match "^[A-Z][a-zA-Z0-9_]*$" top)
-            (setq class-item (ajc-find-class-first-check-imported  top))
-            (setq class-item (ajc-find-class-first-check-imported (ajc-caculate-class-name-by-variable top))))
-                (while (> (length stack-list ) 1) 
-                  (setq class-item  (nth 1 (car  (ajc-find-members class-item (pop stack-list) t))))
-                  )
-                 (if is-dot-last (let ((member-string (pop stack-list)))
-                                     (if member-string  
-                                       (setq class-item  (nth 1 (car  (ajc-find-members class-item member-string t)))))
-                                       (setq return-list (ajc-find-members class-item   )))
-                  (setq return-list (ajc-find-members class-item   (pop stack-list)))))
- ))
-    (dolist (member return-list);; translate item to string
-      (if (= 2   (length member ));; lenth of field is 2 (only field and returntype )
-          (let ((field-full-string (ajc-field-to-string member t))
-                (field-short-string (ajc-field-to-string member nil)))
-            (add-to-list 'return-string-list     field-short-string t)
-            (setplist 'props nil ) (put 'props 'view field-full-string)
-             (add-text-properties 0 (length field-short-string)
-                                 (symbol-plist  'props)  field-short-string)
-            )
-        (let((method-full-string  (ajc-method-to-string member t))
-              (method-short-string (ajc-method-to-string member nil)))
-          (add-to-list 'return-string-list   method-short-string t)
-            (setplist 'props nil ) (put 'props 'view method-full-string)
-            (put 'props 'templete (ajc-method-to-yasnippet-templete member))
-             (add-text-properties 0 (length method-short-string)
-                                 (symbol-plist  'props)  method-short-string)
-          
-          )
-        ))  
-    return-string-list
-    ))
+;;TODO: add cache support for method candidates
+;; if it failed ,then don't try, to waste time.
 
-(defun ajc-validate-splited-line-items-4-method-complete (stack-list)
-"('System' '.') return true, ('System' '.' 'ou' ) return true,
- ('System' '.' 'out' '.' 'pri') return  true"
-  (let ((current-item (car stack-list)) (validate t) (index 1)(next-item))
-    (if (and (> (length stack-list) 1)  (string-match "^[a-zA-Z0-9_]+$" current-item ))
-        (while (and validate current-item  )
-          (setq next-item (nth index stack-list))
-          (if (string-match "^[a-zA-Z0-9_]+$" current-item )
-              (if next-item (if (not (string-equal "." next-item)) (setq validate nil)   )))
-          (if (string-equal "." current-item )
-              (if next-item (if (not (string-match "^[a-zA-Z0-9_]+$" next-item)) (setq validate nil)   )))
-          (setq current-item next-item)
-          (setq index (+ 1 index))
-          )    
-      (setq validate nil))
-    (setq validate validate)))
+;;(ajc-concat-list-as-string '("a" "b"))=="ab"
+(defun ajc-concat-list-as-string(list)
+  "(ajc-concat-list-as-string '(\"a\" \"b\"))==\"ab\""
+  (let((str ""))
+    (dolist (ele list)
+      (setq str (concat str ele)))
+    str))
+
+
+(defvar ajc-complete-method-candidates-cache nil)
+(defvar ajc-complete-method-candidates-cache-stack-list nil)
+
+(defun ajc-complete-method-is-available()
+  "check whether method completion is available or not ,
+suppose previous (current-line)==\"Systema.aaa\"
+but it failed to get any candidates,
+and now (current-line)==\"Systema.aaab\" It would
+ not get any candidates too ,we needn't try to complete it ."
+  (let ((stack-list ( ajc-get-validated-stack-list-or-nil-4-method-complete
+                     (ajc-parse-splited-line-4-complete-method)))
+        (is-available t)
+        )
+    (when (and  ajc-complete-method-candidates-cache-stack-list
+                (string-match (concat "^" (regexp-quote  (ajc-concat-list-as-string ajc-complete-method-candidates-cache-stack-list)))
+                              (ajc-concat-list-as-string stack-list))
+                (not  ajc-complete-method-candidates-cache))
+      (setq is-available nil))
+    (setq ajc-complete-method-candidates-cache-stack-list stack-list)
+    is-available))
+ 
+(defun ajc-complete-method-candidates()
+  "Get method completion candidates."
+  (when (ajc-complete-method-is-available)
+    (setq ajc-complete-method-candidates-cache
+          (ajc-complete-method-candidates-1 ajc-complete-method-candidates-cache-stack-list))))
+
+;;
+;; (defun ajc-complete-method-candidates-with-cache()
+;;  "this function works ,but I found it useless"
+;;   (let ((candidates)
+;;         (stack-list (ajc-get-validated-stack-listd-stack-or-nil-4-method-complete
+;;                      (ajc-parse-splited-line-4-complete-method)))
+;;         )
+;;     (if ajc-complete-method-candidates-cache-stack-list
+;;         (if (string-equal "." (car (last stack-list)))
+;;             (setq candidates (ajc-complete-method-candidates-without-cache));;complete without cache
+;;           (if (and (= (length stack-list) (length ajc-complete-method-candidates-cache-stack-list))
+;;                      (string-match (concat "^" (regexp-quote  (ajc-concat-list-as-string ajc-complete-method-candidates-cache-stack-list))) (ajc-concat-list-as-string stack-list)))
+;;                      (setq candidates ajc-complete-method-candidates-cache)
+;;                      (setq candidates (ajc-complete-method-candidates-without-cache));;complete without cache
+;;                  ))
+;;       (setq candidates (ajc-complete-method-candidates-without-cache));;else complete without cache
+;;       )
+;;       (setq ajc-complete-method-candidates-cache-stack-list stack-list)
+;;       (setq ajc-complete-method-candidates-cache candidates)
+;;       ))
+
+
+(defun ajc-complete-method-candidates-1(stack-list)
+  "get method candidates depend on stack-list, about
+ what stack-list it is,check out
+ `ajc-parse-splited-line-4-complete-method'"
+  (when stack-list
+    (let( (is-dot-last  (= (% (length stack-list ) 2 ) 0))
+          top return-list return-string-list) 
+      (setq stack-list (remove "." stack-list ))
+      (setq  top (pop stack-list))
+      (let ((class-item ))
+        (if (string-match "^[A-Z][a-zA-Z0-9_]*$" top)
+            (setq class-item (ajc-find-class-first-check-imported  top))
+          (setq class-item (ajc-find-class-first-check-imported (ajc-caculate-class-name-by-variable top))))
+        (while  (and class-item (> (length stack-list ) 1))
+          (setq class-item  (nth 1 (car  (ajc-find-members class-item (pop stack-list) t))))
+          )
+        (if is-dot-last (let ((member-string (pop stack-list)))
+                          (if member-string  
+                              (setq class-item  (nth 1 (car  (ajc-find-members class-item member-string t)))))
+                          (setq return-list (ajc-find-members class-item   )))
+          (setq return-list (ajc-find-members class-item   (pop stack-list)))))
+      (mapcar  'ajc-method-item-to-candidate return-list)
+      )))
+
+
+(defun ajc-get-validated-stack-list-or-nil-4-method-complete(stack-list)
+  "if stack-list is validated ,return itself ,else return nil."
+  (when (and stack-list (> (length stack-list) 0))
+    (let ((current-item (car stack-list)) (validated-stack-list stack-list) (index 1)(next-item))
+      (if (and (> (length stack-list) 1)  (string-match "^[a-zA-Z0-9_]+$" current-item ))
+          (while (and validated-stack-list current-item)
+            (setq next-item (nth index stack-list))
+            (if (string-match "^[a-zA-Z0-9_]+$" current-item )
+                (if next-item (if (not (string-equal "." next-item)) (setq validated-stack-list nil)   )))
+            (if (string-equal "." current-item )
+                (if next-item (if (not (string-match "^[a-zA-Z0-9_]+$" next-item)) (setq validated-stack-list nil)   )))
+            (setq current-item next-item)
+            (setq index (+ 1 index)))    
+        (setq validated-stack-list nil))
+      validated-stack-list)))
 
 (defun ajc-parse-splited-line-4-complete-method ()
   " parse current line  for complete method  ,suppose current line is
