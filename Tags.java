@@ -70,7 +70,7 @@ public class Tags {
     }
 
     private void log(Throwable e){
-        System.err.println(e.getCause());
+        System.err.println("cause:"+e.getCause()+",  msg:"+ e.getMessage());
         e.printStackTrace(logError);
     }
     
@@ -161,7 +161,7 @@ public class Tags {
             Class c = Class.forName(className,false,ClassLoader.getSystemClassLoader()) ;
             clss.add(c);
         } catch(Throwable t){
-            // log(t);
+             log(t);
         }
     }
 
