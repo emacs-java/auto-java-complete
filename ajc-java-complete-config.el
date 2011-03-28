@@ -1,32 +1,12 @@
 ;;; ajc-java-complete-config.el --- Auto Java Completion  for GNU Emacs
 
-;;  Install
+;;;  Install
 
-;; add these line in your emacs init file .
-;; (add-to-list 'load-path  "~/.emacs.d/ajc-java-complete/")
-;; (require 'ajc-java-complete-config)
-;; (add-hook 'java-mode-hook 'ajc-java-complete-mode)
-;; (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
-
-;; to enable Auto Java Complete ,just need to add ajc-java-complete-mode
-;; minor-mode in your mode hook, for example
-;;         (add-hook 'java-mode-hook 'ajc-java-complete-mode)
-;;  If your want to enable  ajc-java-complete-mode when openning
-;;  a jsp file. you can
-;;         (add-hook 'jsp-mode 'ajc-java-complete-mode)
-;;  if you has a jsp-mode,
-;;  if not ,you can do it like this
-;;         (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
-
-
-;;  Code
+;;;  Code
 
 (require 'auto-complete)
 (require 'yasnippet)
 (require 'ajc-java-complete)
-;; conflect with 
-;; (local-set-key (kbd "(") 'skeleton-pair-insert-maybe)
-;; when complete constructor 
 
 
 (defun ajc-expand-yasnippet-templete-with-ac ()
@@ -65,7 +45,7 @@
   '((candidates . (ajc-complete-method-candidates))
   (cache)
   (requires . 0)
-  (prefix . "\\.\\(.*\\)") 
+  (prefix . "\\.\\(.*\\)")
   (action .  ajc-expand-yasnippet-templete-with-ac)))
 
 (ac-define-source ajc-keywords
@@ -82,9 +62,9 @@
   (add-to-list 'ac-sources 'ac-source-ajc-class)
   (add-to-list 'ac-sources 'ac-source-ajc-constructor)
   (add-to-list 'ac-sources 'ac-source-ajc-import)
-;; auto import all Class in source file    
+;; auto import all Class in source file
 (local-set-key (kbd "C-c i") 'ajc-import-all-unimported-class)
-;; import Class where under point 
+;; import Class where under point
 (local-set-key (kbd "C-c m") 'ajc-import-class-under-point))
 
 (defun ajc-java-complete-exit()
@@ -97,6 +77,7 @@
 
 (defvar ajc-java-complete-mode-hook nil)
 ;;define minor-mode
+;;;###autoload
 (define-minor-mode ajc-java-complete-mode
   "AutoJavaComplete mode"
   :lighter " ajc"
@@ -108,7 +89,10 @@
         (ajc-java-complete-init))
     (ajc-java-complete-exit)))
 
+(defalias 'auto-java-complete-mode 'ajc-java-complete-mode)
+
 ;; (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
+;;;###autoload
 (defun ajc-4-jsp-find-file-hook ()
   (let ((file-name-ext (file-name-extension (buffer-file-name)) ))
     (when (and file-name-ext (string-match "jsp" file-name-ext))
