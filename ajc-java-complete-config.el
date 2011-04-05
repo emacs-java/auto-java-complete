@@ -57,7 +57,7 @@
 ;;hooks
 (defun ajc-java-complete-init()
   (ajc-init)
-  (add-to-list 'ac-sources 'ac-source-ajc-keywords)
+;;  (add-to-list 'ac-sources 'ac-source-ajc-keywords)
   (add-to-list 'ac-sources 'ac-source-ajc-method)
   (add-to-list 'ac-sources 'ac-source-ajc-class)
   (add-to-list 'ac-sources 'ac-source-ajc-constructor)
