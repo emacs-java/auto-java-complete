@@ -25,7 +25,7 @@
 //
 //java.lang.ClassNotFoundException: org.apache.log4j.pattern.BridgePatternParser
 //
-//that means this class   is not in your classpath or some imported class in  
+//that means this class   is not in your classpath or some imported class in
 //org.apache.log4j.pattern.BridgePatternParser is not in your classpath,
 //you must find out all jars it depends on ,and put it in your classpath.
 //or if you think this class is not very important ,you can just ignore this
@@ -70,39 +70,13 @@ public class Tags {
     }
 
     private void log(Throwable e){
-        System.err.println("cause:"+e.getCause()+",  msg:"+ e.getMessage());
+
+        System.err.println("cause:"+e.getCause()+"  "+ e.getClass().getName()+":"+ e.getMessage());
         e.printStackTrace(logError);
     }
-    
+
     private void logInfo(String info){
         logInfo.println(info);
-    }
-    /**
-     * find out all  readable files under dir recursively
-     */
-    private List<File> getAllFilesUnderDir(File dir, final FileFilter fileFilter) {
-        FileFilter acceptDirFileFilterWrapper  = new FileFilter(){
-                public boolean accept(File f)   {
-                    if (f.isDirectory()) return true;
-                    return   fileFilter.accept(f);
-                }
-            };
-        ArrayList<File> files = new ArrayList<File>();
-        Stack<File> s = new Stack<File>();
-        s.push(dir);
-        File tmp = null;
-        while (!s.isEmpty()) {
-            tmp = s.pop();
-            if (tmp.isDirectory() && tmp.canRead() && tmp.canExecute()) {
-                File[] cs = tmp.listFiles(acceptDirFileFilterWrapper);
-                for (File c : cs) {
-                    s.push(c);
-                }
-            } else if (tmp.isFile() && tmp.canRead()) {
-                files.add(tmp);
-            }
-        }
-        return files;
     }
 
 
@@ -110,9 +84,14 @@ public class Tags {
      * Only packages that <code>matches(packageFilter)</code> will be tagged.
      */
     protected String packageFilter;
+    File  randomTmpPath = new File(System.getProperty("java.io.tmpdir")+File.separatorChar+UUID.randomUUID().toString()+File.separatorChar);
+    ClassLoader cl = new CL(randomTmpPath);
 
 
-    private void processClasspath (){
+    //copy $CLASSPATH/**.class to randomTmpPath
+    //unzip $CLASSPATH/**.jar to randomTmpPath
+    //CLASSLOADER CL will load class from this directory.
+    private void prepare(){
         String classpath=System.getProperty("java.class.path");
         String [] cls=classpath.split( System.getProperty("path.separator"));
         for (int i=0;i<cls.length;i++) {
@@ -123,29 +102,54 @@ public class Tags {
                 if (f.isDirectory()) processDirectory(f); else  processJarFile(f);
             }
         }
-        if(!classpath.contains(fileSeparator+ "rt.jar")){
-            processJarFile(new File(System.getenv("JAVA_HOME")+fileSeparator+"jre"+fileSeparator+"lib"+
-                                    fileSeparator+"rt.jar"));
+    }
+    //clean randomTmpPath directory
+    private void clear(){
+        if (randomTmpPath!=null &&randomTmpPath.isDirectory()){
+            IOUtils.del(randomTmpPath);
+            randomTmpPath.delete();
         }
-        tagAll();
-        write();
     }
 
+    private void process (){
+        prepare();//copy or unzip *.class *.jar to randomTmpPath
+        if (randomTmpPath!=null &&randomTmpPath.isDirectory()){
+            System.out.println("tmp classpath :" + randomTmpPath.getAbsolutePath());
+            String dirFullPath=randomTmpPath.getAbsolutePath();
+            List<File> clazzFiles =IOUtils.getAllFilesUnderDir
+                (randomTmpPath, new FileFilter(){public boolean accept(File f){
+                    if (f.getName().endsWith(".class")) return true;
+                    return false;
+                }});
+            for(File clazz:clazzFiles){
+                String classAbsolutePath=clazz.getAbsolutePath();
+                String classFullName = classAbsolutePath
+                    .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class") )
+                    .replace(fileSeparator,".");
+                processClass(classFullName);
+            }
+            tagAll();
+            write();
+
+        }
+        clear();
+    }
     private void processJarFile (File f) {
-        JarFile jar=null;
-        try { jar = new JarFile(f); } catch (IOException e) {log(e);}
-        Enumeration en = jar.entries();
-        int i = 0;
-        while (en.hasMoreElements()){
-            ZipEntry z = (ZipEntry) en.nextElement();
-            String name = z.getName();
-            if (name.indexOf(".class") < 0) continue;
-            name= name.substring(0, name.lastIndexOf(".class"));
-            String className= name.replace("/", ".");
-            processClass(className);
-        }
+        Unzip.unzip(f ,randomTmpPath);
+        System.out.println("adding "+f.getAbsolutePath() +"  to classpath...");
+        // JarFile jar=null;
+        // try { jar = new JarFile(f); } catch (IOException e) {log(e);}
+        // Enumeration en = jar.entries();
+        // int i = 0;
+        // while (en.hasMoreElements()){
+        //     ZipEntry z = (ZipEntry) en.nextElement();
+        //     String name = z.getName();
+        //     if (name.indexOf(".class") < 0) continue;
+        //     name= name.substring(0, name.lastIndexOf(".class"));
+        //     String className= name.replace("/", ".");
+        //     processClass(className);
+        // }
     }
-
     /**
        @param className  full className
 
@@ -158,7 +162,8 @@ public class Tags {
         if (className .contains("org.iso_relax.ant")) return;
         if (className .contains("$")) return;
         try{
-            Class c = Class.forName(className,false,ClassLoader.getSystemClassLoader()) ;
+            //            Class c = Class.forName(className,false,ClassLoader.getSystemClassLoader()) ;
+            Class c = Class.forName(className ,false,cl);
             clss.add(c);
         } catch(Throwable t){
              log(t);
@@ -171,26 +176,34 @@ public class Tags {
     private void processDirectory (File dir){
         if (dir!=null &&dir.isDirectory()){
             String dirFullPath=dir.getAbsolutePath();
-            List<File> clazzFiles =getAllFilesUnderDir
+            List<File> clazzFiles =IOUtils.getAllFilesUnderDir
                 (dir, new FileFilter(){public boolean accept(File f){
                     if (f.getName().endsWith(".class")) return true;
                     return false;
                 }});
             for(File clazz:clazzFiles){
                 String classAbsolutePath=clazz.getAbsolutePath();
-                String classFullName = classAbsolutePath
-                    .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class") )
-                    .replace(fileSeparator,".");
-                processClass(classFullName);
+                IOUtils.copy(clazz,new File(randomTmpPath ,classAbsolutePath.substring(dirFullPath.length()+1) ));
+                // String classFullName = classAbsolutePath
+                //     .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class") )
+                //     .replace(fileSeparator,".");
+                // processClass(classFullName);
             }
-            File [] jarz=dir.listFiles(
+            List<File> jarz =IOUtils.getAllFilesUnderDir( dir,
                                        new FileFilter(){
                                            public boolean accept(File f){
                                                if (f.getName().endsWith(".jar")) return true;
                                                return false;
                                            }
-                                       }
-                                       );
+                                       });
+            // File [] jarz=dir.listFiles(
+            //                            new FileFilter(){
+            //                                public boolean accept(File f){
+            //                                    if (f.getName().endsWith(".jar")) return true;
+            //                                    return false;
+            //                                }
+            //                            }
+            //                            );
             if(jarz!=null){
                 for(File jarFile:jarz){
                     processJarFile(jarFile);
@@ -199,6 +212,7 @@ public class Tags {
         }
     }
     private void tagAll(){
+        System.out.println("found "+clss.size() +"  classes.");
         try {
             for (Class c :clss){
                 try {
@@ -208,10 +222,11 @@ public class Tags {
                     logInfo(e.getMessage());
                 }catch (Throwable ex) {log(ex);}
             }
-            
+
             Collections.sort(pkgs);
             Collections.sort(classes);
-            
+            System.out.println("tagged "+classes.size() +"  classes.");
+
             for (ClassItem cItem:classes){
                 try {
                     List<MemberItem> localMems=tagConstructors(cItem);
@@ -222,7 +237,6 @@ public class Tags {
                     logInfo(e.getMessage());
                 }catch (Throwable ex) {log(ex);}
             }
-
             int pkg_size=pkgs.size();
             int classes_size=classes.size();
             PackageItem pkgItem=null;
@@ -245,8 +259,10 @@ public class Tags {
                     pkgItem.classStartLineNum=cItem.lineNum;
                 }
             }
-            pkgItem.classEndLineNum=cItem.lineNum+1; //populate the last pkgLast
-
+            if(cItem!=null&&pkgItem!=null){
+                //TODO: cItem maybe null here ,bugfix
+                pkgItem.classEndLineNum=cItem.lineNum+1; //populate the last pkgLast
+            }
             pkgItem=null ; cItem=null;
 
             for(int i =0;i<classes_size;i++){// in this loop ,we will populate basic info about each member of class into  (exclude)
@@ -258,9 +274,9 @@ public class Tags {
                     cItem.members=null;
                 }
             }
-            
+
             cItem=null;
-            
+
             MemberItem memItem=null;
             int members_size=members.size();
             int memberLineNum_start=shift+pkg_size+classes_size+1;
@@ -276,7 +292,9 @@ public class Tags {
                     cItem.memEndLineNum=memItem.lineNum;
                 }
             }
-            cItem.memEndLineNum=memItem.lineNum+1;
+            if (cItem!=null&&memItem!=null) {
+                cItem.memEndLineNum=memItem.lineNum+1;
+            }
             memItem=null; cItem=null;
         } catch (Throwable t) {log(t);}
     }
@@ -287,7 +305,7 @@ public class Tags {
         if(c.isAnnotation()) throw new ApplicationException("sorry ,you are an Annotation:"+c.getName());
         if(c.isAnonymousClass())  throw new ApplicationException("sorry, you are an AnnonymousClass:"+c.getName());
         if(c.isArray())  throw new ApplicationException("sorry ,you are Array:"+c.getName());
-        if(c.isPrimitive())throw new ApplicationException("sorry you are a  Primitive type:"+c.getName()); 
+        if(c.isPrimitive())throw new ApplicationException("sorry you are a  Primitive type:"+c.getName());
         if(c.getSimpleName().equals("")) throw new ApplicationException("why don't you have a name,I don't know how to handle you:"+c.getName());
         if(!Modifier.isPublic(c.getModifiers())) throw new ApplicationException("sorry ,you are not a  public class:"+c.getName());
         if(c.getPackage()==null) throw new ApplicationException("why don't you hava a package name?:"+c.getName());
@@ -535,14 +553,16 @@ public class Tags {
                            "***    before that you'd better backup the  file ~/.java_base.tag,if exists***\n"+
                            "******************************************************************************\n"
                            );
-        // System.out.println("sleep 30 seconds...");
-        // try {
-        //     Thread.sleep(30000);
-        //} catch (Exception ex) {}
+        System.out.println("if you see java.lang.OutOfMemoryError: PermGen space ,you can increment permsize:");
+        System.out.println("        java  -XX:MaxPermSize=512m  Tags");
+        System.out.println("sleep 20 seconds...");
+        try {
+            Thread.sleep(20000);
+        } catch (Exception ex) {}
 
         Tags tags = new Tags();
         if (argv.length > 0) tags.packageFilter = argv[0];
-        tags.processClasspath() ;
+        tags.process() ;
 
         System.out.println(
                            "\n*********************************************************************\n"+
@@ -693,5 +713,170 @@ class  ClassItemWrapper{
 class ApplicationException extends Exception{
     public ApplicationException(String msg){
         super(msg);
+    }
+}
+class Unzip {
+    /** unzip zip file to sDestPath
+     * @param sZipPathFile :path of zip file
+     * @param sDestPath    :path ,where to put the ectracted files
+     *
+     */
+    public static void unzip(File sZipPathFile, File sDestPath){
+        try{
+            FileInputStream fins = new FileInputStream(sZipPathFile);
+            ZipInputStream zins = new ZipInputStream(fins);
+            ZipEntry ze = null;
+            byte ch[] = new byte[256];
+            while((ze = zins.getNextEntry()) != null){
+                File zfile = new File(sDestPath , ze.getName());
+                File fpath = new File(zfile.getParentFile().getPath());
+                if(ze.isDirectory()){
+                    if(!zfile.exists())
+                        zfile.mkdirs();
+                    zins.closeEntry();
+                }else{
+                    if(!fpath.exists())
+                        fpath.mkdirs();
+                    FileOutputStream fouts = new FileOutputStream(zfile);
+                    int i;
+                    while((i = zins.read(ch)) != -1)
+                        fouts.write(ch,0,i);
+                    zins.closeEntry();
+                    fouts.close();
+                }
+            }
+            fins.close();
+            zins.close();
+        }catch(Exception e){
+            System.err.println("Extract error(maybe bad zip(jar) file.):" + e.getMessage());
+        }
+    }
+    // public static void main(String[] args) {
+    //     // TODO Auto-generated method stub
+    //     Unzip z = new Unzip();
+    //     z.unzip("/tmp/a.zip", "/tmp/d/");
+    // }
+
+}
+ class CL extends ClassLoader{
+
+    private File classBasePath=null;
+    public CL(File classBasePath ){
+        this.classBasePath=classBasePath;
+        if(!classBasePath.exists()){
+            classBasePath.mkdirs();
+        }
+    }
+    public Class<?> findClass(String name)throws ClassNotFoundException{
+        File classFile=new File(classBasePath, name.replace(".",File.separator)+".class");
+        if(!classFile.exists()) throw new ClassNotFoundException("Can't find class:"+name);
+        byte[] classByte= new byte[(int)classFile.length()];
+        FileInputStream fis=null;
+        try {
+            fis = new FileInputStream(classFile);
+            fis.read(classByte);
+            return defineClass(name, classByte, 0, classByte.length);
+        } catch (IOException ex) {
+            throw new ClassNotFoundException("Can't find class:"+name);
+        } finally {
+            IOUtils.close(fis);
+        }
+    }
+}
+class IOUtils{
+    /**
+     * find out all  readable files under dir recursively
+     */
+    public static List<File> getAllFilesUnderDir(File dir, final FileFilter fileFilter) {
+        FileFilter acceptDirFileFilterWrapper  = new FileFilter(){
+                public boolean accept(File f)   {
+                    if (f.isDirectory()) return true;
+                    return   fileFilter.accept(f);
+                }
+            };
+        ArrayList<File> files = new ArrayList<File>();
+        Stack<File> s = new Stack<File>();
+        s.push(dir);
+        File tmp = null;
+        while (!s.isEmpty()) {
+            tmp = s.pop();
+            if (tmp.isDirectory() && tmp.canRead() && tmp.canExecute()) {
+                File[] cs = tmp.listFiles(acceptDirFileFilterWrapper);
+                for (File c : cs) {
+                    s.push(c);
+                }
+            } else if (tmp.isFile() && tmp.canRead()) {
+                files.add(tmp);
+            }
+        }
+        return files;
+    }
+    /**
+     * delete file or directory recursively.
+     */
+    public static  void del(File f) {
+        if(f.exists() && f.isDirectory()){
+            if(f.listFiles().length==0){
+                f.delete();
+                }else{
+                File delFile[]=f.listFiles();
+                int i =f.listFiles().length;
+                for(int j=0;j<i;j++){
+                if(delFile[j].isDirectory()){
+                    del(delFile[j]);
+                        }
+                    delFile[j].delete();
+                    }
+                }
+            }
+    }
+
+    public static void copy(File src, File dist){
+        try {
+            if (!dist.getParentFile().exists())dist.getParentFile().mkdirs();
+            FileInputStream fis = new FileInputStream(src);
+            FileOutputStream fos = new FileOutputStream(dist);
+            copy(fis,fos);
+            IOUtils.close(fis);
+            IOUtils.close(fos);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+        }
+    }
+    public static void copy(InputStream in, OutputStream out) {
+
+        byte[] buf = new byte[1024];
+        int count = -1;
+        try {
+            while ((count = in.read(buf)) != -1) {
+                out.write(buf, 0, count);
+            }
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void close(InputStream in) {
+        if (in != null) {
+            try {
+                in.close();
+                in = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+    public  static void close(OutputStream out) {
+        try {
+            out.flush();
+            out.close();
+            out = null;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
