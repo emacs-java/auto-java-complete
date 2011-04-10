@@ -185,12 +185,19 @@
 ;;}}}
 
 ;;{{{ History
+;; tag  0.2.7
+;; no new feature ,just  improve Tags.java
+;; make it easy to use ,you just need to add a directory
+;; to $CLASSAPTH,then all jars under this directory will
+;; be added to CLASSPATH automaticlly.
+;;
+;;
 ;; tag  0.2.6
 ;;     no new feature ,just Bugfix,and improve Tags.java
 ;;     make Tags.java  more strong.
 ;;     and complete constructor gently.
 ;;     read comments in Tags.java
-;;     
+;;
 ;;
 ;; tag  0.2.5
 ;;    define minor-mode (ajc-java-complete-mode).
@@ -215,23 +222,23 @@
 
 ;; tag 0.2.3
 ;;     support importing class under point ,and importing
-;;     all class in buffer when editing jsp files 
+;;     all class in buffer when editing jsp files
 ;;
 ;; tag 0.2.2
 ;;     support completion in jsp files.
-    
+
 ;;     if you want Auto Java Complete works  when you edit
 ;;     jsp file ,just need to do something like this
-    
+
 ;;       (add-hook 'nxml-mode-hook 'ajc-java-complete-hook t)
-      
+
 ;;     now it can complete class name,method ,constructor
 ;;     it also support complete importing ,but it isn't auto completed,
 ;;     you must trigger it by a key binding
 ;;     for example (define-key ac-mode-map (kbd "M-1") 'auto-complete)
 ;;     <%@ page language="java" import="java.io.File,java.util.Map,javax.sw-|-"%>
 ;;     now you can  press M-1 to show the menu.
-    
+
 ;;     it does not support importing Class(importing Class under point
 ;;     ,and importing all Class in buffer) by keybinding ,I will try to make
 ;;     it works later.
@@ -243,7 +250,7 @@
 ;;    add popup.el and popup-patch.diff
 ;;    support of showing return type behind each method candidate ,
 ;;    by make a patch on auto-complete-1.3/popup.el
-   
+
 
 ;; tag 0.1.1
 ;;    add support of showing return type behind each method candidate,
