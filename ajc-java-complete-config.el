@@ -13,7 +13,7 @@
   (let* ((last-complete-string (cdr ac-last-completion))
          (yasnippet-templete (get-text-property 0 'templete last-complete-string)))
     (when  yasnippet-templete
-      (delete-backward-char (length last-complete-string))
+      (delete-char (- 0 (length last-complete-string)))
       (yas/expand-snippet yasnippet-templete))))
 
 
@@ -100,5 +100,3 @@
   ))
 
 (provide 'ajc-java-complete-config)
-
-
