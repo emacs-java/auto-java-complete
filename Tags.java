@@ -570,6 +570,7 @@ public class Tags {
                            "***you will see a file named '.java_base.tag' in your home directory***\n"+
                            "***********************************************************************\n"
                            );
+        System.out.println(new File (System.getProperty("user.home"), ".java_base.tag").getAbsolutePath());
         System.exit(0);
     }
 }
