@@ -1184,7 +1184,7 @@ return a list of each line string (exclude keyword 'import') "
       (setq return-class-items  (append return-class-items  (ajc-find-out-matched-class-item "java.lang" nil )))
       )))
 (defun ajc-complete-constructor-candidates ()
-  (let (andidates class-items);;if find keyword:new ,then do constructor complete ,if not do class complete
+  (let (candidates class-items);;if find keyword:new ,then do constructor complete ,if not do class complete
     (setq case-fold-search nil)
     (when (looking-back "\\bnew[ \t]+\\([A-Z][a-zA-Z0-9_]*\\)[ \t]*(?[ \t]*"  (line-beginning-position))
       (setq class-items (ajc-complete-class-with-cache (match-string-no-properties 1)))
