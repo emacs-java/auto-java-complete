@@ -307,7 +307,10 @@ public class Tags {
         if(c.isArray())  throw new ApplicationException("sorry ,you are Array:"+c.getName());
         if(c.isPrimitive())throw new ApplicationException("sorry you are a  Primitive type:"+c.getName());
         if(c.getSimpleName().equals("")) throw new ApplicationException("why don't you have a name,I don't know how to handle you:"+c.getName());
-        if(!Modifier.isPublic(c.getModifiers())) throw new ApplicationException("sorry ,you are not a  public class:"+c.getName());
+        if((!Modifier.isPublic(c.getModifiers()))
+           && (!c.isInterface())
+           &&(!Modifier.isAbstract(c.getModifiers()))
+           ) throw new ApplicationException("sorry ,you are not a  public class:"+c.getName());
         if(c.getPackage()==null) throw new ApplicationException("why don't you hava a package name?:"+c.getName());
         String pkgName=c.getPackage().getName();
         PackageItem pkgItem =null;
@@ -555,10 +558,10 @@ public class Tags {
                            );
         System.out.println("if you see java.lang.OutOfMemoryError: PermGen space ,you can increment permsize:");
         System.out.println("        java  -XX:MaxPermSize=512m  Tags");
-        System.out.println("sleep 20 seconds...");
-        try {
-            Thread.sleep(20000);
-        } catch (Exception ex) {}
+        // System.out.println("sleep 20 seconds...");
+        // try {
+        //     Thread.sleep(20000);
+        // } catch (Exception ex) {}
 
         Tags tags = new Tags();
         if (argv.length > 0) tags.packageFilter = argv[0];
@@ -771,6 +774,13 @@ class Unzip {
     public Class<?> findClass(String name)throws ClassNotFoundException{
         File classFile=new File(classBasePath, name.replace(".",File.separator)+".class");
         if(!classFile.exists()) throw new ClassNotFoundException("Can't find class:"+name);
+        // Add the package information
+        final int packageIndex = name.lastIndexOf('.') ;
+        if (packageIndex != -1) {
+            final String packageName = name.substring(0, packageIndex) ;
+            final Package classPackage = getPackage(packageName) ;
+            if (classPackage == null) { definePackage(packageName, null, null, null, null, null, null, null) ; }
+        }
         byte[] classByte= new byte[(int)classFile.length()];
         FileInputStream fis=null;
         try {
