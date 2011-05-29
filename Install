@@ -1,0 +1,59 @@
+;; 1. generate the tag file .
+;;
+;;     Tags.java use JDK reflection to generate a tag file by
+;;     loading all class in classpath ,what you need to do is
+;;     just add your jars to $CLASSPATH.  now it is easy to use 
+;;     Tags.java .
+;;     suppose you put all you jar files in /path/to/jars/
+;;     even in subdirectory of this directory
+;;     and you put  all class files are in /project/WEB-INF/classes/
+;;     then you can
+;;     export CLASSPATH=$CLASSPATH:/path/to/jars/:/project/WEB-INF/classes/
+;;     or 
+;;     export CLASSPATH=$JAVA_HOME:/path/to/jars/:/project/WEB-INF/classes/
+;;     this even  will tag all jars in $JAVA_HOME.
+;;     it need about 3~10 min depending on the count of jars.
+;;     during it ,you may see some exceptions ,if it don't kill
+;;     the program ,just ignore it .
+;;     run 
+;;                 javac Tags.java 
+;;                 java  Tags
+;;     maybe you need :
+;;                 java  -XX:MaxPermSize=512m  Tags
+;;
+;;     to generate the tag file ~/.java_base.tag 
+;;     or
+;;                 java  Tags com.yourcompanyname.*
+;;
+;;     it would only tag those class whose name is starts with
+;;     com.yourcompanyname.
+;;
+;;     if it can't work on you computer ,use my tag file
+;;     java_base.tag.bz2, just uncompress and rename it to
+;;     .java_base.tag and put it in your home directory.
+;;     of course you can change the name by customing
+;;                 `ajc-tag-file'
+
+
+;;  2. you should have installed  auto-complete and yasnippet.
+;;     about how to install and config them ,you should find
+;;     it on the net.
+;;     after installed auto-complete ,you should do some
+;;       patch on auto-complete-1.3/popup.el
+;;       tow choice :
+;;        1. put the ajc-java-complete/popup.el into auto-complete-1.3/
+;;           (recommand)
+;;        2. cd auto-complete-1.3/
+;;           patch -p0 <popup-patch.diff
+;;        and don't forget to byte compile it. 
+
+;;  3. then  add this lines  in .emacs
+
+;;       (add-to-list 'load-path "~/.emacs.d/ajc-java-complete/")
+;;       (require 'ajc-java-complete-config)
+;;       (add-hook 'java-mode-hook 'ajc-java-complete-mode)
+;;       (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
+;;       read ajc-java-complete-config.el  for more info .
+
+
+;;     restart your emacs ,and enjoy.
