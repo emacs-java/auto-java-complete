@@ -1,12 +1,11 @@
-;;; ajc-java-complete.el --- Auto Java Completion fo GNU Emacs
+;;; ajc-java-complete.el --- Auto Java Completion for GNU Emacs
+
 ;; This file is NOT part of GNU Emacs
 ;; plesase send Bug reports and suggestions to 'Joseph at <jixiuf@gmail.com>
 
-;;{{{ License 
-
 ;;  License
         
-;; Copyright (C) 2011  joseph <jixiuf@gmail.com> Limited
+;; Copyright (C) 2011  Joseph <jixiuf@gmail.com> Limited
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,19 +21,10 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Firstly I am not an English Speaker ,so forgive my bad English .
-;;;this is "Auto Java Complete". 
-
-;;}}}
-
 ;;{{{ Commentary
 
 ;;;this is "Auto Java Complete".
 
-;; you can download a Video demo (2.8M)
-;;http://screencast-repos.googlecode.com/files/auto-java-complete-demo-editing-jsp-2011-01-20.mp4
-;;http://screencast-repos.googlecode.com/files/auto-java-complete-demo-2010-12-25.mp4.bz2
-;;
 ;;1. it depends on auto complete ,so it would complete
 ;;   everything by dropdowning a menu.
 
@@ -81,6 +71,7 @@
 ;;    (local-set-key (kbd "C-c i") (quote ajc-import-all-unimported-class))
 ;;         import Class where under point 
 ;;    (local-set-key (kbd "C-c m") (quote ajc-import-class-under-point))
+;;   included in ajc-complete-config.el
 
 ;; 3. support completing class name ,you just need  typing
 ;;    in a Word beginning with [A-Z] ,then it would auto find
@@ -110,155 +101,26 @@
 
 ;; 6. support completing in jsp files.
       
-;;    if you want Auto Java Complete works  when you edit
-;;    jsp file ,you just need to do something like this
-
 ;;    If your want to enable  ajc-java-complete-mode when openning
 ;;    a jsp file. you can
-;;          (add-hook 'jsp-mode 'ajc-java-complete-mode)
-;;    if you has a jsp-mode,
+;;        (add-hook 'jsp-mode 'ajc-java-complete-mode)
+;;    if you has a jsp-mode;
 ;;    if not ,you can do it like this
-;;         (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
+;;        (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
       
-;;    now it can complete class name,method ,constructor
+;;    now it can complete class name,method ,constructor.
 ;;    it also support complete importing ,but it isn't auto completed,
 ;;    you must trigger it by a key binding
 ;;    for example (define-key ac-mode-map (kbd "M-1") 'auto-complete)
 ;;    <%@ page language="java" import="java.io.File,java.util.Map,javax.sw-|-"%>
 ;;    now you can  press M-1 to show the menu.
-;;    
+;;
+
+;;; Install
+;;   see Install file in this directory
 
 ;;}}}
 
-;;{{{ Install
-
-;; 1. generate the tag file .
-;;
-;;     Tags.java use JDK reflection to generate a tag file by
-;;     loading all class in classpath ,what you need to do is
-;;     just add your jars to $CLASSPATH. don't drop it in
-;;     JRE_HOME/lib/ext/ , the suggestion is
-;;     export CLASSPATH=$CLASSPATH:your-jar-path
-;;     it need about 3~10 min depending on your jars
-;;     during it ,you may see some exceptions ,if it don't kill
-;;     the program ,just ignore it .
-;;     run 
-;;                 javac Tags.java 
-;;                 java  Tags
-;;
-;;     to generate the tag file ~/.java_base.tag 
-;;     or
-;;                 java  Tags com.yourcompanyname.*
-;;
-;;     it would only tag those class whose name is starts with
-;;     com.yourcompanyname.
-;;
-;;     if it can't work on you computer ,use my tag file
-;;     java_base.tag.bz2, just uncompress and rename it to
-;;     .java_base.tag and put it in your home directory.
-;;     of course you can change the name by customing
-;;                 `ajc-tag-file'
-
-
-;;  2. you should have installed  auto-complete and yasnippet.
-;;     about how to install and config them ,you should find
-;;     it on the net.
-;;     after installed auto-complete ,you should do some
-;;       patch on auto-complete-1.3/popup.el
-;;       tow choice :
-;;        1. put the ajc-java-complete/popup.el into auto-complete-1.3/
-;;           (recommand)
-;;        2. cd auto-complete-1.3/
-;;           patch -p0 <popup-patch.diff
-;;        and don't forget to byte compile it. 
-
-;;  3. then  add this lines  in .emacs
-
-;;       (add-to-list 'load-path "~/.emacs.d/ajc-java-complete/")
-;;       (require 'ajc-java-complete-config)
-;;       (add-hook 'java-mode-hook 'ajc-java-complete-mode)
-;;       (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
-;;       read ajc-java-complete-config.el  for more info .
-
-
-;;     restart your emacs ,and enjoy.
-;;}}}
-
-;;{{{ History
-;; tag  0.2.7
-;; no new feature ,just  improve Tags.java
-;; make it easy to use ,you just need to add a directory
-;; to $CLASSAPTH,then all jars under this directory will
-;; be added to CLASSPATH automaticlly.
-;;
-;;
-;; tag  0.2.6
-;;     no new feature ,just Bugfix,and improve Tags.java
-;;     make Tags.java  more strong.
-;;     and complete constructor gently.
-;;     read comments in Tags.java
-;;
-;;
-;; tag  0.2.5
-;;    define minor-mode (ajc-java-complete-mode).
-;;    add function (ajc-4-jsp-find-file-hook).
-;;    to enable Auto Java Complete ,just need to add this minor-mode in
-;;    your mode hook, for example
-;;          (add-hook 'java-mode-hook 'ajc-java-complete-mode)
-;;    If your want to enable  ajc-java-complete-mode when openning
-;;    a jsp file. you can
-;;          (add-hook 'jsp-mode 'ajc-java-complete-mode)
-;;    if you has a jsp-mode,
-;;    if not ,you can do it like this
-;;         (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
-
-
-;; tag  0.2.4
-;;      a litter change of tag file.
-;;      replace toString`25:784`` to   toString`784`` in tag file
-;;      package line 25 is not needn't now .
-;;      so the old tag file doesn't work with this version.
-;;      you need regenerate it by using Tags.java
-
-;; tag 0.2.3
-;;     support importing class under point ,and importing
-;;     all class in buffer when editing jsp files
-;;
-;; tag 0.2.2
-;;     support completion in jsp files.
-
-;;     if you want Auto Java Complete works  when you edit
-;;     jsp file ,just need to do something like this
-
-;;       (add-hook 'nxml-mode-hook 'ajc-java-complete-hook t)
-
-;;     now it can complete class name,method ,constructor
-;;     it also support complete importing ,but it isn't auto completed,
-;;     you must trigger it by a key binding
-;;     for example (define-key ac-mode-map (kbd "M-1") 'auto-complete)
-;;     <%@ page language="java" import="java.io.File,java.util.Map,javax.sw-|-"%>
-;;     now you can  press M-1 to show the menu.
-
-;;     it does not support importing Class(importing Class under point
-;;     ,and importing all Class in buffer) by keybinding ,I will try to make
-;;     it works later.
-
-
-;; tag 0.2.1  same to tag 0.2 ,just add comments in README .
-
-;; tag 0.2
-;;    add popup.el and popup-patch.diff
-;;    support of showing return type behind each method candidate ,
-;;    by make a patch on auto-complete-1.3/popup.el
-
-
-;; tag 0.1.1
-;;    add support of showing return type behind each method candidate,
-;;    by define an advice on  (ac-expand-common) and (ac-selected-candidates)
-;;    but if auto-complete.el is byte-compiled ,this advice doesn't work
-
-;;}}}
-;;---------------------------------------------
 ;;; Code.
 
 
