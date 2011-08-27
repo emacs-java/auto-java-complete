@@ -1412,7 +1412,7 @@ then this function split it to
 
 (defun ajc-java-keywords-candidates ()
   (let ((keywords))
-            (setq keywords (list "public" "protected"  "private" "native" "final" "synchronized" "transient" "abstract"  "static" "import" "this" "if" "else" "else if" "break" "case" "switch"  "continue" "class" "interface" "package" "new" "try" "catch" "finally" "super" "void"  "int" "float" "double" "short" "char" "byte" "long" "boolean" "enum" "intanceof"  "for" "while" "throw" "throws"  "extends" "implements" ))
+            (setq keywords (list "public" "protected"  "private" "native" "final" "synchronized" "transient" "abstract"  "static" "import" "this" "if" "else" "else if" "break" "case" "switch"  "continue" "class" "interface" "package" "new" "try" "catch" "finally" "super" "void"  "int" "float" "double" "short" "char" "byte" "long" "boolean" "enum" "instanceof"  "for" "while" "throw" "throws"  "extends" "implements" ))
     ))
 (provide 'ajc-java-complete)
 
