@@ -88,7 +88,7 @@
         (unless auto-complete-mode (auto-complete-mode))
         (ajc-java-complete-init))
     (ajc-java-complete-exit)))
-
+;;;###autoload
 (defalias 'auto-java-complete-mode 'ajc-java-complete-mode)
 
 ;; (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
