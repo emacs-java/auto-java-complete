@@ -589,7 +589,7 @@ can be a method item ,or a field item"
           (setq ajc-class-first-ln    (string-to-number  (ajc-read-line 4)))
           (setq ajc-member-first-ln   (string-to-number (ajc-read-line 5)))
           (setq ajc-member-end-ln     (string-to-number (ajc-read-line 6)))
-          (ajc-load-all-sorted-class-items-to-memory)
+;;          (ajc-load-all-sorted-class-items-to-memory)
           (ajc-sort-class)
           )
       (message  ( concat ajc-tag-file " doesn't exists !!!")))
