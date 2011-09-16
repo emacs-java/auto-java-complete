@@ -21,9 +21,40 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;{{{ Commentary
+;;; Commentary
 
 ;;;this is "Auto Java Complete".
+
+;;; Commands:
+;;
+;; Below are complete command list:
+;;
+;;  `ajc-reload'
+;;    restart Auto Java Complete ,when your tag file changed,
+;;  `ajc-import-all-unimported-class'
+;;    import all unimported class .
+;;  `ajc-import-class-under-point'
+;;    import class under point.
+;;
+;;; Customizable Options:
+;;
+;; Below are customizable option list:
+;;
+;;  `ajc-use-short-class-name'
+;;    if it is not nil then ,when complete method and constructor,
+;;    default = t
+;;  `ajc-tag-file'
+;;    the tag file is  used for java complete ,it  is generate by a Tags.java ,
+;;    default = "~/.java_base.tag"
+;;  `ajc-default-length-of-class'
+;;    the length of class name at dropdown-menu ,if the class
+;;    default = 36
+;;  `ajc-return-type-char'
+;;    the char  before return type when
+;;    default = ":"
+;;  `ajc-throws-char'
+;;    the char  before Exceptions  when completing
+;;    default = "   #"
 
 ;;1. it depends on auto complete ,so it would complete
 ;;   everything by dropdowning a menu.
@@ -53,9 +84,8 @@
 ;;
 ;;     don't forget to byte-compile it
 
-;;}}}
 
-;;{{{ Features
+;;; Features
 
 ;; 1. support importing.
 ;;    when you type in  import javax.s-|-
@@ -118,8 +148,6 @@
 
 ;;; Install
 ;;   see Install file in this directory
-
-;;}}}
 
 ;;; Code.
 
