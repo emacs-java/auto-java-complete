@@ -4,7 +4,7 @@
 ;; plesase send Bug reports and suggestions to 'Joseph at <jixiuf@gmail.com>
 
 ;;  License
-        
+
 ;; Copyright (C) 2011  Joseph <jixiuf@gmail.com> Limited
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@
 ;;      cd auto-complete-1.3/
 ;;      patch -p0 < popup-patch.diff
 ;;
-;;     don't forget to byte-compile it 
+;;     don't forget to byte-compile it
 
 ;;}}}
 
@@ -65,11 +65,11 @@
 ;;                     javax.sql
 ;;                     javax.swing
 ;;                     javax.sound
-                       
+
 ;; 2. support import class with keybindings (even in jsp file)
 ;;         auto import all Class in source file
 ;;    (local-set-key (kbd "C-c i") (quote ajc-import-all-unimported-class))
-;;         import Class where under point 
+;;         import Class where under point
 ;;    (local-set-key (kbd "C-c m") (quote ajc-import-class-under-point))
 ;;   included in ajc-complete-config.el
 
@@ -94,20 +94,20 @@
 ;;                                      toString()
 ;;                                      getClass()
 ;;                                      notify()
-                                      
+
 ;; 5. support complete constructor
 ;;    after keyword 'new' it would try to complete constructor
 
 
 ;; 6. support completing in jsp files.
-      
+
 ;;    If your want to enable  ajc-java-complete-mode when openning
 ;;    a jsp file. you can
 ;;        (add-hook 'jsp-mode 'ajc-java-complete-mode)
 ;;    if you has a jsp-mode;
 ;;    if not ,you can do it like this
 ;;        (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
-      
+
 ;;    now it can complete class name,method ,constructor.
 ;;    it also support complete importing ,but it isn't auto completed,
 ;;    you must trigger it by a key binding
@@ -592,7 +592,7 @@ can be a method item ,or a field item"
       (message  ( concat ajc-tag-file " doesn't exists !!!")))
     (setq ajc-is-running t)
     ))
-
+;;;###autoload
 (defun ajc-reload()
   "restart Auto Java Complete ,when your tag file changed,
 you can use this function restart AutoJavaComplete "
@@ -600,6 +600,8 @@ you can use this function restart AutoJavaComplete "
   (setq ajc-is-running nil)
   (ajc-init)
   )
+;;;###autoload
+(defalias 'auto-java-complete-reload 'ajc-reload)
 
 (defun ajc-reload-tag-buffer-maybe( )
   "check if the ajc-tag-buffer is still live ,if not reload it "
