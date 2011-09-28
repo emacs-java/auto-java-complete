@@ -213,6 +213,11 @@ actually it is the end of package section line number too" )
   "the end line number of the member section in tag file ,
 it is the last line number in tag file" )
 
+(defvar ajc-position-of-package-first-line 1)
+(defvar ajc-position-of-class-first-line 1)
+(defvar ajc-position-of-member-first-line 1)
+(defvar ajc-position-of-member-end-line 1)
+
 (defvar ajc-matched-class-items-cache nil
   "when search class-prefix without package-name ,
   it will search thoudsands of lines in tags files ,
@@ -566,9 +571,13 @@ can be a method item ,or a field item"
           (fundamental-mode)
           (setq case-fold-search nil)
           (setq ajc-package-first-ln  (string-to-number (ajc-read-line 3)))
+          (setq ajc-position-of-package-first-line (progn   (ajc-goto-line  ajc-package-first-ln) (point)) )
           (setq ajc-class-first-ln    (string-to-number  (ajc-read-line 4)))
+          (setq  ajc-position-of-class-first-line (progn   (ajc-goto-line  ajc-class-first-ln) (point)) )
           (setq ajc-member-first-ln   (string-to-number (ajc-read-line 5)))
+          (setq  ajc-position-of-member-first-line (progn   (ajc-goto-line  ajc-member-first-ln) (point)) )
           (setq ajc-member-end-ln     (string-to-number (ajc-read-line 6)))
+          (setq  ajc-position-of-member-end-line (progn   (ajc-goto-line  ajc-member-end-ln) (point)) )
 ;;          (ajc-load-all-sorted-class-items-to-memory)
           (ajc-sort-class)
           )
@@ -604,17 +613,15 @@ we will suppose you are searching package name = pkg-prefix , if exactly_match i
 in normal only 1 or 0 item will returned so we will try to
  convert '((packageName 12 33 )) to '(packageName 12 33 ) "
   (with-current-buffer (or buffer  (ajc-reload-tag-buffer-maybe))
-    (let ((line-num ajc-package-first-ln) (matched-package)
-          (regexp-pkg-prefix (concat "^" (regexp-quote pkg-prefix)))
-          (current-pkg-line))
+    (let ((regexp-pkg-prefix (concat "^" (regexp-quote pkg-prefix)))
+          matched-package)
       (when exactly_match ;;I use ` char as the separator in tag file
-          (setq regexp-pkg-prefix (concat "^"  (regexp-quote  pkg-prefix )  "`" )))
-
-      (while (< line-num ajc-class-first-ln)
-        (setq current-pkg-line (ajc-read-line line-num))
-        (if (string-match regexp-pkg-prefix  current-pkg-line)
-            (add-to-list 'matched-package (ajc-split-pkg-item current-pkg-line)))
-        (setq line-num  (+ line-num 1 )))
+        (setq regexp-pkg-prefix (concat "^"  (regexp-quote  pkg-prefix )  "`" )))
+      (goto-char ajc-position-of-package-first-line)
+      (while (re-search-forward regexp-pkg-prefix ajc-position-of-class-first-line t)
+        (add-to-list 'matched-package
+                     (ajc-split-pkg-item
+                      (buffer-substring-no-properties (line-beginning-position)(line-end-position)))))
       (when exactly_match (setq matched-package (car matched-package)))
       matched-package )))
 
