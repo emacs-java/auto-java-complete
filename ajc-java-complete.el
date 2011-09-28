@@ -684,13 +684,13 @@ the param `exactly_match' ,means only class name exactly equals
            (concat "^" (regexp-quote class-prefix))))
         (matched-pkg-item (when package-name (ajc-find-out-matched-pkg-item package-name t)))
         (line-num    ajc-class-first-ln)
-        (end-line-num ajc-member-first-ln)
+        (end-position ajc-member-first-ln)
         return-list current-line-string)
     (with-current-buffer (or buffer (ajc-reload-tag-buffer-maybe))
       (when matched-pkg-item
         (setq line-num (nth 1 matched-pkg-item)
-              end-line-num (nth 2 matched-pkg-item)))
-      (while (< line-num end-line-num)
+              end-position (nth 2 matched-pkg-item)))
+      (while (< line-num end-position)
         (setq current-line-string (ajc-read-line line-num))
         (when (string-match regexp-class-prefix current-line-string)
           (add-to-list 'return-list (ajc-split-class-item current-line-string)))
@@ -719,14 +719,10 @@ limit : length of class-prefix must larger than 2"
   (let ((matched-class-items) (case-fold-search nil))
     (if (string-match "^[A-Z][a-zA-Z]" class-prefix);; actually we only index this in tow-char-list
         (with-current-buffer (get-buffer ajc-tmp-sorted-class-buffer-name)
-          (let* ((two-char-item (ajc-get-two-char-item (substring-no-properties class-prefix 0 2) ))
-                 (start-pos (progn  (ajc-goto-line     (nth 1 two-char-item)) (beginning-of-line) (point)))
-                 (end-pos  (progn  (ajc-goto-line (nth 2 two-char-item)) (end-of-line) (point)))
-                 regexp-class-prefix)
-            (if exactly_match (setq regexp-class-prefix (concat "^" class-prefix "`"))
-              (setq regexp-class-prefix (concat "^" class-prefix )))
-            (goto-char start-pos)
-            (while (re-search-forward regexp-class-prefix end-pos t )
+          (let ((two-char-item (ajc-get-two-char-item (substring-no-properties class-prefix 0 2) ))
+                (regexp-class-prefix (if exactly_match (concat "^" class-prefix "`") (concat "^" class-prefix ) )))
+            (goto-char (nth 1 two-char-item))
+            (while (re-search-forward regexp-class-prefix (nth 2 two-char-item) t )
               (add-to-list 'matched-class-items
                            (ajc-split-class-item (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
                            t))))
@@ -745,79 +741,63 @@ limit : length of class-prefix must larger than 2"
     (setq matched-class-items matched-class-items)))
 
 
-
-
 (defun ajc-sort-class ()
   "sort class for search ,we build a table for example ((Ab 1 3) (Ac 4 6))
 then we search AbstractC ,we just need to search line number from 1 3 "
-  (let ((begin ) (end) (case-fold-search nil) )
-  (with-current-buffer (ajc-reload-tag-buffer-maybe)
-    (ajc-goto-line ajc-class-first-ln)(beginning-of-line) (setq begin (point))
-    (ajc-goto-line ajc-member-first-ln) (beginning-of-line) (setq end (point)))
-  (with-current-buffer  (get-buffer-create ajc-tmp-sorted-class-buffer-name)
-    (erase-buffer)
-      (insert-buffer-substring  (ajc-reload-tag-buffer-maybe) begin end)
-     (sort-lines nil 1 (point-max))
-     (let ((end ?Z) (index ?A) (index2 ?A)  (two-char)
-           (two-char-item)(next-start-search-line-num))
-       (setq ajc-two-char-list nil)
-       (while  (<= index end) (setq index2 ?A)
-         (while ( <= index2 ?z)
-          (setq two-char (concat (char-to-string index) (char-to-string index2)))
-          (if next-start-search-line-num
-              (setq two-char-item
-                   (ajc-build-map-4-search-class
-                    two-char ajc-tmp-sorted-class-buffer-name next-start-search-line-num))
-              (setq two-char-item
-                   (ajc-build-map-4-search-class two-char ajc-tmp-sorted-class-buffer-name 1)))
-          (if two-char-item
-          (add-to-list 'ajc-two-char-list  two-char-item  t)
-          (setq next-start-search-line-num (nth 2 two-char-item)))
-           (if (= index2 ?Z) (setq index2 ?a) (setq index2 (+ index2 1))))
-         (setq index (+ index 1)))))))
+  (let ((case-fold-search nil))
+    (with-current-buffer (get-buffer-create ajc-tmp-sorted-class-buffer-name)
+      (erase-buffer)
+      (insert-buffer-substring (ajc-reload-tag-buffer-maybe)
+                               ajc-position-of-class-first-line ajc-position-of-member-first-line)
+      (sort-lines nil 1 (point-max))
+      (let ((end ?Z) (index ?A) (index2 ?A)  (two-char)
+            (two-char-item)(next-start-search-postion))
+        (setq ajc-two-char-list nil)
+        (while  (<= index end) (setq index2 ?A)
+                (while ( <= index2 ?z)
+                  (setq two-char (concat (char-to-string index) (char-to-string index2)))
+                  (setq two-char-item
+                        (ajc-build-map-4-search-class
+                         two-char ajc-tmp-sorted-class-buffer-name (or next-start-search-postion 1)))
+                  (if two-char-item
+                      (add-to-list 'ajc-two-char-list  two-char-item  t)
+                    (setq next-start-search-postion (nth 2 two-char-item)))
+                  (if (= index2 ?Z) (setq index2 ?a) (setq index2 (+ index2 1))))
+                (setq index (+ index 1)))))))
 
-
-
-(defun ajc-build-map-4-search-class (two-char-prefix ajc-tmp-sorted-class-buffer-name  start-search-line-num)
+(defun ajc-build-map-4-search-class (two-char-prefix ajc-tmp-sorted-class-buffer-name  start-search-postion)
   "suppose two-char-prefix is 'Ab' and ajc-tmp-sorted-class-buffer-name is the buffer
  ,all lines in it is the classname has been sorted by classname
 it is cut from tag file between ajc-class-first-ln and ajc-member-first-ln ,and sorted by (sort-lines)
-then this function is try to find out className begin with two-char-prefix ,and got the start line-number
-and end-line-number ,record in a list ,when search class name begin with two-char-prefix ,we just need to
-find it from the start line number to the end line number ,it is faster than directly searching the unsorted
+then this function is try to find out className begin with two-char-prefix ,and got the start position
+and end position ,record in a list ,when search class name begin with two-char-prefix ,we just need to
+find it from the start position to the end position ,it is faster than directly searching the unsorted
 tag buffer file "
   (with-current-buffer  ajc-tmp-sorted-class-buffer-name
-    (ajc-goto-line start-search-line-num)
-    (let ((char1 ) (char2)(end-prefix-regexp )(end-line-num)
-          (start nil) (end nil) (has-found-first nil) (return-item))
-      (setq case-fold-search nil)
-      (setq char1 (string-to-char (substring-no-properties two-char-prefix 0 1)))
-      (setq char2 (string-to-char (substring-no-properties two-char-prefix 1 2)))
+    (goto-char start-search-postion)
+    (let ((char1 (string-to-char (substring-no-properties two-char-prefix 0 1)))
+          (char2 (string-to-char (substring-no-properties two-char-prefix 1 2)))
+          start end has-found-first return-item end-position end-prefix-regexp  case-fold-search)
       (if (or  (= char1 ?Z)  (= char2 ?z) (= char2 ?Z))
-          (setq end-line-num (line-number-at-pos (point-max)))
+          (setq end-position (line-number-at-pos (point-max)))
         (progn
-        (if (< char2 ?a)
-            (setq end-prefix-regexp (concat  "^" (char-to-string char1)
-                         "[a-z" (char-to-string (+ 1 char2)) "-Z]\\|^" (char-to-string (+ char1 1)) "[a-zA-Z]"  ))
-          (setq end-prefix-regexp (concat "^" (char-to-string char1)
-                     "[" (char-to-string (+ 1 char2)) "-z]\\|^" (char-to-string (+ char1 1)) "[a-zA-Z]"  )))
-        (ajc-goto-line start-search-line-num)
-        (if ( re-search-forward end-prefix-regexp  (point-max) t)
-            (setq end-line-num (point))
-            (setq end-line-num (point-max)))))
-        (ajc-goto-line start-search-line-num)
-      (add-to-list 'return-item two-char-prefix)
-         (while (re-search-forward (concat "^" two-char-prefix ) (point-max) t )
-                  (when (not has-found-first)
-                    (setq has-found-first t)
-                    (setq start (line-number-at-pos (point))))
-                  (setq end (line-number-at-pos (point))))
-         (if (numberp start )
-           (progn (setq return-item (append return-item (list start)))
-             (setq return-item (append return-item (list end ))))
-           (setq return-item nil))
-         (setq return-item return-item))))
-
+          (if (< char2 ?a)
+              (setq end-prefix-regexp (concat  "^" (char-to-string char1)
+                                               "[a-z" (char-to-string (+ 1 char2)) "-Z]\\|^" (char-to-string (+ char1 1)) "[a-zA-Z]"  ))
+            (setq end-prefix-regexp (concat "^" (char-to-string char1)
+                                            "[" (char-to-string (+ 1 char2)) "-z]\\|^" (char-to-string (+ char1 1)) "[a-zA-Z]"  )))
+          (goto-char start-search-postion)
+          (if (re-search-forward end-prefix-regexp  (point-max) t)
+              (setq end-position (point))
+            (setq end-position (point-max)))))
+      (goto-char start-search-postion)
+      (while (re-search-forward (concat "^" two-char-prefix ) end-position t )
+        (when (not has-found-first)
+          (setq has-found-first t)
+          (setq start (line-beginning-position)))
+        (setq end (line-end-position)))
+      (when (numberp start) (setq return-item (list two-char-prefix start end)))
+      return-item)))
 
 ;; (defun ajc-load-all-sorted-class-items-to-memory()
 ;;   (ajc-sort-class);;first sort the class ,and populate ajc-two-char-list variable
@@ -1073,8 +1053,8 @@ return a list of each line string (exclude keyword 'import') "
     ;;then we can got the imported class item , we complete its constructor
     (dolist (matched-class-item matched-class-items)
       (let ((line-num     (nth 2  matched-class-item))  (matching-constructor t)
-            (end-line-num (nth 3  matched-class-item)) (current-line))
-        (while (and matching-constructor  (< line-num end-line-num ))
+            (end-position (nth 3  matched-class-item)) (current-line))
+        (while (and matching-constructor  (< line-num end-position ))
           (setq current-line (ajc-read-line line-num (ajc-reload-tag-buffer-maybe)))
           (if (string-match "^  "  current-line)
               (add-to-list 'matched-constructor-items (ajc-split-constructor current-line))
@@ -1146,7 +1126,7 @@ check out ajc-matched-class-items-cache to find out if ant matched class exists 
 (defun ajc-find-members (class-item  &optional member-prefix &optional exactly_match)
   "find members(field method) under class-item which member name match member-prefix ,
 if member-prefix is nil or empty string it will return all members under class-item"
-  (let ((line-num (nth 2 class-item))  (end-line-num (nth 3 class-item)) (return-member-items)
+  (let ((line-num (nth 2 class-item))  (end-position (nth 3 class-item)) (return-member-items)
        (regexp-method-prefix)(regexp-field-prefix) (current-line-string ))
        (if exactly_match
             (setq regexp-method-prefix (concat "^" member-prefix "`")
@@ -1156,7 +1136,7 @@ if member-prefix is nil or empty string it will return all members under class-i
             (setq regexp-method-prefix (concat "^" member-prefix )
                   regexp-field-prefix (concat "^ " member-prefix ))))
        (with-current-buffer (ajc-reload-tag-buffer-maybe)
-         (while (< line-num  end-line-num)
+         (while (< line-num  end-position)
            (setq current-line-string (ajc-read-line line-num))
            (if (string-match regexp-method-prefix current-line-string)
                (add-to-list 'return-member-items (ajc-split-method current-line-string ) t)
