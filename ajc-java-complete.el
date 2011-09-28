@@ -648,18 +648,21 @@ if doesn't exists,find from the tag file,
 if more than one class item matched class-name in tag file,
 then imported one of them first"
   (let* ((imported-class (ajc-caculate-all-imported-class-items))
-         (matched-class-item))
-    (dolist (current-class-item imported-class)
-      (when (string-equal class-name (car current-class-item))
-        (setq matched-class-item current-class-item)))
+         (matched-class-item
+          (catch 'found
+            (dolist (item imported-class)
+              (when (string-equal class-name (car item))
+                (throw 'found item))))))
     (unless matched-class-item;;if not found from imported section
       (let ((matched-class-items
              (ajc-find-out-matched-class-item-without-package-prefix class-name t)))
-        (if (< (length matched-class-items) 2)
+        (if (= (length matched-class-items) 1)
             (setq matched-class-item (car matched-class-items))
           (setq matched-class-item
                 (car (ajc-insert-import-at-head-of-source-file matched-class-items))))))
     matched-class-item))
+
+
 (defun ajc-find-out-matched-class-item
   (package-name class-prefix &optional exactly_match &optional buffer)
   "this function is use to find out all Class whose package name is
