@@ -667,6 +667,7 @@ then imported one of them first"
 ;; (ajc-find-out-matched-class-item "java.io" nil)
 ;; (ajc-find-out-matched-class-item "java.io" "File" t)
 ;; (ajc-find-out-matched-class-item nil "File" )
+;; (print (length (ajc-find-out-matched-class-item nil nil )))
 (defun ajc-find-out-matched-class-item
   (package-name class-prefix &optional exactly_match  buffer)
   "this function is use to find out all Class whose package name is
