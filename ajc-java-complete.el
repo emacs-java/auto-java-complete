@@ -605,12 +605,12 @@ you can use this function restart AutoJavaComplete "
 ;; (ajc-find-out-matched-pkg-item "java.awt" t)
 (defun ajc-find-out-matched-pkg-item
   (pkg-prefix &optional exactly_match  buffer)
-  "this function is used to find out all matched packaged whose prefix is pkg-prefix
-  for example: support  pkg-prefix=javax.xm  then it will return
-   '( '(\"javax.xml.bind\" 2741 2767 ) '(\"javax.xml.bind.attachment\" 2776 2778 ))
+  "this function is used to find out all matched packages whose prefix is `pkg-prefix'
+  for example: suppose  pkg-prefix=javax.xm  then it will return
+   '( (\"javax.xml.bind\" 2741 2767 ) (\"javax.xml.bind.attachment\" 2776 2778 ))
 if exactly_match is not nil then pkg-prefix will be seen as full package name , and
-we will suppose you are searching package name = pkg-prefix , if exactly_match is set
-in normal only 1 or 0 item will returned so we will try to
+we will suppose you are searching package name = pkg-prefix , if exactly_match is given
+then only 1 or 0 item will returned so we will try to
  convert '((packageName 12 33 )) to '(packageName 12 33 ) "
   (with-current-buffer (or buffer  (ajc-reload-tag-buffer-maybe))
     (let ((regexp-pkg-prefix (concat "^" (regexp-quote pkg-prefix)))
