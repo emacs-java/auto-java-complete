@@ -700,15 +700,10 @@ the param `exactly_match' ,means only class name exactly equals
 ;;(ajc-sort-class)
 ;;(ajc-get-two-char-item "Sy")
 (defun ajc-get-two-char-item(two-char-string)
-  (let ((index 0) (not_found t)
-        (ajc-two-char-list-length (length ajc-two-char-list)) (two-char-item nil))
-        (while  (and not_found (< index ajc-two-char-list-length ))
-          (setq two-char-item (nth index ajc-two-char-list))
-          (when (string= (car two-char-item)  two-char-string)
-            (setq  not_found nil);; exit while
-            )
-          (setq index (1+ index)))
-        two-char-item))
+  (catch 'found
+    (dolist (item  ajc-two-char-list)
+      (when (string= (car item)  two-char-string)
+        (throw 'found item)))))
 
 ;;(ajc-find-out-matched-class-item-without-package-prefix "System" t)
 ;;(ajc-find-out-matched-class-item-without-package-prefix "System" t)
