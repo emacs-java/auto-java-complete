@@ -625,14 +625,15 @@ then only 1 or 0 item will returned so we will try to
       (when exactly_match (setq matched-package (car matched-package)))
       matched-package )))
 
-
-(defun ajc-shrunk-matched-pkgs (pkg-prefix matched-pkg-items)
+;; (ajc-shrunk-matched-pkgs "java.aw") == java.awt
+(defun ajc-shrunk-matched-pkgs (pkg-prefix)
   "this function is used for list matched package.
 when you import a package in head of your java file,
 when you typed in 'jav-|-', then it will list 'java javax'
 instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'"
-  (let ((index-of-first-dot 0) (return-list)
-        (length-of-pkg-prefix (length pkg-prefix)))
+  (let ( (matched-pkg-items (ajc-find-out-matched-pkg-item pkg-prefix))
+         (index-of-first-dot 0) (return-list)
+         (length-of-pkg-prefix (length pkg-prefix)))
     (dolist (current-item matched-pkg-items)
       (if (setq index-of-first-dot
                 (string-match "\\." (car current-item) length-of-pkg-prefix))
@@ -847,7 +848,7 @@ tag buffer file "
         (when (= (length matched-pkg-strings ) 0 ) ;;if there are 0 matched in cache then find it out from tag files
           (setq matched-pkg-strings ;;add pkgs
                 (append matched-pkg-strings
-                        (ajc-shrunk-matched-pkgs prefix-string  (ajc-find-out-matched-pkg-item prefix-string))))
+                        (ajc-shrunk-matched-pkgs prefix-string)))
           (let ((index_of_last_dot (string-match "\\.[a-zA-Z_0-9]*$" prefix-string));;add classes
                  (package-prefix)(class-prefix))
             (when index_of_last_dot
