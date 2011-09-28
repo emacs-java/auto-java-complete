@@ -662,38 +662,39 @@ then imported one of them first"
                 (car (ajc-insert-import-at-head-of-source-file matched-class-items))))))
     matched-class-item))
 
-
+;; (ajc-find-out-matched-class-item "java.io" "Fil")
+;; (ajc-find-out-matched-class-item "java.io" "")
+;; (ajc-find-out-matched-class-item "java.io" "File" t)
+;; (ajc-find-out-matched-class-item nil "File" )
 (defun ajc-find-out-matched-class-item
-  (package-name class-prefix &optional exactly_match &optional buffer)
+  (package-name class-prefix &optional exactly_match  buffer)
   "this function is use to find out all Class whose package name is
-package-name and ClassName is start with class-prefix if package-name
-is nil, then try to find out all Class whose ClassName is start with
-class-prefix if class-prefix is nil or empty string ,it will try to
-find out all Class in package package-name if both  package-name
-and class-prefix are nil then  it will return all Class in all package
-the param exactly_match ,means only class name exactly equals
- to class-prefix will be return"
-  (let ((matched-pkg-item )(return-list)(regexp-class-prefix)
-        (line-num )(end-line-num)(current-line-string))
-    (with-current-buffer (or buffer  (ajc-reload-tag-buffer-maybe))
-      (if package-name
-          (progn
-            (setq matched-pkg-item (ajc-find-out-matched-pkg-item package-name t))
-            (if matched-pkg-item
-                (setq line-num (nth 1 matched-pkg-item)
-                      end-line-num (nth 2 matched-pkg-item))
-              (setq line-num   1 end-line-num  1)))
-        (setq line-num   ajc-class-first-ln end-line-num  ajc-member-first-ln))
-      (unless class-prefix (setq class-prefix ""))
-      (if exactly_match (setq regexp-class-prefix
-                              (concat "^" (regexp-quote class-prefix) "`" ))
-        (setq regexp-class-prefix (concat "^" (regexp-quote class-prefix))))
+`package-name' and ClassName  starts with `class-prefix' if package-name
+is nil, then try to find out all Class whose ClassName starts with
+`class-prefix' if `class-prefix' is nil or empty string ,it will try to
+find out all Class in package `package-name' if both  `package-name'
+and class-prefix are nil, then it will return all Class in all package
+the param `exactly_match' ,means only class name exactly equals
+ to `class-prefix' will be return"
+  (let ((regexp-class-prefix
+         (if exactly_match (concat "^" (regexp-quote class-prefix) "`" )
+           (concat "^" (regexp-quote class-prefix))))
+        (matched-pkg-item (when package-name (ajc-find-out-matched-pkg-item package-name t)))
+        (line-num    ajc-class-first-ln)
+        (end-line-num ajc-member-first-ln)
+        (class-prefix (or class-prefix ""))
+        return-list current-line-string)
+    (with-current-buffer (or buffer (ajc-reload-tag-buffer-maybe))
+      (when matched-pkg-item
+        (setq line-num (nth 1 matched-pkg-item)
+              end-line-num (nth 2 matched-pkg-item)))
       (while (< line-num end-line-num)
         (setq current-line-string (ajc-read-line line-num))
         (when (string-match regexp-class-prefix current-line-string)
           (add-to-list 'return-list (ajc-split-class-item current-line-string)))
         (setq line-num (1+ line-num)))
       return-list)))
+
 
 ;;
 ;;(ajc-sort-class)
