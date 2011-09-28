@@ -706,8 +706,7 @@ the param `exactly_match' ,means only class name exactly equals
         (throw 'found item)))))
 
 ;;(ajc-find-out-matched-class-item-without-package-prefix "System" t)
-;;(ajc-find-out-matched-class-item-without-package-prefix "System" t)
-;;(ajc-find-out-matched-class-item-without-package-prefix "_ServantLocatorStub" )
+;; (ajc-find-out-matched-class-item-without-package-prefix "_ServantLocatorStub")
 (defun ajc-find-out-matched-class-item-without-package-prefix
   (class-prefix &optional exactly_match)
   "actully you can use ajc-find-out-matched-class-item to do
@@ -716,29 +715,21 @@ it need to search all the line in tag file just to find out one class item .
 so this function use ajc-load-all-sorted-clas-items-to-memory
 to sort the class section and load it in memory and build a index for it,
 limit : length of class-prefix must larger than 2"
-  (let ((matched-class-items) (case-fold-search nil))
-    (if (string-match "^[A-Z][a-zA-Z]" class-prefix);; actually we only index this in tow-char-list
-        (with-current-buffer (get-buffer ajc-tmp-sorted-class-buffer-name)
-          (let ((two-char-item (ajc-get-two-char-item (substring-no-properties class-prefix 0 2) ))
-                (regexp-class-prefix (if exactly_match (concat "^" class-prefix "`") (concat "^" class-prefix ) )))
-            (goto-char (nth 1 two-char-item))
-            (while (re-search-forward regexp-class-prefix (nth 2 two-char-item) t )
-              (add-to-list 'matched-class-items
-                           (ajc-split-class-item (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
-                           t))))
-
-      ;;actually  I only index  those class whose class name match [A-Z][a-zA-Z].
-      ;; other class like   _RMIConnection_Stub should be search line by line at the class section  in tag file
-      (let ((line-num ajc-class-first-ln) (current-line-string) (regexp-class-prefix))
-        (if exactly_match (setq regexp-class-prefix  (concat "^" class-prefix "`" ))
-          (setq regexp-class-prefix  (concat "^" class-prefix  )))
-        (with-current-buffer (ajc-reload-tag-buffer-maybe)
-          (while (< line-num ajc-member-first-ln)
-            (setq current-line-string (ajc-read-line line-num))
-            (if (string-match regexp-class-prefix current-line-string)
-                (add-to-list 'matched-class-items (ajc-split-class-item current-line-string)))
-            (setq line-num (+ line-num 1))))))
-    (setq matched-class-items matched-class-items)))
+  (with-current-buffer (get-buffer ajc-tmp-sorted-class-buffer-name)
+    (let ((matched-class-items) (case-fold-search nil)
+          (regexp-class-prefix (if exactly_match
+                                   (concat "^" class-prefix "`")
+                                 (concat "^" class-prefix ) ))
+          (two-char-item  (or  (ajc-get-two-char-item (substring-no-properties class-prefix 0 2) )
+                               (list nil (point-min) (point-max)) )))
+      (goto-char (nth 1 two-char-item))
+      (while (re-search-forward regexp-class-prefix (nth 2 two-char-item) t )
+        (add-to-list 'matched-class-items
+                     (ajc-split-class-item
+                      (buffer-substring-no-properties
+                       (line-beginning-position) (line-end-position))) t))
+      matched-class-items
+      )))
 
 
 (defun ajc-sort-class ()
