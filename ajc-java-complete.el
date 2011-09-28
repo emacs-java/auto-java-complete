@@ -631,7 +631,7 @@ then only 1 or 0 item will returned so we will try to
 when you import a package in head of your java file,
 when you typed in 'jav-|-', then it will list 'java javax'
 instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'"
-  (let ( (matched-pkg-items (ajc-find-out-matched-pkg-item pkg-prefix))
+  (let ((matched-pkg-items (ajc-find-out-matched-pkg-item pkg-prefix))
          (index-of-first-dot 0) (return-list)
          (length-of-pkg-prefix (length pkg-prefix)))
     (dolist (current-item matched-pkg-items)
