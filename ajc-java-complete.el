@@ -664,6 +664,7 @@ then imported one of them first"
 
 ;; (ajc-find-out-matched-class-item "java.io" "Fil")
 ;; (ajc-find-out-matched-class-item "java.io" "")
+;; (ajc-find-out-matched-class-item "java.io" nil)
 ;; (ajc-find-out-matched-class-item "java.io" "File" t)
 ;; (ajc-find-out-matched-class-item nil "File" )
 (defun ajc-find-out-matched-class-item
@@ -676,13 +677,14 @@ find out all Class in package `package-name' if both  `package-name'
 and class-prefix are nil, then it will return all Class in all package
 the param `exactly_match' ,means only class name exactly equals
  to `class-prefix' will be return"
-  (let ((regexp-class-prefix
+  (let* ((class-prefix (or class-prefix ""))
+        (regexp-class-prefix
          (if exactly_match (concat "^" (regexp-quote class-prefix) "`" )
            (concat "^" (regexp-quote class-prefix))))
         (matched-pkg-item (when package-name (ajc-find-out-matched-pkg-item package-name t)))
         (line-num    ajc-class-first-ln)
         (end-line-num ajc-member-first-ln)
-        (class-prefix (or class-prefix ""))
+
         return-list current-line-string)
     (with-current-buffer (or buffer (ajc-reload-tag-buffer-maybe))
       (when matched-pkg-item
