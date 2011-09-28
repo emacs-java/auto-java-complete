@@ -684,7 +684,6 @@ the param `exactly_match' ,means only class name exactly equals
         (matched-pkg-item (when package-name (ajc-find-out-matched-pkg-item package-name t)))
         (line-num    ajc-class-first-ln)
         (end-line-num ajc-member-first-ln)
-
         return-list current-line-string)
     (with-current-buffer (or buffer (ajc-reload-tag-buffer-maybe))
       (when matched-pkg-item
@@ -697,8 +696,6 @@ the param `exactly_match' ,means only class name exactly equals
         (setq line-num (1+ line-num)))
       return-list)))
 
-
-;;
 ;;(ajc-sort-class)
 ;;(ajc-get-two-char-item "Sy")
 (defun ajc-get-two-char-item(two-char-string)
