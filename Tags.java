@@ -558,10 +558,10 @@ public class Tags {
                            );
         System.out.println("if you see java.lang.OutOfMemoryError: PermGen space ,you can increment permsize:");
         System.out.println("         java -XX:MaxPermSize=512m -Xms256M -Xmx512M Tags ");
-        // System.out.println("sleep 20 seconds...");
-        // try {
-        //     Thread.sleep(20000);
-        // } catch (Exception ex) {}
+        System.out.println("sleep 20 seconds...");
+        try {
+            Thread.sleep(20000);
+        } catch (Exception ex) {}
 
         Tags tags = new Tags();
         if (argv.length > 0) tags.packageFilter = argv[0];
