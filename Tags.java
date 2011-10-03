@@ -534,7 +534,7 @@ public class Tags {
     public static void main (String[] argv) throws Exception {
         System.out.println(
                            "*****************************************************************\n"+
-                           "**   this program will need about 3 to 5 min ,                  **\n"+
+                           "**   this program will need about 3 to 15 min,                  **\n"+
                            "**   maybe half an hour ,(just kidding),but you must be patient.**\n" +
                            "**   before it exit,you may see a few exceptions                **\n" +
                            "**   If it don't kill the program ,just ignore it .             **\n" +
