@@ -246,8 +246,8 @@ it is the last line number in tag file" )
 (defun ajc-split-string-with-separator(str regexp &optional replacement omit-nulls)
   "this function is a tool like split-string,
   but it treat separator as an element of returned list
-  for example (ajc-split-string-with-separator abc.def.g \\. .)
-  will return '(abc . def . g )"
+  for example (ajc-split-string-with-separator abc.def.g \"\\.\" \".\")
+  will return '(\"abc\" \".\" \"def\" \".\" \"g\" )"
   (when str
     (let (split-list  substr match-end)
       (if  (string-match regexp str)
