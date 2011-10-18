@@ -535,22 +535,20 @@ can be a method item ,or a field item"
   (when constructor-item
     (let((constructor-string  (car constructor-item))
          (params (nth 1 constructor-item)   )
-         (exceptions (nth 2 constructor-item)))
+         (exceptions (nth 2 constructor-item))
+         (index 0))
       (if (stringp params ) (setq constructor-string (concat constructor-string "()"))
-        (progn
-          (setq constructor-string (concat constructor-string "("))
-          (let ((index 0) (length-of-params (length params))(param))
-            (while (< index length-of-params)
-              (setq param (nth index params ))
-              (when (stringp param ) (setq constructor-string
-                                           (concat  constructor-string "${" (number-to-string (+ index 1)) ":"
-                                                    param "} , " )))
-              (when (listp param)
-                (setq constructor-string (concat constructor-string "${" (number-to-string (+ 1 index )) ":"
-                                                 (car param)  "} , " )))
-              (setq index (+ 1 index ))
-              ))
-          (setq constructor-string  (replace-regexp-in-string  " , $" ")$0" constructor-string ))))
+        (setq constructor-string (concat constructor-string "("))
+        (dolist (param params)
+          (when (stringp param ) (setq constructor-string
+                                       (concat  constructor-string "${" (number-to-string (+ index 1)) ":"
+                                                param "} , " )))
+          (when (listp param)
+            (setq constructor-string (concat constructor-string "${" (number-to-string (+ 1 index )) ":"
+                                             (car param)  "} , " )))
+          (setq index (+ 1 index ))
+          )
+        (setq constructor-string  (replace-regexp-in-string  " , $" ")$0" constructor-string )))
       (setq constructor-string constructor-string))))
 
 ;; find tag file
