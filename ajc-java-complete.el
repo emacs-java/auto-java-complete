@@ -341,6 +341,9 @@ it is the last line number in tag file" )
       (car field-item))))
 
 
+;; (ajc-method-to-string (ajc-split-method "skippedEntity`~void`784`4012"))
+;; (ajc-method-to-string (ajc-split-method "skippedEntity`~void`784`4012") t)
+
 (defun ajc-method-to-string (method-item &optional  with-return-type-and-throws )
   "this is a toString() like function .
    when param with-detail is not null, it will include
@@ -363,12 +366,7 @@ it is the last line number in tag file" )
         (setq method-string
               (replace-regexp-in-string  " , $" ")" method-string )))
       (when with-return-type-and-throws
-        (let ((len (length method-string)));; insert whitespace between classname and return type
-          (if (< len ajc-default-length-of-class )
-              (setq method-string
-                    (concat method-string
-                            (make-string (- ajc-default-length-of-class len ) 32 )));;32 mean whitespace
-            (setq method-string (concat method-string "     "))))
+        (setq method-string (append-space-to-item method-string))
         (if (stringp return-type)
             (setq method-string (concat method-string ajc-return-type-char  return-type  ))
           (when (listp return-type)
