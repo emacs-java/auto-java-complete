@@ -243,31 +243,26 @@ it is the last line number in tag file" )
     (buffer-substring-no-properties
      (line-beginning-position) (line-end-position))))
 
-(defun ajc-split-string-with-separator(str regexp &optional replacement OMIT-NULLS)
+(defun ajc-split-string-with-separator(str regexp &optional replacement omit-nulls)
   "this function is a tool like split-string,
   but it treat separator as an element of returned list
   for example (ajc-split-string-with-separator abc.def.g \\. .)
   will return '(abc . def . g )"
-  (if (and str  ( > (length str ) 0))
-      (let ((split-list)  (substr) (match-end ))
-        (if  (string-match regexp str)
-            (progn (while (string-match regexp  str  )
-                     (setq match-end (match-end 0))
-                     (setq  substr (substring-no-properties str 0 (- match-end 1)))
-                     (if OMIT-NULLS
-                         (if (> (length substr ) 0)
-                             (setq split-list (append split-list (list  substr))))
-                       (setq split-list (append split-list (list  substr))))
-                     (if replacement
-                         (setq split-list (append split-list (list replacement)))
-                       (setq split-list (append split-list (list regexp))))
-                     (setq str (substring-no-properties str  match-end)))
-                   (if OMIT-NULLS
-                       (if (> (length str ) 0)
-                           (setq split-list (append split-list (list str))))
-                     (setq split-list (append split-list (list  str))))
-                   (setq split-list split-list))
-          (setq split-list (list str))))))
+  (when str
+    (let (split-list  substr match-end)
+      (if  (string-match regexp str)
+          (progn
+            (while (string-match regexp  str)
+              (setq match-end (match-end 0))
+              (setq  substr (substring-no-properties str 0 (- match-end 1)))
+              (when (or (not omit-nulls) (> (length substr ) 0))
+                (setq split-list (append split-list (list  substr))) )
+              (setq split-list (append split-list (list (or replacement regexp))))
+              (setq str (substring-no-properties str  match-end)))
+            (when (or (not omit-nulls) (> (length str ) 0))
+              (setq split-list (append split-list (list str)))))
+        (setq split-list (list str)))
+      split-list)))
 
 (defun ajc-split-pkg-item ( pkg-line-string )
  "the format pkg-line-string is  str`num`num
