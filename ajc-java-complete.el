@@ -405,24 +405,23 @@ it is the last line number in tag file" )
   (when method-item
     (let ((method-string  (car method-item))
           (params (nth 2 method-item)   )
-          (exceptions (nth 3 method-item)))
+          (exceptions (nth 3 method-item))
+          (index 0))
       (if (stringp params ) (setq method-string (concat method-string "()"))
-        (progn
-          (setq method-string (concat method-string "("))
-          (let ((index 0) (length-of-params (length params))(param))
-            (while (< index length-of-params)
-              (setq param (nth index params ))
-              (when (stringp param ) (setq method-string
-                                           (concat  method-string "${" (number-to-string (+ index 1)) ":"
-                                                    param "} , " )))
-              (when (listp param)
-                (setq method-string (concat method-string "${" (number-to-string (+ 1 index )) ":"
-                                            (car param)  "} , " )))
-              (setq index (+ 1 index ))))
-          (setq method-string  (replace-regexp-in-string  " , $" ")$0" method-string ))))
-      (setq method-string method-string))
-    )
-  )
+        (setq method-string (concat method-string "("))
+        (dolist(param params)
+          (when (stringp param)
+            (setq method-string
+                  (concat  method-string "${" (number-to-string (+ index 1)) ":"
+                           param "} , " )))
+          (when (listp param)
+            (setq method-string
+                  (concat method-string "${" (number-to-string (+ 1 index )) ":"
+                          (car param)  "} , " )))
+          (setq index (1+ index)))
+        (setq method-string  (replace-regexp-in-string  " , $" ")$0" method-string )))
+      method-string)))
+
 (defun ajc-method-item-to-candidate(method-item)
   "translate `method-item' to candidate ,`method-item'
 can be a method item ,or a field item"
