@@ -385,12 +385,11 @@ it is the last line number in tag file" )
 ;; (ajc-class-to-string (ajc-split-class-item  "RasterOp`18`15551`15556") t)
 (defun ajc-class-to-string(class-item &optional  with-package-name-append)
   (when class-item
-    (let* ((class-string (car class-item)) (len (length class-string)))
+    (let* ((class-string (car class-item)))
       (when with-package-name-append
-        (setq class-string (append-space-to-item class-string))
         (setq class-string
-              (concat class-string ajc-return-type-char
-                      (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item))))))
+              (concat  (append-space-to-item class-string) ajc-return-type-char
+                       (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item))))))
       class-string
       )))
 
