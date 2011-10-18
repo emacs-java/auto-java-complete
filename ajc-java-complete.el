@@ -381,20 +381,19 @@ it is the last line number in tag file" )
         )
       method-string )))
 
+;; (ajc-class-to-string (ajc-split-class-item  "RasterOp`18`15551`15556"))
+;; (ajc-class-to-string (ajc-split-class-item  "RasterOp`18`15551`15556") t)
 (defun ajc-class-to-string(class-item &optional  with-package-name-append)
   (when class-item
     (let* ((class-string (car class-item)) (len (length class-string)))
       (when with-package-name-append
-        (if (< len ajc-default-length-of-class )
-            (setq class-string
-                  (concat class-string
-                          (make-string (- ajc-default-length-of-class len ) 32 )));;32 mean whitespace
-          (setq class-string (concat class-string "     ")))
+        (setq class-string (append-space-to-item class-string))
         (setq class-string
               (concat class-string ajc-return-type-char
                       (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item))))))
       class-string
       )))
+
 
 ;; (yas/expand-snippet(ajc-method-to-yasnippet-templete    (car
 ;; (ajc-find-members (car  (ajc-find-out-matched-class-item-without-package-prefix "FileWriter" t )) "write" ))))
