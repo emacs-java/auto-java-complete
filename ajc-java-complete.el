@@ -592,8 +592,10 @@ you can use this function restart AutoJavaComplete "
     (ajc-init))
   ajc-tag-buffer)
 
+;; (ajc-find-out-matched-pkg-item "java.awt")
+;; (ajc-find-out-matched-pkg-item "java.awt" t)
 (defun ajc-find-out-matched-pkg-item
-  (pkg-prefix &optional exactly_match  &optional buffer)
+  (pkg-prefix &optional exactly_match  buffer)
   "this function is used to find out all matched packaged whose prefix is pkg-prefix
   for example: support  pkg-prefix=javax.xm  then it will return
    '( '(\"javax.xml.bind\" 2741 2767 ) '(\"javax.xml.bind.attachment\" 2776 2778 ))
@@ -605,8 +607,9 @@ in normal only 1 or 0 item will returned so we will try to
     (let ((line-num ajc-package-first-ln) (matched-package)
           (regexp-pkg-prefix (concat "^" (regexp-quote pkg-prefix)))
           (current-pkg-line))
-      (if exactly_match ;;I use ` char as the separator in tag file
+      (when exactly_match ;;I use ` char as the separator in tag file
           (setq regexp-pkg-prefix (concat "^"  (regexp-quote  pkg-prefix )  "`" )))
+
       (while (< line-num ajc-class-first-ln)
         (setq current-pkg-line (ajc-read-line line-num))
         (if (string-match regexp-pkg-prefix  current-pkg-line)
@@ -614,6 +617,7 @@ in normal only 1 or 0 item will returned so we will try to
         (setq line-num  (+ line-num 1 )))
       (when exactly_match (setq matched-package (car matched-package)))
       matched-package )))
+
 
 (defun ajc-shrunk-matched-pkgs (pkg-prefix matched-pkg-items)
   "this function is used for list matched package.
