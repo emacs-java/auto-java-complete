@@ -40,9 +40,6 @@
 ;;
 ;; Below are customizable option list:
 ;;
-;;  `ajc-use-short-class-name'
-;;    if it is not nil then ,when complete method and constructor,
-;;    default = t
 ;;  `ajc-tag-file'
 ;;    the tag file is  used for java complete ,it  is generate by a Tags.java ,
 ;;    default = "~/.java_base.tag"
@@ -156,13 +153,6 @@
   "Auto Java Completion."
   :group 'convenience
   :prefix "auto-java-complete")
-
-(defcustom ajc-use-short-class-name t
-  "if it is not nil then ,when complete method and constructor,
-  params and exceptions will use short class name ,
-  instead of full class name"
-  :type 'boolean
-  :group 'auto-java-complete)
 
 (defcustom ajc-tag-file "~/.java_base.tag"
   "the tag file is  used for java complete ,it  is generate by a Tags.java ,
@@ -346,11 +336,7 @@ it is the last line number in tag file" )
           (when (stringp return-type)
             (setq field-string (concat field-string return-type )   ))
           (when (listp return-type)
-            (if ajc-use-short-class-name
-                (setq field-string (concat field-string   (car return-type)))
-              (setq field-string (concat field-string
-                                         (car (ajc-split-pkg-item-by-pkg-ln (nth 1 return-type)))  "."
-                                         (car return-type)))))
+            (setq field-string (concat field-string   (car return-type))))
           field-string)
       (car field-item))))
 
@@ -372,12 +358,8 @@ it is the last line number in tag file" )
           (when (stringp param )
             (setq method-string (concat method-string param " , " )))
           (when (listp param)
-            (if ajc-use-short-class-name
-                (setq method-string (concat method-string  (car param)  " , " ))
-              (setq method-string
-                    (concat method-string
-                            (car (ajc-split-pkg-item-by-pkg-ln (nth 1 param)))  "."
-                            (car param)  " , " )))))
+            (setq method-string (concat method-string  (car param)  " , " ))
+            ))
         (setq method-string
               (replace-regexp-in-string  " , $" ")" method-string )))
       (when with-return-type-and-throws
@@ -390,21 +372,13 @@ it is the last line number in tag file" )
         (if (stringp return-type)
             (setq method-string (concat method-string ajc-return-type-char  return-type  ))
           (when (listp return-type)
-            (if ajc-use-short-class-name
-                (setq method-string (concat method-string ajc-return-type-char  (car return-type)))
-              (setq method-string (concat method-string ajc-return-type-char
-                                          (car (ajc-split-pkg-item-by-pkg-ln (nth 1 return-type)))  "."
-                                          (car return-type))))))
+            (setq method-string (concat method-string ajc-return-type-char  (car return-type)))))
         (when (listp exceptions )
           (setq method-string (concat method-string ajc-throws-char))
           (dolist (exception  exceptions )
             (when (stringp exception ) (setq method-string (concat method-string exception " , " )))
             (when (listp exception)
-              (if ajc-use-short-class-name
-                  (setq method-string (concat method-string  (car exception)  " , " ))
-                (setq method-string (concat method-string
-                                            (car (ajc-split-pkg-item-by-pkg-ln (nth 1 exception)))  "."
-                                            (car exception)  " , " )))))
+              (setq method-string (concat method-string  (car exception)  " , " ))))
           (setq method-string  (replace-regexp-in-string  ", $" "" method-string )))
         )
       method-string )))
@@ -445,12 +419,8 @@ it is the last line number in tag file" )
                                            (concat  method-string "${" (number-to-string (+ index 1)) ":"
                                                     param "} , " )))
               (when (listp param)
-                (if ajc-use-short-class-name
-                    (setq method-string (concat method-string "${" (number-to-string (+ 1 index )) ":"
-                                                (car param)  "} , " ))
-                  (setq method-string (concat method-string "${" (number-to-string (+ 1 index)) ":"
-                                              (car (ajc-split-pkg-item-by-pkg-ln (nth 1 param)))  "."
-                                              (car param)  "} , " ))))
+                (setq method-string (concat method-string "${" (number-to-string (+ 1 index )) ":"
+                                            (car param)  "} , " )))
               (setq index (+ 1 index ))))
           (setq method-string  (replace-regexp-in-string  " , $" ")$0" method-string ))))
       (setq method-string method-string))
@@ -553,11 +523,7 @@ can be a method item ,or a field item"
           (dolist (param  params )
             (when (stringp param ) (setq constructor-string (concat constructor-string param " , " )))
             (when (listp param)
-              (if ajc-use-short-class-name
-                  (setq constructor-string (concat constructor-string  (car param)  " , " ))
-                (setq constructor-string (concat constructor-string
-                                                 (car (ajc-split-pkg-item-by-pkg-ln (nth 1 param)))  "."
-                                                 (car param)  " , " )))))
+              (setq constructor-string (concat constructor-string  (car param)  " , " ))))
           (setq constructor-string  (replace-regexp-in-string  " , $" ")" constructor-string ))))
       (when is-with-exceptions
         (when (listp exceptions )
@@ -565,11 +531,7 @@ can be a method item ,or a field item"
           (dolist (exception  exceptions )
             (when (stringp exception ) (setq constructor-string (concat constructor-string exception " , " )))
             (when (listp exception)
-              (if ajc-use-short-class-name
-                  (setq constructor-string (concat constructor-string  (car exception)  " , " ))
-                (setq constructor-string (concat constructor-string
-                                                 (car (ajc-split-pkg-item-by-pkg-ln (nth 1 exception)))  "."
-                                                 (car exception)  " , " )))))
+              (setq constructor-string (concat constructor-string  (car exception)  " , " ))))
           (setq constructor-string  (replace-regexp-in-string  ", $" "" constructor-string ))))
       constructor-string)))
 
@@ -588,12 +550,8 @@ can be a method item ,or a field item"
                                            (concat  constructor-string "${" (number-to-string (+ index 1)) ":"
                                                     param "} , " )))
               (when (listp param)
-                (if ajc-use-short-class-name
-                    (setq constructor-string (concat constructor-string "${" (number-to-string (+ 1 index )) ":"
-                                                     (car param)  "} , " ))
-                  (setq constructor-string (concat constructor-string "${" (number-to-string (+ 1 index)) ":"
-                                                   (car (ajc-split-pkg-item-by-pkg-ln (nth 1 param)))  "."
-                                                   (car param)  "} , " ))))
+                (setq constructor-string (concat constructor-string "${" (number-to-string (+ 1 index )) ":"
+                                                 (car param)  "} , " )))
               (setq index (+ 1 index ))
               ))
           (setq constructor-string  (replace-regexp-in-string  " , $" ")$0" constructor-string ))))
