@@ -316,17 +316,22 @@ it is the last line number in tag file" )
                                   (string-to-number return-type)) t))
       field-item )))
 
-;(ajc-field-to-string (ajc-split-field " in`24:691" ))
+(defun append-space-to-item(str)
+  (let ((len (length str)));; insert whitespace between classname and return type
+    (if (< len (- ajc-default-length-of-class 3))
+        (setq str
+              (concat str
+                      (make-string (- (- ajc-default-length-of-class 3) len ) 32 )));;32 mean whitespace
+      (setq str (concat str "     "))))
+  )
+
+;; (ajc-field-to-string (ajc-split-field " out`654 " ) )
+;; (ajc-field-to-string (ajc-split-field " out`654 " ) t)
 (defun ajc-field-to-string (field-item &optional with-return-type)
   (when field-item
     (if  with-return-type
         (let ((field-string  (car field-item)) (return-type (nth 1 field-item)))
-          (let ((len (length field-string)));; insert whitespace between classname and return type
-            (if (< len (- ajc-default-length-of-class 3))
-                (setq field-string
-                      (concat field-string
-                              (make-string (- (- ajc-default-length-of-class 3) len ) 32 )));;32 mean whitespace
-              (setq field-string (concat field-string "     "))))
+          (setq field-string (append-space-to-item field-string))
           (setq field-string (concat field-string ajc-return-type-char))
           (when (stringp return-type)
             (setq field-string (concat field-string return-type )   ))
