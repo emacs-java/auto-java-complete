@@ -720,7 +720,8 @@ limit : length of class-prefix must larger than 2"
           (regexp-class-prefix (if exactly_match
                                    (concat "^" class-prefix "`")
                                  (concat "^" class-prefix ) ))
-          (two-char-item  (or  (ajc-get-two-char-item (substring-no-properties class-prefix 0 2) )
+          (two-char-item  (or (and (> (length class-prefix) 1)
+                                   (ajc-get-two-char-item (substring-no-properties class-prefix 0 2)))
                                (list nil (point-min) (point-max)) )))
       (goto-char (nth 1 two-char-item))
       (while (re-search-forward regexp-class-prefix (nth 2 two-char-item) t )
