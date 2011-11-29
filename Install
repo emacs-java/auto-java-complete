@@ -33,6 +33,10 @@
 ;;     .java_base.tag and put it in your home directory.
 ;;     of course you can change the name by customing
 ;;                 `ajc-tag-file'
+;;     sometimes AJC can't find the tag file on
+;;     windows for its ugly path like
+;;     'C:\Documents and Settings\Administrator'
+;;     you'd bettte custom 'ajc-tag-file'  on windows
 
 
 ;;  2. you should have installed  auto-complete and yasnippet.
