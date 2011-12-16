@@ -553,19 +553,26 @@ public class Tags {
         System.out.println("log file is located at: " +System.getProperty("java.io.tmpdir")+ "/ajc_info.log\n\n");
 
         System.out.println(
-                           "******************************************************************************\n"+
-                           "***     you can use this Class like this:                                  ***\n"+
-                           "***           java Tags com.company.*                                      ***\n"+
-                           "***           java -cp yourclasspath Tags                                  ***\n"+
-                           "***    only those package  name  starts with com.company  will be tagged.  ***\n"+
-                           "***    or all jar file in $CLASSPATH will be tagged .                      ***\n"+
-                           "***    before that you'd better backup the  file ~/.java_base.tag,if exists***\n"+
-                           "******************************************************************************\n"
+                           "********************************************************************************************\n"+
+                           "***    you can use this Class like this:                                                 ***\n"+
+                           "***           java Tags                                                                  ***\n"+
+                           "***    all class  in classpath will be tagged.                                           ***\n"+
+                           "***                                                                                      ***\n"+
+                           "***           java Tags com.company.*                                                    ***\n"+
+                           "***    only those package  name  starts with com.company  will be tagged.                ***\n"+
+                           "***                                                                                      ***\n"+
+                           "***    java -cp $JAVA_HOME/jre/lib/rt.jar Tags \"java.*\"                                ***\n"+
+                           "***    only those package  name  starts with java.*  will be tagged.                     ***\n"+
+                           "***                                                                                      ***\n"+
+                           "***           java -cp yourclasspath Tags                                                ***\n"+
+                           "***  if you see java.lang.OutOfMemoryError: PermGen space ,you can increment permsize:   ***\n"+
+                           "***       java -XX:MaxPermSize=512m -Xms256M -Xmx512M Tags                               ***\n"+
+                           "***                                                                                      ***\n"+
+                           "***  before that you'd better backup the  file ~/.java_base.tag,if exists                ***\n"+
+                           "*******************************************************************************************\n\n"
                            );
-        System.out.println("if you see java.lang.OutOfMemoryError: PermGen space ,you can increment permsize:");
-        System.out.println("         java -XX:MaxPermSize=512m -Xms256M -Xmx512M Tags ");
-        System.out.println("sleep 20 seconds...");
         try {
+            System.out.println("sleep 20 seconds...");
             Thread.sleep(20000);
         } catch (Exception ex) {}
 
@@ -574,10 +581,12 @@ public class Tags {
         tags.process() ;
 
         System.out.println(
-                           "\n*********************************************************************\n"+
-                           "***                  exit successful!!!                             ***\n"+
-                           "***you will see a file named '.java_base.tag' in your home directory***\n"+
-                           "***********************************************************************\n"
+                           "\n******************************************************************************************\n"+
+                           "***                  exit successful!!!                                                  ***\n"+
+                           "***you will see a file named '.java_base.tag' in your home directory                     ***\n"+
+                           "***  the size of the generated ~/.java_base.tag  is about 2M or bigger,so if your        ***\n"+
+                           "*** .java_base.tag  is too small ,that means your CLASSPATH don't configure correctly.   ***\n"+
+                           "********************************************************************************************\n"
                            );
         System.out.println(new File (System.getProperty("user.home"), ".java_base.tag").getAbsolutePath());
         System.exit(0);
