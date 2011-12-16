@@ -62,12 +62,19 @@ public class Tags {
 
     public Tags(){
         try {
-            tagFile = new BufferedWriter(new FileWriter (new File(System.getProperty("user.home"),".java_base.tag"))) ;
+            tagFile = new BufferedWriter(new FileWriter (new File(getHomePath(),".java_base.tag"))) ;
             logError= new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_error.log")) ;
             logInfo= new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_info.log")) ;
         }catch (Exception e){
             System.err.print(e.getMessage());
         }
+    }
+    private String getHomePath(){
+        String home = System.getenv("HOME");
+        if(home==null){
+            home=System.getProperty("user.home");
+        }
+        return home;
     }
 
     private void log(Throwable e){
@@ -588,7 +595,7 @@ public class Tags {
                            "*** .java_base.tag  is too small ,that means your CLASSPATH don't configure correctly.   ***\n"+
                            "********************************************************************************************\n"
                            );
-        System.out.println(new File (System.getProperty("user.home"), ".java_base.tag").getAbsolutePath());
+        System.out.println(new File (tags.getHomePath(), ".java_base.tag").getAbsolutePath());
         System.exit(0);
     }
 }
