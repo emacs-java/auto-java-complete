@@ -5,11 +5,6 @@
 // the Free Software Foundation; either version 2, or (at your option)
 // any later version.
 
-// So here’s how to generate the home directory’s tags file:
-//     javac -d ~/ Tags.java
-//     java -cp ~/:$JAVA_HOME/jre/lib/rt.jar Tags "java.*"
-//  or java Tags
-// then it will generate a file ~/.java_base.tag in your home
 
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,6 +15,12 @@
 // along with this program; see the file COPYING.  If not, write to the
 // Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 // Boston, MA 02111-1307, USA.
+
+// So here’s how to generate the home directory’s tags file:
+//     java -cp $JAVA_HOME/jre/lib/rt.jar Tags "java.*"
+//     java -cp /tmp/jars/:$JAVA_HOME/jre/lib/rt.jar Tags "java.*"
+//  or java Tags
+// then it will generate a file ~/.java_base.tag in your home
 
 //Sometimes you may see some exceptions like:
 //
@@ -155,7 +156,12 @@ public class Tags {
 
     */
     private void processClass(String className){
-        if (packageFilter != null && !(className.matches(packageFilter))) return;
+        if (packageFilter != null ){
+            packageFilter=packageFilter.replaceAll("\"" , "").replaceAll("''" , "");
+            if( !(className.matches(packageFilter))){
+                return;
+            }
+        }
         if (className.startsWith("sun")) return;
         if (className.startsWith("com.sun")) return;
         if (className.startsWith("com.thaiopensource")) return;
@@ -166,7 +172,7 @@ public class Tags {
             Class c = Class.forName(className ,false,cl);
             clss.add(c);
         } catch(Throwable t){
-             log(t);
+            log(t);
         }
     }
 
