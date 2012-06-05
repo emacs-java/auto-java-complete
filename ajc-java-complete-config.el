@@ -14,7 +14,7 @@
          (yasnippet-templete (get-text-property 0 'templete last-complete-string)))
     (when  yasnippet-templete
       (delete-char (- 0 (length last-complete-string)))
-      (yas/expand-snippet yasnippet-templete))))
+      (yas/expand-snippet (ajc-method-to-yasnippet-templete yasnippet-templete) ))))
 
 
 ;;add support for jsp when import ,but you should trigger it by key-binding

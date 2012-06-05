@@ -442,7 +442,7 @@ can be a method item ,or a field item"
       (let((method-full-string  (ajc-method-to-string field-or-method-item t))
            (method-short-string (ajc-method-to-string field-or-method-item nil)))
         (setplist 'props nil ) (put 'props 'view method-full-string)
-        (put 'props 'templete (ajc-method-to-yasnippet-templete field-or-method-item))
+        (put 'props 'templete field-or-method-item)
         (add-text-properties 0 (length method-short-string)
                              (symbol-plist  'props)  method-short-string)
         (setq candidate method-short-string)))
