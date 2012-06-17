@@ -443,6 +443,7 @@ can be a method item ,or a field item"
            (method-short-string (ajc-method-to-string field-or-method-item nil)))
         (setplist 'props nil ) (put 'props 'view method-full-string)
         (put 'props 'templete field-or-method-item)
+        (put 'props 'templete-type 'method)
         (add-text-properties 0 (length method-short-string)
                              (symbol-plist  'props)  method-short-string)
         (setq candidate method-short-string)))
@@ -1058,7 +1059,9 @@ return a list of each line string (exclude keyword 'import') "
             (add-to-list 'return-complete-list  constructor-short-string t)
             (setplist 'props nil )
             (put 'props 'view constructor-full-string)
-            (put 'props 'templete (ajc-constructor-to-yasnippet-templete constructor))
+            (put 'props 'templete-type 'constructor)
+            ;;
+            (put 'props 'templete constructor)
             (add-text-properties 0 (length constructor-short-string)
                                  (symbol-plist  'props)  constructor-short-string)
             ))))

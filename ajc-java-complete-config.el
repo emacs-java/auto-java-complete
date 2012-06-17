@@ -11,10 +11,18 @@
 
 (defun ajc-expand-yasnippet-templete-with-ac ()
   (let* ((last-complete-string (cdr ac-last-completion))
-         (yasnippet-templete (get-text-property 0 'templete last-complete-string)))
+         (yasnippet-templete (get-text-property 0 'templete last-complete-string))
+         templete-type)
     (when  yasnippet-templete
+      (setq templete-type  (get-text-property 0 'templete-type last-complete-string))
       (delete-char (- 0 (length last-complete-string)))
-      (yas/expand-snippet (ajc-method-to-yasnippet-templete yasnippet-templete) ))))
+      (cond
+       ((equal templete-type  'method)
+        (yas/expand-snippet (ajc-method-to-yasnippet-templete yasnippet-templete) )
+        )
+       ((equal templete-type  'constructor)
+        (yas/expand-snippet (ajc-constructor-to-yasnippet-templete yasnippet-templete))
+        )))))
 
 
 ;;add support for jsp when import ,but you should trigger it by key-binding
