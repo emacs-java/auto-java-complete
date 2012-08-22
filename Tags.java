@@ -446,6 +446,7 @@ public class Tags {
             memItem.field=fields[i];
             localMems.add(memItem);
         }
+        Collections.sort(localMems);
         return localMems;
     }
     private List<MemberItem> tagConstructors(ClassItem cItem)throws Throwable {
@@ -473,6 +474,7 @@ public class Tags {
             memItem.exceptions=exceptionsKV;
             localMems.add(memItem);
         }
+        Collections.sort(localMems);
         return localMems;
     }
     private List<MemberItem> tagMethods(ClassItem cItem) throws Throwable{
@@ -498,6 +500,7 @@ public class Tags {
             memItem.exceptions=exceptionsKV;
             localMems.add(memItem);
         }
+        Collections.sort(localMems);
         return localMems;
     }
 
