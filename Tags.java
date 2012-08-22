@@ -17,10 +17,12 @@
 // Boston, MA 02111-1307, USA.
 
 // So here’s how to generate the home directory’s tags file:
-//     java -cp $JAVA_HOME/jre/lib/rt.jar Tags "java.*"
-//     java -cp /tmp/jars/:$JAVA_HOME/jre/lib/rt.jar Tags "java.*"
+//     java -cp $JAVA_HOME/jre/lib/rt.jar Tags
+//     java -cp /path/to/your/jars_and_classesfiles/:$JAVA_HOME/jre/lib/rt.jar Tags
 //  or java Tags
-// then it will generate a file ~/.java_base.tag in your home
+//  or java Tags "javax\." ,exclude javax.*.ClassName
+//  or java Tags "javax\.,java\." ,exclude javax.**ClassName,and java.**ClassName
+// then it will generate a file ~/.java_base.tag in your home directory
 
 //Sometimes you may see some exceptions like:
 //
@@ -44,7 +46,7 @@ import java.util.zip.*;
 /** Make a tags table from the class files in a classpath.
  * The classpath is obtained from the property <code>java.class.path</code>
  *
- * The class names that get output must match the <code>packageFilter</code>
+ * The class names that get output must match the <code>classExcludeRegexPatternArray</code>
  * if it is specified.
  *
  * @author joseph <jixiuf@gmail.com>
@@ -89,9 +91,9 @@ public class Tags {
 
 
     /** If this is not null it's used as a filter for acceptable classes.
-     * Only packages that <code>matches(packageFilter)</code> will be tagged.
+     * Only packages that <code>matches(classExcludeRegexPatternArray)</code> will be tagged.
      */
-    protected String packageFilter;
+    protected Pattern[] classExcludeRegexPatternArray=null;
     File  randomTmpPath = new File(System.getProperty("java.io.tmpdir")+File.separatorChar+UUID.randomUUID().toString()+File.separatorChar);
     ClassLoader cl = new CL(randomTmpPath);
 
@@ -163,17 +165,18 @@ public class Tags {
 
     */
     private void processClass(String className){
-        if (packageFilter != null ){
-            packageFilter=packageFilter.replaceAll("\"" , "").replaceAll("''" , "");
-            if( !(className.matches(packageFilter))){
-                return;
-            }
-        }
         if (className.startsWith("sun")) return;
         if (className.startsWith("com.sun")) return;
         if (className.startsWith("com.thaiopensource")) return;
         if (className .contains("org.iso_relax.ant")) return;
         if (className .contains("$")) return;
+        if (classExcludeRegexPatternArray != null ){
+            for (int i = 0; i < classExcludeRegexPatternArray.length; i++) {
+                if(classExcludeRegexPatternArray[i].matcher(className).find()){
+                    return;
+                }
+            }
+        }
         try{
             //            Class c = Class.forName(className,false,ClassLoader.getSystemClassLoader()) ;
             Class c = Class.forName(className ,false,cl);
@@ -568,11 +571,8 @@ public class Tags {
                            "***           java Tags                                                                  ***\n"+
                            "***    all class  in classpath will be tagged.                                           ***\n"+
                            "***                                                                                      ***\n"+
-                           "***           java Tags com.company.*                                                    ***\n"+
-                           "***    only those package  name  starts with com.company  will be tagged.                ***\n"+
-                           "***                                                                                      ***\n"+
-                           "***    java -cp $JAVA_HOME/jre/lib/rt.jar Tags \"java.*\"                                ***\n"+
-                           "***    only those package  name  starts with java.*  will be tagged.                     ***\n"+
+                           "***           java Tags \"org\\.hello,org\\.world\"                                      ***\n"+
+                           "***    it would NOT tag those class match \"org.hello\" or \"org.world\" .               ***\n"+
                            "***                                                                                      ***\n"+
                            "***           java -cp yourclasspath Tags                                                ***\n"+
                            "***  if you see java.lang.OutOfMemoryError: PermGen space ,you can increment permsize:   ***\n"+
@@ -587,7 +587,13 @@ public class Tags {
         } catch (Exception ex) {}
 
         Tags tags = new Tags();
-        if (argv.length > 0) tags.packageFilter = argv[0];
+        if (argv.length > 0){
+            String[] regexs=argv[0].split(",");
+            tags.classExcludeRegexPatternArray = new Pattern[regexs.length];
+            for (int m = 0; m < tags.classExcludeRegexPatternArray.length; m++) {
+                tags.classExcludeRegexPatternArray[m]=Pattern.compile(regexs[m].replaceAll("\"" , "").replaceAll("'" , ""));
+            }
+        }
         tags.process() ;
 
         System.out.println(

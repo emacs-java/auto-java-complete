@@ -23,10 +23,9 @@
 ;;
 ;;     to generate the tag file ~/.java_base.tag 
 ;;     or
-;;                 java  Tags com.yourcompanyname.*
+;;                 java  Tags "org\.hello,org\.world"
 ;;
-;;     it would only tag those class whose name is starts with
-;;     com.yourcompanyname.
+;;     it would not tag those class whose name match "org.hello" or "org.world"
 ;;
 ;;     if it can't work on you computer ,use my tag file
 ;;     java_base.tag.bz2, just uncompress and rename it to
