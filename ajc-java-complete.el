@@ -434,19 +434,16 @@ can be a method item ,or a field item"
     (if (= 2   (length field-or-method-item ));; lenth of field is 2 (only field and returntype )
         (let ((field-full-string (ajc-field-to-string field-or-method-item t))
               (field-short-string (ajc-field-to-string field-or-method-item nil)))
-          (setplist 'props nil ) (put 'props 'view field-full-string)
-          (add-text-properties 0 (length field-short-string)
-                               (symbol-plist  'props)  field-short-string)
-          (setq candidate field-short-string)
+          (setq candidate (propertize field-short-string 'view field-full-string))
           )
       (let((method-full-string  (ajc-method-to-string field-or-method-item t))
            (method-short-string (ajc-method-to-string field-or-method-item nil)))
-        (setplist 'props nil ) (put 'props 'view method-full-string)
-        (put 'props 'templete field-or-method-item)
-        (put 'props 'templete-type 'method)
-        (add-text-properties 0 (length method-short-string)
-                             (symbol-plist  'props)  method-short-string)
-        (setq candidate method-short-string)))
+        (setq candidate
+               (propertize method-short-string
+                           'view method-full-string
+                           'templete field-or-method-item
+                           'templete-type 'method)
+              )))
     candidate))
 
 (defun ajc-split-method ( method-line-string )
@@ -1056,14 +1053,12 @@ return a list of each line string (exclude keyword 'import') "
         (dolist (constructor matched-constructor-items)
           (let ((constructor-full-string (ajc-constructor-to-string constructor t))
                 (constructor-short-string (ajc-constructor-to-string constructor nil)))
-            (add-to-list 'return-complete-list  constructor-short-string t)
-            (setplist 'props nil )
-            (put 'props 'view constructor-full-string)
-            (put 'props 'templete-type 'constructor)
-            ;;
-            (put 'props 'templete constructor)
-            (add-text-properties 0 (length constructor-short-string)
-                                 (symbol-plist  'props)  constructor-short-string)
+            (add-to-list 'return-complete-list
+                         (propertize constructor-short-string
+                                     'view constructor-full-string
+                                     'templete-type 'constructor
+                                     'templete constructor)
+                         t)
             ))))
     return-complete-list))
 
@@ -1086,13 +1081,10 @@ return a list of each line string (exclude keyword 'import') "
           (class-items (ajc-complete-class-with-cache ajc-current-class-prefix-4-complete-class)))
       (dolist (class-item class-items)
         (setq candidate  (car class-item))
-        (setplist 'props nil )
-        (put 'props 'view (ajc-class-to-string class-item t))
-        (add-text-properties 0 (length candidate) (symbol-plist  'props)  candidate)
-        (add-to-list 'candidates candidate t)
-     ) candidates
-      )
-    ))
+        (add-to-list 'candidates
+                     (propertize candidate 'view (ajc-class-to-string class-item t))
+                     t)
+        ) candidates)))
 
 (defun ajc-complete-class-with-cache ( class-prefix )
   "find out class name starts with class-prefix ,before search tag file ,it first
