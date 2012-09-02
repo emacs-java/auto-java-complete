@@ -734,11 +734,19 @@ class MemberItem implements Comparable<MemberItem>{
         if (this.field!=null){
             if (memItem.field==null) return -1;
             return this.name.compareTo(memItem.name);
-        }else {
-            if(memItem.method==null)  return 1;
-            return this.name.compareTo(memItem.name);
+        }else if(this.constructor!=null){
+            if(memItem.constructor==null)  return -1;
+            int cmp=this.name.compareTo(memItem.name);
+            if(cmp!=0) return cmp;
+            return toString().compareTo( memItem.toString());
+        }else if(this.method!=null){
+            if(memItem.method==null)  return -1;
+            int cmp=this.name.compareTo(memItem.name);
+            if(cmp!=0) return cmp;
+            return toString().compareTo( memItem.toString());
+        }else{
+            return 0;
         }
-
     }
 }
 class  ClassItemWrapper{
