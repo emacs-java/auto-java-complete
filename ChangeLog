@@ -1,9 +1,16 @@
+;; tag 0.2.9-for_auto-complete1.3.1
+;; after this version popup-patch.diff is deleted
+;; so I create this tag.
+;; except that ,there are still some little changes
+;; 1.Tags.java now support:
+;;	java Tags "ExcludeRegexp1,ExcludeRegexp2,.."
+;; 2.some code are rewrited 
 ;; tag 0.2.8
-	1 Update Tags.java ,fix a bug:can't find package name when parsing
-	  a class
-	2 add ChangeLog file ,this file is part of ajc-java-complete.el
-	  now move to this file .
-	  and Add Install file .
+;; 1 Update Tags.java ,fix a bug:can't find package name when parsing
+;;   a class
+;; 2 add ChangeLog file ,this file is part of ajc-java-complete.el
+;;   now move to this file .
+;;   and Add Install file .
 
 ;; tag  0.2.7
 ;; no new feature ,just  improve Tags.java
