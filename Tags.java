@@ -738,14 +738,14 @@ class MemberItem implements Comparable<MemberItem>{
             if(memItem.constructor==null)  return -1;
             int cmp=this.name.compareTo(memItem.name);
             if(cmp!=0) return cmp;
-            return toString().compareTo( memItem.toString());
+            return constructor.toString().compareTo( memItem.constructor.toString());
         }else if(this.method!=null){
             if(memItem.method==null)  return -1;
             int cmp=this.name.compareTo(memItem.name);
             if(cmp!=0) return cmp;
-            return toString().compareTo( memItem.toString());
+            return method.toString().compareTo( memItem.method.toString());
         }else{
-            return 0;
+            return toString().compareTo( memItem.toString());
         }
     }
 }
