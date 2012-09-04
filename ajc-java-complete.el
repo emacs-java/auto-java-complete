@@ -64,24 +64,6 @@
 ;;   constructor it would generate a templete dynamically
 ;;   so that you can jump from a paramter to another one .
 
-;;4. when completing method ,it can show return type behind
-;;   each candidate on dropdown menu.
-;;   I want to show
-;;       toString() :String         on menu ,but just insert
-;;       toString()                 in buffer ,
-;;   but there is a problem:
-;;   auto complete 1.3 now doesn't support it .
-;;   I patched  popup.el in auto-complete-1.3/  ,
-;;   the patched file is ajc-java-complete/popup.el, please
-;;   put this file into auto-complete-1.3/ ,or use
-;;      ajc-java-complete/popup-patch.diff
-;;      cp  ajc-java-complete/popup-patch.diff auto-complete-1.3/
-;;      cd auto-complete-1.3/
-;;      patch -p0 < popup-patch.diff
-;;
-;;     don't forget to byte-compile it
-
-
 ;;; Features
 
 ;; 1. support importing.
