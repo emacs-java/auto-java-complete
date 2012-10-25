@@ -18,10 +18,11 @@
       (delete-char (- 0 (length last-complete-string)))
       (cond
        ((equal templete-type  'method)
-        (yas/expand-snippet (ajc-method-to-yasnippet-templete yasnippet-templete) )
+        ;;yas0.8  yas/expand-snippet renamed to yas-expand-snippet
+        (yas-expand-snippet (ajc-method-to-yasnippet-templete yasnippet-templete) )
         )
        ((equal templete-type  'constructor)
-        (yas/expand-snippet (ajc-constructor-to-yasnippet-templete yasnippet-templete))
+        (yas-expand-snippet (ajc-constructor-to-yasnippet-templete yasnippet-templete))
         )))))
 
 
