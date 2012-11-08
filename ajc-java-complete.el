@@ -859,6 +859,10 @@ tag buffer file "
             ;;handle throws Exception1,Exception2, we will exatract Exception1 Exception2 from throws sentence
             (when exception
               (setq matched-class-strings (append matched-class-strings (split-string  exception split-char-regexp t))))))
+        ;; search for annotation like @Test
+        (setq matched-class-strings
+              (append matched-class-strings
+                      (ajc-find-out-class-by-annotation)))
         ;;remove primitive type and remove duplicate item
         (delete-dups matched-class-strings) (delete "" matched-class-strings)
         (dolist (ele matched-class-strings)
@@ -866,6 +870,17 @@ tag buffer file "
               (delete ele matched-class-strings)))
         matched-class-strings
         ))))
+
+(defun ajc-find-out-class-by-annotation ()
+  "Find out annotations and return a list of annotations."
+  (let ((annot-regexp "[:space:]*@\\([A-Z][a-zA-Z]+\\)")
+        (annotations nil))
+    (save-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (while (re-search-forward annot-regexp nil t)
+          (push (match-string-no-properties 1) annotations))))
+    annotations))
 
 (defun ajc-caculate-all-unimported-class-items()
   "this function will find out all unimported Class itmes , it just do a subtration
