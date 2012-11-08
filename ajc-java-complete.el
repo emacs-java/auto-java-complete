@@ -819,12 +819,15 @@ tag buffer file "
             (return-type-regexp  "\\(\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\| *\t*\\[ *\t*]\\)+\\)" )
             (split-char-regexp "\\(,\\|<\\|>\\|]\\|\\[\\| \\|\t\\|\n\\)"));;a list of split char like ", \t<>[]"
         (goto-char (point-min))  (setq case-fold-search nil)
+        ;; search for `new' statements
         (while (search-forward-regexp (concat "\\bnew[ \t]+" return-type-regexp)(point-max) 't)
           (setq matched-class-strings (append matched-class-strings  (split-string (match-string-no-properties 1 ) split-char-regexp t))))
         (goto-char (point-min))
+        ;; search for static members
         (while (search-forward-regexp "\\b\\([A-Z][a-zA-Z0-9_]*\\)\\.[a-zA-Z0-9_]+[ \t]*(" (point-max) 't)
           (setq matched-class-strings (append matched-class-strings  (list (match-string-no-properties 1)))))
         (goto-char (point-min))
+        ;; search for classes being instantiated by getInstace
         (while (search-forward-regexp "\\([a-zA-Z0-9_]+\\)\\.getInstance[ \t]*(" (point-max) 't)
           (add-to-list 'matched-class-strings (match-string-no-properties 1)))
         (goto-char (point-min))
@@ -833,11 +836,13 @@ tag buffer file "
         (while (search-forward-regexp "^[ \t]*\\(public\\|private\\|static\\|final\\|native\\|synchronized\\|transient\\|volatile\\|strictfp\\| \\|\t\\)*\\([A-Z]\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\| *\t*\\[ *\t*]\\)+\\)[ \t]+[a-zA-Z0-9_]+[ \t]*[;=]"  (point-max) 't)
           (setq matched-class-strings
                 (append matched-class-strings  (split-string (match-string-no-properties 2 ) split-char-regexp  t))))
-        (goto-char (point-min));; find ClassName after "catch" keywords  for example :catch(IOException e )
-        (while   (search-forward-regexp "catch[ \t]*(\\([a-zA-Z0-9_]+\\)[ \t]+"  (point-max) 't)
+        (goto-char (point-min))
+        ;; find ClassName after "catch" keywords  for example :catch(IOException e )
+        (while (search-forward-regexp "catch[ \t]*(\\([a-zA-Z0-9_]+\\)[ \t]+"  (point-max) 't)
           (add-to-list 'matched-class-strings (match-string-no-properties 1)))
-        (goto-char (point-min)) ;;find method statement
-        (while   (search-forward-regexp "^[ \t]*\\(public\\|private\\|static\\|final\\|native\\|synchronized\\|transient\\|volatile\\|strictfp\\| \\|\t\\)*[ \t]+\\(\\([a-zA-Z0-9_]\\|\\( *\t*< *\t*\\)\\|\\( *\t*> *\t*\\)\\|\\( *\t*, *\t*\\)\\|\\( *\t*\\[ *\t*\\)\\|\\(]\\)\\)+\\)[ \t]+[a-zA-Z0-9_]+[ \t]*(\\(.*\\))[ \t]*\\(throws[ \t]+\\([a-zA-Z0-9_, \t\n]*\\)\\)?[ \t\n]*{"  (point-max) 't)
+        (goto-char (point-min))
+        ;;find method statement
+        (while (search-forward-regexp "^[ \t]*\\(public\\|private\\|static\\|final\\|native\\|synchronized\\|transient\\|volatile\\|strictfp\\| \\|\t\\)*[ \t]+\\(\\([a-zA-Z0-9_]\\|\\( *\t*< *\t*\\)\\|\\( *\t*> *\t*\\)\\|\\( *\t*, *\t*\\)\\|\\( *\t*\\[ *\t*\\)\\|\\(]\\)\\)+\\)[ \t]+[a-zA-Z0-9_]+[ \t]*(\\(.*\\))[ \t]*\\(throws[ \t]+\\([a-zA-Z0-9_, \t\n]*\\)\\)?[ \t\n]*{"  (point-max) 't)
           (let ((exception (match-string-no-properties 11))
                 (returns (match-string-no-properties 2))
                 (params (match-string-no-properties 9)))
