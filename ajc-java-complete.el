@@ -1012,22 +1012,33 @@ return a list of each line string (exclude keyword 'import') "
 
 (defun ajc-caculate-all-imported-class-items (&optional exclude_java_lang)
   "find out all imported class  ,default include class in java.lang.*"
-  (let ((imported-line (ajc-find-out-import-line))(element)(index)  (return-class-items))
+  (let ((imported-line (ajc-find-out-import-line))
+        (element)
+        (index)
+        (return-class-items))
     (setq case-fold-search nil)
-    (dolist ( element imported-line )
-      (setq index   (string-match "\\.\\*$"  element))
+    (dolist (element imported-line)
+      (setq index (string-match "\\.\\*$"  element))
       (if index   ;;import a package
-          (setq return-class-items (append return-class-items
-                                           (ajc-find-out-matched-class-item (substring-no-properties element 0 index) nil)))
+          (setq return-class-items
+                (append return-class-items
+                        (ajc-find-out-matched-class-item
+                         (substring-no-properties element 0 index)
+                         nil)))
         (progn  ;;import a class
           (string-match "^\\(.+\\)\\.\\([a-zA-Z0-9_]+\\)$" element)
-          (setq return-class-items (append return-class-items
-                                           (ajc-find-out-matched-class-item
-                                            (match-string-no-properties 1 element ) (match-string-no-properties 2 element )  t ))))))
+          (setq return-class-items
+                (append return-class-items
+                        (ajc-find-out-matched-class-item
+                         (match-string-no-properties 1 element )
+                         (match-string-no-properties 2 element )
+                         t))))))
     (if exclude_java_lang
-        (setq return-class-items return-class-items )
-      (setq return-class-items  (append return-class-items  (ajc-find-out-matched-class-item "java.lang" nil )))
+        (setq return-class-items return-class-items)
+      (setq return-class-items (append return-class-items
+                                       (ajc-find-out-matched-class-item "java.lang" nil)))
       )))
+
 (defun ajc-complete-constructor-candidates ()
   (let (candidates class-items);;if find keyword:new ,then do constructor complete ,if not do class complete
     (setq case-fold-search nil)
