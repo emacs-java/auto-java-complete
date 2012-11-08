@@ -920,28 +920,38 @@ what you need to do next, is just import the unimported class  "
   "insert 'import sentence' at head of java source file,
 before that it will use y-or-n-p ask user to confirm "
   (let ((import-class-buffer "*ajc-import-java-class*")
-        (import-class-window) (user-confirmed-class-items-list)
-        (java-buffer (current-buffer))(java-window))
+        (import-class-window)
+        (user-confirmed-class-items-list)
+        (java-buffer (current-buffer))
+        (java-window))
     (setq case-fold-search nil)
     (if (and import-class-items-list (> (length import-class-items-list) 0))
         (progn
-          (setq import-class-buffer (switch-to-buffer-other-window  import-class-buffer t))
+          (setq import-class-buffer (switch-to-buffer-other-window import-class-buffer t))
           (setq java-window (get-buffer-window java-buffer))
           (setq import-class-window (get-buffer-window import-class-buffer))
-          (with-current-buffer    import-class-buffer  ;;show maybe imported Class in a new buffer
-            (delete-region (point-min)(point-max))
+          (with-current-buffer import-class-buffer  ;;show maybe imported Class in a new buffer
+            (delete-region (point-min) (point-max))
             (dolist (ele import-class-items-list)
-              (insert (concat "[ ]  "  (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 ele ))) "." (car ele)  "\n")))
+              (insert (concat "[ ]  "
+                              (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele )))
+                              "."
+                              (car ele)
+                              "\n")))
             (insert "  ");;insert empty line at end of buffer
-            (goto-char (1+(point-min)))
-            (dolist (ele import-class-items-list ) ;;ask user whether to import the Class
-              (beginning-of-line)(forward-char 1)
+            (goto-char (1+ (point-min)))
+            (dolist (ele import-class-items-list) ;;ask user whether to import the Class
+              (beginning-of-line)
+              (forward-char 1)
               (when (y-or-n-p (concat "import " (car ele)  "? "))
                 (add-to-list 'user-confirmed-class-items-list ele)
-                (delete-char 1) (insert "*"))
-              (forward-line 1)(forward-char 1)))
+                (delete-char 1)
+                (insert "*"))
+              (forward-line 1)
+              (forward-char 1)))
           ;;delete *import-java-class* buffer and window
-          (delete-window import-class-window)(kill-buffer import-class-buffer)
+          (delete-window import-class-window)
+          (kill-buffer import-class-buffer)
           (with-current-buffer java-buffer
             (ajc-insert-import-at-head-of-source-file-without-confirm user-confirmed-class-items-list))
           (message "Finished importing.")
