@@ -130,6 +130,7 @@
 
 ;;; Code.
 
+(require 'cl)
 
 (defgroup auto-java-complete nil
   "Auto Java Completion."
