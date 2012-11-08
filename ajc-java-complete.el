@@ -186,10 +186,10 @@ then search class is faster ")
 (defvar ajc-package-first-ln 0
   "the first line number of the package section in tag file")
 (defvar ajc-class-first-ln 0
-"the first line number of the class section in tag file,
+  "the first line number of the class section in tag file,
 it is the end of package section line number too. " )
 (defvar ajc-member-first-ln 0
-"the first line number of the member section in tag file ,
+  "the first line number of the member section in tag file ,
 actually it is the end of package section line number too" )
 (defvar ajc-member-end-ln 0
   "the end line number of the member section in tag file ,
@@ -210,18 +210,18 @@ it is the last line number in tag file" )
   "when complete a import ,sometimes we can use
  the last completed items for next complete  ")
 (defvar ajc-previous-matched-import-prefix nil
- "previous matched prefix for import Class at head of source")
+  "previous matched prefix for import Class at head of source")
 
 (defvar ajc-current-class-prefix-4-complete-class nil
- "when (ajc-is-available-4-complete-class-p ) return true,
+  "when (ajc-is-available-4-complete-class-p ) return true,
  it will save current class-prefix in this variable ,so
  (ajc-complete-class-candidates) can reuse it . ")
 
 (defun ajc-goto-line ( line-num &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
     (when (numberp line-num)
-    (goto-char (point-min))
-    (forward-line (1- line-num )))))
+      (goto-char (point-min))
+      (forward-line (1- line-num )))))
 
 (defun ajc-read-line(line-number  &optional buffer)
   "read a line  and return the string"
@@ -252,13 +252,13 @@ it is the last line number in tag file" )
       split-list)))
 
 (defun ajc-split-pkg-item ( pkg-line-string )
- "the format pkg-line-string is  str`num`num
+  "the format pkg-line-string is  str`num`num
   this function translate it to a list ,the num will be string2number
   give me  `java.lang`222`333 ,return '(\"java.lang\" 222 333 ) "
   (let (( pkg-item (split-string pkg-line-string "`" t)))
     (setcar (nthcdr 1 pkg-item ) (string-to-number (nth 1 pkg-item )))
     (setcar (nthcdr 2 pkg-item ) (string-to-number (nth 2 pkg-item )))
-     pkg-item))
+    pkg-item))
 
 (defun ajc-split-pkg-item-by-pkg-ln ( pkg-line-number  &optional buffer )
   "the format pkg-line-string is str`num`num
@@ -269,14 +269,14 @@ it is the last line number in tag file" )
                   (or buffer (ajc-reload-tag-buffer-maybe)))))
 
 (defun ajc-split-class-item ( class-line-string )
- "the format of class-line-string is
+  "the format of class-line-string is
   classname`packageLineNum`memberStartLineNum`memberEndLineNum
   this function translate it to a list ,the num will be convert to number "
   (let (( class-item (split-string class-line-string "`" t)))
     (setcar (nthcdr 1 class-item ) (string-to-number (nth 1 class-item )))
     (setcar (nthcdr 2 class-item) (string-to-number (nth 2 class-item )))
     (setcar (nthcdr 3 class-item) (string-to-number (nth 3 class-item )))
-     class-item))
+    class-item))
 
 (defun ajc-split-class-item-by-class-ln
   ( class-line-number  &optional buffer )
@@ -285,9 +285,9 @@ it is the last line number in tag file" )
                   (or buffer (ajc-reload-tag-buffer-maybe)))))
 
 (defun ajc-split-constructor-by-line-num ( constructor-line-num )
-   (ajc-split-constructor
-    (ajc-read-line constructor-line-num
-                   (ajc-reload-tag-buffer-maybe))))
+  (ajc-split-constructor
+   (ajc-read-line constructor-line-num
+                  (ajc-reload-tag-buffer-maybe))))
 
 (defun ajc-split-field (field-line-string)
   (when field-line-string
@@ -387,7 +387,7 @@ it is the last line number in tag file" )
 ;; (ajc-method-to-string    (car
 ;; (ajc-find-members (car  (ajc-find-out-matched-class-item-without-package-prefix "String" t )) "split" )))
 ;; "split(String , int)"
-;(yas/expand-snippet "split(${1:String} , ${2:int})"
+                                        ;(yas/expand-snippet "split(${1:String} , ${2:int})"
 (defun ajc-method-to-yasnippet-templete (method-item)
   (when method-item
     (let ((method-string  (car method-item))
@@ -421,10 +421,10 @@ can be a method item ,or a field item"
       (let((method-full-string  (ajc-method-to-string field-or-method-item t))
            (method-short-string (ajc-method-to-string field-or-method-item nil)))
         (setq candidate
-               (propertize method-short-string
-                           'view method-full-string
-                           'templete field-or-method-item
-                           'templete-type 'method)
+              (propertize method-short-string
+                          'view method-full-string
+                          'templete field-or-method-item
+                          'templete-type 'method)
               )))
     candidate))
 
@@ -558,7 +558,7 @@ can be a method item ,or a field item"
           (setq  ajc-position-of-member-first-line (progn   (ajc-goto-line  ajc-member-first-ln) (point)) )
           (setq ajc-member-end-ln     (string-to-number (ajc-read-line 6)))
           (setq  ajc-position-of-member-end-line (progn   (ajc-goto-line  ajc-member-end-ln) (point)) )
-;;          (ajc-load-all-sorted-class-items-to-memory)
+          ;;          (ajc-load-all-sorted-class-items-to-memory)
           (ajc-sort-class)
           )
       (message  ( concat ajc-tag-file " doesn't exists !!!")))
@@ -612,8 +612,8 @@ when you import a package in head of your java file,
 when you typed in 'jav-|-', then it will list 'java javax'
 instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'"
   (let ((matched-pkg-items (ajc-find-out-matched-pkg-item pkg-prefix))
-         (index-of-first-dot 0) (return-list)
-         (length-of-pkg-prefix (length pkg-prefix)))
+        (index-of-first-dot 0) (return-list)
+        (length-of-pkg-prefix (length pkg-prefix)))
     (dolist (current-item matched-pkg-items)
       (if (setq index-of-first-dot
                 (string-match "\\." (car current-item) length-of-pkg-prefix))
@@ -659,13 +659,13 @@ and class-prefix are nil, then it will return all Class in all package
 the param `exactly_match' ,means only class name exactly equals
  to `class-prefix' will be return"
   (let* ((class-prefix (or class-prefix ""))
-        (regexp-class-prefix
-         (if exactly_match (concat "^" (regexp-quote class-prefix) "`" )
-           (concat "^" (regexp-quote class-prefix))))
-        (matched-pkg-item (when package-name (ajc-find-out-matched-pkg-item package-name t)))
-        (line-num    ajc-class-first-ln)
-        (end-position ajc-member-first-ln)
-        return-list current-line-string)
+         (regexp-class-prefix
+          (if exactly_match (concat "^" (regexp-quote class-prefix) "`" )
+            (concat "^" (regexp-quote class-prefix))))
+         (matched-pkg-item (when package-name (ajc-find-out-matched-pkg-item package-name t)))
+         (line-num    ajc-class-first-ln)
+         (end-position ajc-member-first-ln)
+         return-list current-line-string)
     (with-current-buffer (or buffer (ajc-reload-tag-buffer-maybe))
       (when matched-pkg-item
         (setq line-num (nth 1 matched-pkg-item)
@@ -702,7 +702,7 @@ limit : length of class-prefix must larger than 2"
                                  (concat "^" class-prefix ) ))
           (two-char-item  (or (and (> (length class-prefix) 1)
                                    (ajc-get-two-char-item (substring-no-properties class-prefix 0 2)))
-                               (list nil (point-min) (point-max)) )))
+                              (list nil (point-min) (point-max)) )))
       (goto-char (nth 1 two-char-item))
       (while (re-search-forward regexp-class-prefix (nth 2 two-char-item) t )
         (add-to-list 'matched-class-items
@@ -801,13 +801,13 @@ tag buffer file "
                 (append matched-pkg-strings
                         (ajc-shrunk-matched-pkgs prefix-string)))
           (let ((index_of_last_dot (string-match "\\.[a-zA-Z_0-9]*$" prefix-string));;add classes
-                 (package-prefix)(class-prefix))
+                (package-prefix)(class-prefix))
             (when index_of_last_dot
               (setq package-prefix (substring-no-properties prefix-string 0 index_of_last_dot))
               (setq class-prefix (substring-no-properties prefix-string (+ 1 index_of_last_dot)))
               (dolist (element (ajc-find-out-matched-class-item package-prefix class-prefix))
                 (add-to-list 'matched-pkg-strings (concat package-prefix "." (car element)))))))
-;;        (setq ajc-is-importing-packages-p t)
+        ;;        (setq ajc-is-importing-packages-p t)
         (setq ajc-previous-matched-import-prefix prefix-string) ;;
         (setq  ajc-matched-import-cache-list matched-pkg-strings)))))
 
@@ -818,22 +818,22 @@ tag buffer file "
       (let ((matched-class-strings)
             (return-type-regexp  "\\(\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\| *\t*\\[ *\t*]\\)+\\)" )
             (split-char-regexp "\\(,\\|<\\|>\\|]\\|\\[\\| \\|\t\\|\n\\)"));;a list of split char like ", \t<>[]"
-       (goto-char (point-min))  (setq case-fold-search nil)
+        (goto-char (point-min))  (setq case-fold-search nil)
         (while (search-forward-regexp (concat "\\bnew[ \t]+" return-type-regexp)(point-max) 't)
           (setq matched-class-strings (append matched-class-strings  (split-string (match-string-no-properties 1 ) split-char-regexp t))))
-       (goto-char (point-min))
+        (goto-char (point-min))
         (while (search-forward-regexp "\\b\\([A-Z][a-zA-Z0-9_]*\\)\\.[a-zA-Z0-9_]+[ \t]*(" (point-max) 't)
           (setq matched-class-strings (append matched-class-strings  (list (match-string-no-properties 1)))))
         (goto-char (point-min))
         (while (search-forward-regexp "\\([a-zA-Z0-9_]+\\)\\.getInstance[ \t]*(" (point-max) 't)
           (add-to-list 'matched-class-strings (match-string-no-properties 1)))
-       (goto-char (point-min))
+        (goto-char (point-min))
         ;;find out all statement of variable ,for example
         ;; String name;      Map<String,<String,Ojbect>>[] map=
         (while (search-forward-regexp "^[ \t]*\\(public\\|private\\|static\\|final\\|native\\|synchronized\\|transient\\|volatile\\|strictfp\\| \\|\t\\)*\\([A-Z]\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\| *\t*\\[ *\t*]\\)+\\)[ \t]+[a-zA-Z0-9_]+[ \t]*[;=]"  (point-max) 't)
           (setq matched-class-strings
                 (append matched-class-strings  (split-string (match-string-no-properties 2 ) split-char-regexp  t))))
-       (goto-char (point-min));; find ClassName after "catch" keywords  for example :catch(IOException e )
+        (goto-char (point-min));; find ClassName after "catch" keywords  for example :catch(IOException e )
         (while   (search-forward-regexp "catch[ \t]*(\\([a-zA-Z0-9_]+\\)[ \t]+"  (point-max) 't)
           (add-to-list 'matched-class-strings (match-string-no-properties 1)))
         (goto-char (point-min)) ;;find method statement
@@ -847,19 +847,19 @@ tag buffer file "
             (while (and params (> (length params) 0))
               (if (string-match "\\([a-zA-Z0-9_]\\|\\( *\t*< *\t*\\)\\|\\( *\t*>\\)\\|\\( *\t*, *\t*\\)\\|\\( *\t*\\[ *\t*\\)\\|\\(]\\)\\)+" params)
                   (progn (setq matched-class-strings
-                          (append matched-class-strings (split-string (match-string-no-properties 0 params ) split-char-regexp t)))
-                    (string-match "[ \t]*[a-zA-Z0-9_]+[ \t,]?" params  (match-end 0 ))
-                    (setq params (substring-no-properties params  (match-end 0 ))))
+                               (append matched-class-strings (split-string (match-string-no-properties 0 params ) split-char-regexp t)))
+                         (string-match "[ \t]*[a-zA-Z0-9_]+[ \t,]?" params  (match-end 0 ))
+                         (setq params (substring-no-properties params  (match-end 0 ))))
                 (setq params nil)))
             ;;handle throws Exception1,Exception2, we will exatract Exception1 Exception2 from throws sentence
-       (when exception
-            (setq matched-class-strings (append matched-class-strings (split-string  exception split-char-regexp t))))))
-         ;;remove primitive type and remove duplicate item
+            (when exception
+              (setq matched-class-strings (append matched-class-strings (split-string  exception split-char-regexp t))))))
+        ;;remove primitive type and remove duplicate item
         (delete-dups matched-class-strings) (delete "" matched-class-strings)
         (dolist (ele matched-class-strings)
           (if (string-match  "\\(int\\|float\\|double\\|long\\|short\\|char\\|byte\\|void\\|boolean\\|return\\|public\\|static\\|private\\|protected\\|abstract\\|final\\|native\\|package\\|new\\)" ele)
               (delete ele matched-class-strings)))
-       matched-class-strings
+        matched-class-strings
         ))))
 
 (defun ajc-caculate-all-unimported-class-items()
@@ -880,8 +880,8 @@ what you need to do next, is just import the unimported class  "
 (defun ajc-import-all-unimported-class()
   "import all unimported class ."
   (interactive)
-    (ajc-insert-import-at-head-of-source-file
-     (ajc-caculate-all-unimported-class-items)))
+  (ajc-insert-import-at-head-of-source-file
+   (ajc-caculate-all-unimported-class-items)))
 
 (defun ajc-import-class-under-point ()
   "import class under point."
@@ -892,8 +892,8 @@ what you need to do next, is just import the unimported class  "
         (setq cur-word (match-string-no-properties 1  cur-word )))
       (when (string-match "^\\([a-zA-Z0-9_]+\\)[^a-zA-Z0-9_]" cur-word)
         (setq cur-word (match-string-no-properties 1  cur-word)))
-    (ajc-insert-import-at-head-of-source-file
-     (ajc-find-out-matched-class-item-without-package-prefix cur-word t)))))
+      (ajc-insert-import-at-head-of-source-file
+       (ajc-find-out-matched-class-item-without-package-prefix cur-word t)))))
 
 (defun ajc-insert-import-at-head-of-source-file (import-class-items-list)
   "insert 'import sentence' at head of java source file,
@@ -929,64 +929,64 @@ before that it will use y-or-n-p ask user to confirm "
 
 
 (defun ajc-insert-import-at-head-of-source-file-without-confirm (class-items)
-(save-match-data  ;;insert  at head of java source
-      (setq case-fold-search nil)
-  (save-excursion   (goto-char (point-min))
-    (let* ((class-start (save-excursion
-                (re-search-forward
-                 "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[ \t\n]*\\({\\|extends\\|implements\\)\\)"  nil 't))))
-      (if (not class-start);; then this is a jsp file
-          (let ((all-class-strings ""))
-            (dolist (class-item class-items)
-              (setq all-class-strings
-                    (concat all-class-strings
-                            (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 class-item ))) "." (car class-item)
-                            ",")))
-            (unless (string-equal "" all-class-strings);;delete last char ","
-                (setq all-class-strings (substring all-class-strings 0 (1- (string-width all-class-strings)))))
-            (goto-char (point-min))
-            (insert (concat "<%@ page import=\"" all-class-strings "\" %>\n"  )))
-        (if(re-search-forward "^[ \t]*import[ \t]+[a-zA-Z0-9_\\.\\*]+[ \t]*;" class-start 't)
-          ;;if find 'import' insert before it
-          (progn (beginning-of-line )(insert "\n")(forward-line -1)
-             (dolist (ele class-items)(insert
-                                      (concat "import "
-                                             (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 ele )))
-                                             "." (car  ele) ";\n"))))
-        ;; if hasn't found 'import; then insert after 'package ' statement
-        (progn (goto-char (point-min))
-               (if (re-search-forward "^[ \t]*package[ \t]+[a-z0-9_\\.]+[ \t]*;" class-start 't)
-                   (progn (forward-line 1) (beginning-of-line)(newline)
-                    (dolist (ele class-items)
-                            (insert (concat "import "
-                                             (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 ele )))
-                                             "." (car  ele) ";\n"))))
-                 (progn ;;if hasn't found 'import' and 'package' then insert at head of buffer
-                   (goto-char (point-min))
-                (dolist (ele class-items)
-                         (insert (concat "import "
-                                           (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 ele )))
-                                            "." (car  ele) ";\n")))))))
-           )))))
+  (save-match-data  ;;insert  at head of java source
+    (setq case-fold-search nil)
+    (save-excursion   (goto-char (point-min))
+                      (let* ((class-start (save-excursion
+                                            (re-search-forward
+                                             "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[ \t\n]*\\({\\|extends\\|implements\\)\\)"  nil 't))))
+                        (if (not class-start);; then this is a jsp file
+                            (let ((all-class-strings ""))
+                              (dolist (class-item class-items)
+                                (setq all-class-strings
+                                      (concat all-class-strings
+                                              (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 class-item ))) "." (car class-item)
+                                              ",")))
+                              (unless (string-equal "" all-class-strings);;delete last char ","
+                                (setq all-class-strings (substring all-class-strings 0 (1- (string-width all-class-strings)))))
+                              (goto-char (point-min))
+                              (insert (concat "<%@ page import=\"" all-class-strings "\" %>\n"  )))
+                          (if(re-search-forward "^[ \t]*import[ \t]+[a-zA-Z0-9_\\.\\*]+[ \t]*;" class-start 't)
+                              ;;if find 'import' insert before it
+                              (progn (beginning-of-line )(insert "\n")(forward-line -1)
+                                     (dolist (ele class-items)(insert
+                                                               (concat "import "
+                                                                       (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 ele )))
+                                                                       "." (car  ele) ";\n"))))
+                            ;; if hasn't found 'import; then insert after 'package ' statement
+                            (progn (goto-char (point-min))
+                                   (if (re-search-forward "^[ \t]*package[ \t]+[a-z0-9_\\.]+[ \t]*;" class-start 't)
+                                       (progn (forward-line 1) (beginning-of-line)(newline)
+                                              (dolist (ele class-items)
+                                                (insert (concat "import "
+                                                                (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 ele )))
+                                                                "." (car  ele) ";\n"))))
+                                     (progn ;;if hasn't found 'import' and 'package' then insert at head of buffer
+                                       (goto-char (point-min))
+                                       (dolist (ele class-items)
+                                         (insert (concat "import "
+                                                         (car (ajc-split-pkg-item-by-pkg-ln  (nth 1 ele )))
+                                                         "." (car  ele) ";\n")))))))
+                          )))))
 
 (defun ajc-find-out-import-line ()
- "make a regex to match the packages in the import statements ,
+  "make a regex to match the packages in the import statements ,
 return a list of each line string (exclude keyword 'import') "
   (let ((imported-lines))
     (save-match-data (save-excursion
-        (goto-char (point-min))
-        (setq case-fold-search nil)
-        (let ((class-start (save-excursion
-           (re-search-forward
-            "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[\n \t]*\\({\\|extends\\|implements\\)\\)" nil 't))))
-          (if class-start ;;if found class or interface key words ,then this is a java file  ,if not  it is a jsp file
-              (while (re-search-forward "^[ \t]*import[ \t]+\\([a-zA-Z0-9_\\.\\*]+\\)[ \t]*;" class-start 't)
-                (add-to-list 'imported-lines  (match-string-no-properties 1))
-                (end-of-line))
-            ;;may be this is a jsp file
-            (while (re-search-forward "\\bimport=\"\\(.*?\\)[ \t]*\"[ \t]+"  (point-max) 't)
-              (setq imported-lines (append imported-lines  (split-string (match-string-no-properties 1) "[ \t,]" t)))
-              (end-of-line))))))
+                       (goto-char (point-min))
+                       (setq case-fold-search nil)
+                       (let ((class-start (save-excursion
+                                            (re-search-forward
+                                             "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[\n \t]*\\({\\|extends\\|implements\\)\\)" nil 't))))
+                         (if class-start ;;if found class or interface key words ,then this is a java file  ,if not  it is a jsp file
+                             (while (re-search-forward "^[ \t]*import[ \t]+\\([a-zA-Z0-9_\\.\\*]+\\)[ \t]*;" class-start 't)
+                               (add-to-list 'imported-lines  (match-string-no-properties 1))
+                               (end-of-line))
+                           ;;may be this is a jsp file
+                           (while (re-search-forward "\\bimport=\"\\(.*?\\)[ \t]*\"[ \t]+"  (point-max) 't)
+                             (setq imported-lines (append imported-lines  (split-string (match-string-no-properties 1) "[ \t,]" t)))
+                             (end-of-line))))))
     imported-lines ))
 
 (defun ajc-caculate-all-imported-class-items (&optional exclude_java_lang)
@@ -996,13 +996,13 @@ return a list of each line string (exclude keyword 'import') "
     (dolist ( element imported-line )
       (setq index   (string-match "\\.\\*$"  element))
       (if index   ;;import a package
-         (setq return-class-items (append return-class-items
-                     (ajc-find-out-matched-class-item (substring-no-properties element 0 index) nil)))
+          (setq return-class-items (append return-class-items
+                                           (ajc-find-out-matched-class-item (substring-no-properties element 0 index) nil)))
         (progn  ;;import a class
           (string-match "^\\(.+\\)\\.\\([a-zA-Z0-9_]+\\)$" element)
           (setq return-class-items (append return-class-items
-                (ajc-find-out-matched-class-item
-                      (match-string-no-properties 1 element ) (match-string-no-properties 2 element )  t ))))))
+                                           (ajc-find-out-matched-class-item
+                                            (match-string-no-properties 1 element ) (match-string-no-properties 2 element )  t ))))))
     (if exclude_java_lang
         (setq return-class-items return-class-items )
       (setq return-class-items  (append return-class-items  (ajc-find-out-matched-class-item "java.lang" nil )))
@@ -1049,9 +1049,9 @@ return a list of each line string (exclude keyword 'import') "
     will try to find out candidates  "
   (let ((class-prefix (current-word)) (is-available))
     (setq case-fold-search nil)
-        (when  (and class-prefix  (> (length class-prefix ) 0) (string-match "^[A-Z][a-zA-Z0-9_]*$" class-prefix))
-           (setq ajc-current-class-prefix-4-complete-class class-prefix)
-           (setq is-available t))
+    (when  (and class-prefix  (> (length class-prefix ) 0) (string-match "^[A-Z][a-zA-Z0-9_]*$" class-prefix))
+      (setq ajc-current-class-prefix-4-complete-class class-prefix)
+      (setq is-available t))
     is-available
     ))
 
@@ -1082,37 +1082,37 @@ check out ajc-matched-class-items-cache to find out if ant matched class exists 
         (setq ajc-previous-class-prefix class-prefix)
         (setq ajc-matched-class-items-cache return-list )))
     return-list;; return
-))
+    ))
 
 (defun ajc-build-list-with-nth-on-each-element (list index  )
   "if params : list= '((1 11 111) (2 22 222)) index=1 then return '(11 22 ) "
   (let ((return-list))
     (dolist (ele list)
       (add-to-list 'return-list (nth index ele) t))
-     return-list;;return
- ))
+    return-list;;return
+    ))
 
 (defun ajc-find-members (class-item  &optional member-prefix &optional exactly_match)
   "find members(field method) under class-item which member name match member-prefix ,
 if member-prefix is nil or empty string it will return all members under class-item"
   (let ((line-num (nth 2 class-item))  (end-position (nth 3 class-item)) (return-member-items)
-       (regexp-method-prefix)(regexp-field-prefix) (current-line-string ))
-       (if exactly_match
-            (setq regexp-method-prefix (concat "^" member-prefix "`")
-                  regexp-field-prefix (concat "^ " member-prefix "`"))
-         (if (or (not member-prefix)  (string-equal "" member-prefix))
-            (setq regexp-method-prefix "^[a-zA-Z0-9_]" regexp-field-prefix "^ [^ ]" )
-            (setq regexp-method-prefix (concat "^" member-prefix )
-                  regexp-field-prefix (concat "^ " member-prefix ))))
-       (with-current-buffer (ajc-reload-tag-buffer-maybe)
-         (while (< line-num  end-position)
-           (setq current-line-string (ajc-read-line line-num))
-           (if (string-match regexp-method-prefix current-line-string)
-               (add-to-list 'return-member-items (ajc-split-method current-line-string ) t)
-             (when (string-match regexp-field-prefix current-line-string)
-                 (add-to-list 'return-member-items (ajc-split-field current-line-string ) t)))
-           (setq line-num (+ line-num 1))))
-        return-member-items))
+        (regexp-method-prefix)(regexp-field-prefix) (current-line-string ))
+    (if exactly_match
+        (setq regexp-method-prefix (concat "^" member-prefix "`")
+              regexp-field-prefix (concat "^ " member-prefix "`"))
+      (if (or (not member-prefix)  (string-equal "" member-prefix))
+          (setq regexp-method-prefix "^[a-zA-Z0-9_]" regexp-field-prefix "^ [^ ]" )
+        (setq regexp-method-prefix (concat "^" member-prefix )
+              regexp-field-prefix (concat "^ " member-prefix ))))
+    (with-current-buffer (ajc-reload-tag-buffer-maybe)
+      (while (< line-num  end-position)
+        (setq current-line-string (ajc-read-line line-num))
+        (if (string-match regexp-method-prefix current-line-string)
+            (add-to-list 'return-member-items (ajc-split-method current-line-string ) t)
+          (when (string-match regexp-field-prefix current-line-string)
+            (add-to-list 'return-member-items (ajc-split-field current-line-string ) t)))
+        (setq line-num (+ line-num 1))))
+    return-member-items))
 
 (defun ajc-caculate-class-name-by-variable(variable-name)
   "this function is used to find Class name depend on a varibale name ,for example
@@ -1126,7 +1126,7 @@ if member-prefix is nil or empty string it will return all members under class-i
                (concat "\\b\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\)*[ \t]+"   variable-name "\\b")
                (point-max) t)
           (setq variable-line-string (ajc-read-line  ( line-number-at-pos (point))))
-    )))
+          )))
     (when variable-line-string
       (setq index-of-var-in-line  (string-match  (concat "[ \t]+" variable-name "\\b")  variable-line-string))
       (setq variable-line-string (substring-no-properties  variable-line-string 0  index-of-var-in-line   ))
@@ -1178,7 +1178,7 @@ but it failed to get any candidates,
 and now (current-line)==\"Systema.aaab\" It would
  not get any candidates too ,we needn't try to complete it ."
   (let ((stack-list ( ajc-get-validated-stack-list-or-nil-4-method-complete
-                     (ajc-parse-splited-line-4-complete-method)))
+                      (ajc-parse-splited-line-4-complete-method)))
         (is-available t)
         )
     (when (and  ajc-complete-method-candidates-cache-stack-list
@@ -1266,11 +1266,11 @@ first ajc-split-line-4-complete-method will split this line to
 ajc-remove-unnecessary-items-4-complete-method will remove anything between ( and )  ,so only
 'System'  '.' 'getProperty'  '.'  'to'  is left "
   (let* ((line-string (buffer-substring-no-properties (line-beginning-position) (point)))
-          (splited-line-items (ajc-split-line-4-complete-method line-string)))
+         (splited-line-items (ajc-split-line-4-complete-method line-string)))
     (ajc-remove-unnecessary-items-4-complete-method splited-line-items )))
 
 (defun ajc-remove-unnecessary-items-4-complete-method (splited-line-items)
-" System.getProperty(str.substring(3)).to
+  " System.getProperty(str.substring(3)).to
 first ajc-split-line-4-complete-method will split this line to
 'System' '.' 'getProperty' '(' 'str' '.' 'substring' '(' '3' ')' ')' '.' 'to'
 this function will remove anything between ( and )  ,so only
@@ -1279,20 +1279,20 @@ this function will remove anything between ( and )  ,so only
     (setq ele (pop reverse-current-line-split-list))
     (while  (and ele (not parse-finished))
       (if  (or (string-equal ";" ele) (string-equal "(" ele )) (setq parse-finished t);; parse finished ,exit the  loop
-          (if (string-equal ")" ele)
-              (let ((e)(right-stack))
-                (push ele  right-stack)
-                (setq e (pop reverse-current-line-split-list))
-                (while (and e (  > (length right-stack) 0))
-                  (if (string-equal "(" e ) (pop right-stack))
-                  (if (string-equal ")" e ) (push e right-stack))
-                  (setq e (pop reverse-current-line-split-list)))
-                (if e    (push e reverse-current-line-split-list)))
-              (push ele stack-list)
-            ))
+        (if (string-equal ")" ele)
+            (let ((e)(right-stack))
+              (push ele  right-stack)
+              (setq e (pop reverse-current-line-split-list))
+              (while (and e (  > (length right-stack) 0))
+                (if (string-equal "(" e ) (pop right-stack))
+                (if (string-equal ")" e ) (push e right-stack))
+                (setq e (pop reverse-current-line-split-list)))
+              (if e    (push e reverse-current-line-split-list)))
+          (push ele stack-list)
+          ))
       (setq ele (pop reverse-current-line-split-list)))
     (setq stack-list stack-list)
-      ))
+    ))
 ;; (defun ajc-replace-keyword-with-its-class-name()
 ;;   (save-excursion
 ;;     (let ((class-name)))
@@ -1310,21 +1310,21 @@ then this function split it to
   (save-excursion
     (let* (  (stack-list nil))
       (setq case-fold-search nil)
-        (setq line-string  (replace-regexp-in-string   "\\\\\"" "'"       line-string))
-        (setq line-string  (replace-regexp-in-string   "\".*?\"" "String" line-string))
-        (setq line-string  (replace-regexp-in-string   "\\bnew\\b"    ""  line-string))
-        (setq line-string  (replace-regexp-in-string   "\\breturn\\b" ""  line-string))
-        (setq line-string  (replace-regexp-in-string   "\\this\\b" ""  line-string))
-        (while (string-match "=\\(.*\\)" line-string)
-          (setq line-string (match-string-no-properties 1 line-string)))
-       ;;split line-string with "." ,but add "." as an element at its position in list
+      (setq line-string  (replace-regexp-in-string   "\\\\\"" "'"       line-string))
+      (setq line-string  (replace-regexp-in-string   "\".*?\"" "String" line-string))
+      (setq line-string  (replace-regexp-in-string   "\\bnew\\b"    ""  line-string))
+      (setq line-string  (replace-regexp-in-string   "\\breturn\\b" ""  line-string))
+      (setq line-string  (replace-regexp-in-string   "\\this\\b" ""  line-string))
+      (while (string-match "=\\(.*\\)" line-string)
+        (setq line-string (match-string-no-properties 1 line-string)))
+      ;;split line-string with "." ,but add "." as an element at its position in list
       (setq stack-list (ajc-split-string-with-separator  line-string "[ \t]*\\.[ \t]*"  "." t))
-       ;;split each element  with "(" ,but add "(" as an element at its position in list
+      ;;split each element  with "(" ,but add "(" as an element at its position in list
       ;;and merge all the list in a list
       (let ((ele)(tmp-list))
-           (dolist (ele stack-list)
-            (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele "("  "("  t))))
-           (setq stack-list tmp-list))
+        (dolist (ele stack-list)
+          (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele "("  "("  t))))
+        (setq stack-list tmp-list))
       (let ((ele)(tmp-list))
         (dolist (ele stack-list)
           (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele ")"  ")"  t))))
@@ -1353,7 +1353,7 @@ then this function split it to
         (dolist (ele stack-list)
           (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele ">"  ")"  t))))
         (setq stack-list tmp-list))
-            (let ((ele)(tmp-list))
+      (let ((ele)(tmp-list))
         (dolist (ele stack-list)
           (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele ","  ";"  t))))
         (setq stack-list tmp-list))
@@ -1371,7 +1371,7 @@ then this function split it to
 
 (defun ajc-java-keywords-candidates ()
   (let ((keywords))
-            (setq keywords (list "public" "protected"  "private" "native" "final" "synchronized" "transient" "abstract"  "static" "import" "this" "if" "else" "else if" "break" "case" "switch"  "continue" "class" "interface" "package" "new" "try" "catch" "finally" "super" "void"  "int" "float" "double" "short" "char" "byte" "long" "boolean" "enum" "instanceof"  "for" "while" "throw" "throws"  "extends" "implements" ))
+    (setq keywords (list "public" "protected"  "private" "native" "final" "synchronized" "transient" "abstract"  "static" "import" "this" "if" "else" "else if" "break" "case" "switch"  "continue" "class" "interface" "package" "new" "try" "catch" "finally" "super" "void"  "int" "float" "double" "short" "char" "byte" "long" "boolean" "enum" "instanceof"  "for" "while" "throw" "throws"  "extends" "implements" ))
     ))
 (provide 'ajc-java-complete)
 
