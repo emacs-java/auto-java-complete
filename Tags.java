@@ -62,30 +62,30 @@ public class Tags {
     String fileSeparator=System.getProperty("file.separator");
     int shift=6;
 
-    public Tags(){
+    public Tags() {
         try {
             tagFile = new BufferedWriter(new FileWriter (new File(getHomePath(),".java_base.tag"))) ;
             logError= new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_error.log")) ;
             logInfo= new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_info.log")) ;
-        }catch (Exception e){
+        } catch (Exception e) {
             System.err.print(e.getMessage());
         }
     }
-    private String getHomePath(){
+    private String getHomePath() {
         String home = System.getenv("HOME");
-        if(home==null){
+        if(home==null) {
             home=System.getProperty("user.home");
         }
         return home;
     }
 
-    private void log(Throwable e){
+    private void log(Throwable e) {
 
         System.err.println("cause:"+e.getCause()+"  "+ e.getClass().getName()+":"+ e.getMessage());
         e.printStackTrace(logError);
     }
 
-    private void logInfo(String info){
+    private void logInfo(String info) {
         logInfo.println(info);
     }
 
@@ -101,41 +101,44 @@ public class Tags {
     //copy $CLASSPATH/**.class to randomTmpPath
     //unzip $CLASSPATH/**.jar to randomTmpPath
     //CLASSLOADER CL will load class from this directory.
-    private void prepare(){
+    private void prepare() {
         String classpath=System.getProperty("java.class.path");
         String [] cls=classpath.split( System.getProperty("path.separator"));
-        for (int i=0;i<cls.length;i++) {
+        for (int i=0; i<cls.length; i++) {
             String element = cls[i];
             if(element.equals(".") ||element.equals("./")||element.equals(".\\")) continue;
             File f = new File(element);
-            if (f.exists()){
-                if (f.isDirectory()) processDirectory(f); else  processJarFile(f);
+            if (f.exists()) {
+                if (f.isDirectory()) processDirectory(f);
+                else  processJarFile(f);
             }
         }
     }
     //clean randomTmpPath directory
-    private void clear(){
-        if (randomTmpPath!=null &&randomTmpPath.isDirectory()){
+    private void clear() {
+        if (randomTmpPath!=null &&randomTmpPath.isDirectory()) {
             IOUtils.del(randomTmpPath);
             randomTmpPath.delete();
         }
     }
 
-    private void process (){
+    private void process () {
         prepare();//copy or unzip *.class *.jar to randomTmpPath
-        if (randomTmpPath!=null &&randomTmpPath.isDirectory()){
+        if (randomTmpPath!=null &&randomTmpPath.isDirectory()) {
             System.out.println("tmp classpath :" + randomTmpPath.getAbsolutePath());
             String dirFullPath=randomTmpPath.getAbsolutePath();
             List<File> clazzFiles =IOUtils.getAllFilesUnderDir
-                (randomTmpPath, new FileFilter(){public boolean accept(File f){
+            (randomTmpPath, new FileFilter() {
+                public boolean accept(File f) {
                     if (f.getName().endsWith(".class")) return true;
                     return false;
-                }});
-            for(File clazz:clazzFiles){
+                }
+            });
+            for(File clazz:clazzFiles) {
                 String classAbsolutePath=clazz.getAbsolutePath();
                 String classFullName = classAbsolutePath
-                    .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class") )
-                    .replace(fileSeparator,".");
+                                       .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class") )
+                                       .replace(fileSeparator,".");
                 processClass(classFullName);
             }
             tagAll();
@@ -164,24 +167,24 @@ public class Tags {
        @param className  full className
 
     */
-    private void processClass(String className){
+    private void processClass(String className) {
         if (className.startsWith("sun")) return;
         if (className.startsWith("com.sun")) return;
         if (className.startsWith("com.thaiopensource")) return;
         if (className .contains("org.iso_relax.ant")) return;
         if (className .contains("$")) return;
-        if (classExcludeRegexPatternArray != null ){
+        if (classExcludeRegexPatternArray != null ) {
             for (int i = 0; i < classExcludeRegexPatternArray.length; i++) {
-                if(classExcludeRegexPatternArray[i].matcher(className).find()){
+                if(classExcludeRegexPatternArray[i].matcher(className).find()) {
                     return;
                 }
             }
         }
-        try{
+        try {
             //            Class c = Class.forName(className,false,ClassLoader.getSystemClassLoader()) ;
             Class c = Class.forName(className ,false,cl);
             clss.add(c);
-        } catch(Throwable t){
+        } catch(Throwable t) {
             log(t);
         }
     }
@@ -189,15 +192,17 @@ public class Tags {
     /** Find class file and jar  in the directory.
      *  and process the found class file and jar file with processJar,and processClass
      */
-    private void processDirectory (File dir){
-        if (dir!=null &&dir.isDirectory()){
+    private void processDirectory (File dir) {
+        if (dir!=null &&dir.isDirectory()) {
             String dirFullPath=dir.getAbsolutePath();
             List<File> clazzFiles =IOUtils.getAllFilesUnderDir
-                (dir, new FileFilter(){public boolean accept(File f){
+            (dir, new FileFilter() {
+                public boolean accept(File f) {
                     if (f.getName().endsWith(".class")) return true;
                     return false;
-                }});
-            for(File clazz:clazzFiles){
+                }
+            });
+            for(File clazz:clazzFiles) {
                 String classAbsolutePath=clazz.getAbsolutePath();
                 IOUtils.copy(clazz,new File(randomTmpPath ,classAbsolutePath.substring(dirFullPath.length()+1) ));
                 // String classFullName = classAbsolutePath
@@ -206,12 +211,12 @@ public class Tags {
                 // processClass(classFullName);
             }
             List<File> jarz =IOUtils.getAllFilesUnderDir( dir,
-                                       new FileFilter(){
-                                           public boolean accept(File f){
-                                               if (f.getName().endsWith(".jar")) return true;
-                                               return false;
-                                           }
-                                       });
+            new FileFilter() {
+                public boolean accept(File f) {
+                    if (f.getName().endsWith(".jar")) return true;
+                    return false;
+                }
+            });
             // File [] jarz=dir.listFiles(
             //                            new FileFilter(){
             //                                public boolean accept(File f){
@@ -220,71 +225,76 @@ public class Tags {
             //                                }
             //                            }
             //                            );
-            if(jarz!=null){
-                for(File jarFile:jarz){
+            if(jarz!=null) {
+                for(File jarFile:jarz) {
                     processJarFile(jarFile);
                 }
             }
         }
     }
-    private void tagAll(){
+    private void tagAll() {
         System.out.println("found "+clss.size() +"  classes.");
         try {
-            for (Class c :clss){
+            for (Class c :clss) {
                 try {
                     ClassItem cItem=tagClass(c);
                     classes.add(cItem);
-                }catch(ApplicationException e){
+                } catch(ApplicationException e) {
                     logInfo(e.getMessage());
-                }catch (Throwable ex) {log(ex);}
+                } catch (Throwable ex) {
+                    log(ex);
+                }
             }
 
             Collections.sort(pkgs);
             Collections.sort(classes);
             System.out.println("tagged "+classes.size() +"  classes.");
 
-            for (ClassItem cItem:classes){
+            for (ClassItem cItem:classes) {
                 try {
                     List<MemberItem> localMems=tagConstructors(cItem);
                     localMems.addAll(tagMethods(cItem));
                     localMems.addAll(tagFields(cItem));
                     cItem.members=localMems;
-                }catch(ApplicationException e){
+                } catch(ApplicationException e) {
                     logInfo(e.getMessage());
-                }catch (Throwable ex) {log(ex);}
+                } catch (Throwable ex) {
+                    log(ex);
+                }
             }
             int pkg_size=pkgs.size();
             int classes_size=classes.size();
             PackageItem pkgItem=null;
             ClassItem cItem=null;
 
-            for(int i=0;i<pkg_size;i++){// now pkgs are sorted ,so the line num of the pkg in tag file  is the index+1 in pkgs  list
+            for(int i=0; i<pkg_size; i++) { // now pkgs are sorted ,so the line num of the pkg in tag file  is the index+1 in pkgs  list
                 pkgs.get(i).lineNum=shift+i+1;
             }
-            for(int i=0;i<classes_size;i++){
+            for(int i=0; i<classes_size; i++) {
                 //the line number of class  in tag file is the count of packages plus the index of the class in classes list
                 // in this loop ,we will populte the lineNum of each ClassItem and populate the classStartLineNum and classEndLineNum of each package
                 cItem=classes.get(i);
                 cItem.lineNum=shift+pkg_size+i+1;
-                if (i==0){
+                if (i==0) {
                     pkgItem=cItem.pkgItem;
                     pkgItem.classStartLineNum=cItem.lineNum;
-                }else if(pkgItem!=cItem.pkgItem){
+                } else if(pkgItem!=cItem.pkgItem) {
                     pkgItem.classEndLineNum=cItem.lineNum;
                     pkgItem=cItem.pkgItem;
                     pkgItem.classStartLineNum=cItem.lineNum;
                 }
             }
-            if(cItem!=null&&pkgItem!=null){
+            if(cItem!=null&&pkgItem!=null) {
                 //TODO: cItem maybe null here ,bugfix
                 pkgItem.classEndLineNum=cItem.lineNum+1; //populate the last pkgLast
             }
-            pkgItem=null ; cItem=null;
+            pkgItem=null ;
+            cItem=null;
 
-            for(int i =0;i<classes_size;i++){// in this loop ,we will populate basic info about each member of class into  (exclude)
+            for(int i =0; i<classes_size; i++) { // in this loop ,we will populate basic info about each member of class into  (exclude)
                 cItem =classes.get(i);
                 cItem.memStartLineNum=shift+pkg_size+classes_size+members.size()+1;
-                if(cItem.members!=null){
+                if(cItem.members!=null) {
                     members.addAll(cItem.members);
                     cItem.memEndLineNum=cItem.memStartLineNum+cItem.members.size()-1;
                     cItem.members=null;
@@ -296,13 +306,13 @@ public class Tags {
             MemberItem memItem=null;
             int members_size=members.size();
             int memberLineNum_start=shift+pkg_size+classes_size+1;
-            for(int i=0;i<members_size;i++){
+            for(int i=0; i<members_size; i++) {
                 memItem=members.get(i);
                 memItem.lineNum=memberLineNum_start+i;
-                if (i==0){
+                if (i==0) {
                     cItem=memItem.cItem;
                     cItem.memStartLineNum=memItem.lineNum;
-                }else if(cItem!=memItem.cItem){
+                } else if(cItem!=memItem.cItem) {
                     cItem.memEndLineNum=memItem.lineNum;
                     cItem=memItem.cItem;
                     cItem.memEndLineNum=memItem.lineNum;
@@ -311,32 +321,35 @@ public class Tags {
             if (cItem!=null&&memItem!=null) {
                 cItem.memEndLineNum=memItem.lineNum+1;
             }
-            memItem=null; cItem=null;
-        } catch (Throwable t) {log(t);}
+            memItem=null;
+            cItem=null;
+        } catch (Throwable t) {
+            log(t);
+        }
     }
 
     // analyze  Class c ,and populate PackageItem with  its  package info ,and populate ClassItem with its class info
     //then add them to classes and pkgs list
-    private ClassItem tagClass(Class c) throws ApplicationException{
+    private ClassItem tagClass(Class c) throws ApplicationException {
         if(c.isAnnotation()) throw new ApplicationException("sorry ,you are an Annotation:"+c.getName());
         if(c.isAnonymousClass())  throw new ApplicationException("sorry, you are an AnnonymousClass:"+c.getName());
         if(c.isArray())  throw new ApplicationException("sorry ,you are Array:"+c.getName());
         if(c.isPrimitive())throw new ApplicationException("sorry you are a  Primitive type:"+c.getName());
         if(c.getSimpleName().equals("")) throw new ApplicationException("why don't you have a name,I don't know how to handle you:"+c.getName());
         if((!Modifier.isPublic(c.getModifiers()))
-           && (!c.isInterface())
-           &&(!Modifier.isAbstract(c.getModifiers()))
-           ) throw new ApplicationException("sorry ,you are not a  public class:"+c.getName());
+                && (!c.isInterface())
+                &&(!Modifier.isAbstract(c.getModifiers()))
+          ) throw new ApplicationException("sorry ,you are not a  public class:"+c.getName());
         if(c.getPackage()==null) throw new ApplicationException("why don't you hava a package name?:"+c.getName());
         String pkgName=c.getPackage().getName();
         PackageItem pkgItem =null;
-        for(int i=0;i<pkgs.size();i++){
+        for(int i=0; i<pkgs.size(); i++) {
             if (pkgs.get(i).name.equals(pkgName)) {
                 pkgItem= pkgs.get(i);
                 break;
             }
         }
-        if (pkgItem==null){
+        if (pkgItem==null) {
             pkgItem= new PackageItem();
             pkgItem.name=pkgName;
             pkgs.add(pkgItem);
@@ -345,88 +358,88 @@ public class Tags {
         cItem.cls=c;
         cItem.name=c.getSimpleName();
         cItem.pkgItem=pkgItem;
-        for(ClassItem ci:classes){
+        for(ClassItem ci:classes) {
             if(ci.equals(cItem)) throw new ApplicationException("you have already in ,why come here again! :"+c.getName());
         }
         return cItem;
     }
     //maybe there are bugs here ,i think i should write it depend on different type ,like annotation enum and so on
-    private ClassItemWrapper getClassItemWrapper(Class type){
+    private ClassItemWrapper getClassItemWrapper(Class type) {
         ClassItemWrapper returnType = new ClassItemWrapper();
-        if (type.isPrimitive()){
+        if (type.isPrimitive()) {
             returnType.alternativeString=type.getName();
-        } else if(type.isArray()){
+        } else if(type.isArray()) {
             returnType.alternativeString=type.getName();
             String typeName=type.getName();
-            if(typeName.contains("[I")){
+            if(typeName.contains("[I")) {
                 String tmp="int";
-                for(int i=0;i<typeName.length();i++){
+                for(int i=0; i<typeName.length(); i++) {
                     if(typeName.charAt(i) =='[') tmp+="[]";
                 }
                 returnType.alternativeString=tmp;
-            }else if (typeName.contains("[F")){
+            } else if (typeName.contains("[F")) {
                 String tmp="float";
-                for(int i=0;i<typeName.length();i++){
+                for(int i=0; i<typeName.length(); i++) {
                     if(typeName.charAt(i) =='[') tmp+="[]";
                 }
                 returnType.alternativeString=tmp;
-            }else if  (typeName.contains("[Z")){
+            } else if  (typeName.contains("[Z")) {
                 String tmp="boolean";
-                for(int i=0;i<typeName.length();i++){
+                for(int i=0; i<typeName.length(); i++) {
                     if(typeName.charAt(i) =='[') tmp+="[]";
                 }
                 returnType.alternativeString=tmp;
-            }else  if ( typeName.contains("[J")){
+            } else  if ( typeName.contains("[J")) {
                 String tmp="long";
-                for(int i=0;i<typeName.length();i++){
+                for(int i=0; i<typeName.length(); i++) {
                     if(typeName.charAt(i) =='[') tmp+="[]";
                 }
                 returnType.alternativeString=tmp;
-            }else if (typeName.contains ("[B")){
+            } else if (typeName.contains ("[B")) {
                 String tmp="byte";
-                for(int i=0;i<typeName.length();i++){
+                for(int i=0; i<typeName.length(); i++) {
                     if(typeName.charAt(i) =='[') tmp+="[]";
                 }
                 returnType.alternativeString=tmp;
-            }else if  (typeName.contains("[C")){
+            } else if  (typeName.contains("[C")) {
                 String tmp="char";
-                for(int i=0;i<typeName.length();i++){
+                for(int i=0; i<typeName.length(); i++) {
                     if(typeName.charAt(i) =='[') tmp+="[]";
                 }
                 returnType.alternativeString=tmp;
-            }else if  (typeName.contains("[S")){
+            } else if  (typeName.contains("[S")) {
                 String tmp="char";
-                for(int i=0;i<typeName.length();i++){
+                for(int i=0; i<typeName.length(); i++) {
                     if(typeName.charAt(i) =='[') tmp+="[]";
                 }
                 returnType.alternativeString=tmp;
-            }else if  (typeName.contains("[D")){
+            } else if  (typeName.contains("[D")) {
                 String tmp="";
-                for(int i=0;i<typeName.length();i++){
+                for(int i=0; i<typeName.length(); i++) {
                     if(typeName.charAt(i) =='[') tmp+="[]";
                 }
                 returnType.alternativeString=tmp;
-            }else if (typeName.contains("[L")){
+            } else if (typeName.contains("[L")) {
                 int index =( typeName.indexOf("[L"));
                 String className=typeName.substring(index+2,typeName.length()-1);
-                for(int i=0;i<typeName.length();i++){
+                for(int i=0; i<typeName.length(); i++) {
                     if(typeName.charAt(i) =='[') className+="[]";
                 }
                 returnType.alternativeString=className;
             }
-        }  else if (type.isAnnotation()){
+        }  else if (type.isAnnotation()) {
             returnType.alternativeString=type.getName();
             //  do nothing
-        } else if (type.isEnum()){
+        } else if (type.isEnum()) {
             returnType.alternativeString=type.getName();
-        }else {
-            for (ClassItem ci:classes){
-                if(type.getName()!=null &&type.getName().equals(ci.cls.getName())){
+        } else {
+            for (ClassItem ci:classes) {
+                if(type.getName()!=null &&type.getName().equals(ci.cls.getName())) {
                     returnType.cItem=ci;
                     break;
                 }
             }
-            if(returnType.cItem==null){
+            if(returnType.cItem==null) {
                 returnType.alternativeString=type.getName();
             }
         }
@@ -436,8 +449,8 @@ public class Tags {
     private List<MemberItem> tagFields(ClassItem cItem)throws Throwable {
         Field[] fields =cItem.cls.getDeclaredFields();
         List<MemberItem> localMems=new ArrayList<MemberItem>();
-        for (int i = 0; i < fields.length; i++){
-            if (!Modifier.isPublic(fields[i].getModifiers())){
+        for (int i = 0; i < fields.length; i++) {
+            if (!Modifier.isPublic(fields[i].getModifiers())) {
                 continue;
             }
             Class fieldType=(Class)   fields[i].getType();
@@ -455,14 +468,14 @@ public class Tags {
     private List<MemberItem> tagConstructors(ClassItem cItem)throws Throwable {
         Constructor[] methods = cItem.cls.getDeclaredConstructors();
         List<MemberItem> localMems=new ArrayList<MemberItem>();
-        for (int i = 0; i < methods.length; i++){
+        for (int i = 0; i < methods.length; i++) {
             if (! Modifier.isPublic(methods[i].getModifiers())) continue;
             MemberItem memItem  = new MemberItem();
             memItem.constructor=methods[i];
             String name=methods[i ].getName() ;
-            if(name.contains(".")){
+            if(name.contains(".")) {
                 memItem.name=name.substring(name.lastIndexOf(".")+1);
-            }else{
+            } else {
                 memItem.name=name;
             }
             memItem.cItem=cItem;
@@ -480,11 +493,11 @@ public class Tags {
         Collections.sort(localMems);
         return localMems;
     }
-    private List<MemberItem> tagMethods(ClassItem cItem) throws Throwable{
+    private List<MemberItem> tagMethods(ClassItem cItem) throws Throwable {
         // Method[] methods = cItem.cls.getDeclaredMethods();
         Method[] methods = cItem.cls.getMethods();
         List<MemberItem> localMems=new ArrayList<MemberItem>();
-        for (int i = 0; i < methods.length; i++){
+        for (int i = 0; i < methods.length; i++) {
             if (! Modifier.isPublic(methods[i].getModifiers())) continue;
             MemberItem memItem  = new MemberItem();
             memItem.method=methods[i];
@@ -507,16 +520,22 @@ public class Tags {
         return localMems;
     }
 
-    private void write(){
-        try{
-            tagFile.append("don't try to edit this file ,even this line!!!!") ;tagFile.newLine();
-            tagFile.append("package count="+pkgs.size() +"  ,Class count="+classes.size() +" , member count(constructor, field, method)= "+members.size() );tagFile.newLine();
-            tagFile.append(""+ (shift+1));tagFile.newLine();
-            tagFile.append(""+(shift+pkgs.size()+1));tagFile.newLine();
-            tagFile.append(""+ (shift+pkgs.size()+classes.size()+1)); tagFile.newLine();
-            tagFile.append(""+ (shift+pkgs.size() +classes.size()+members.size()+1 ));tagFile.newLine();
+    private void write() {
+        try {
+            tagFile.append("don't try to edit this file ,even this line!!!!") ;
+            tagFile.newLine();
+            tagFile.append("package count="+pkgs.size() +"  ,Class count="+classes.size() +" , member count(constructor, field, method)= "+members.size() );
+            tagFile.newLine();
+            tagFile.append(""+ (shift+1));
+            tagFile.newLine();
+            tagFile.append(""+(shift+pkgs.size()+1));
+            tagFile.newLine();
+            tagFile.append(""+ (shift+pkgs.size()+classes.size()+1));
+            tagFile.newLine();
+            tagFile.append(""+ (shift+pkgs.size() +classes.size()+members.size()+1 ));
+            tagFile.newLine();
             int i=0;
-            for(PackageItem pkgItem:pkgs){
+            for(PackageItem pkgItem:pkgs) {
                 tagFile.append(pkgItem.toString());
                 tagFile.newLine();
                 if (i%300==0 ) tagFile.flush();
@@ -524,7 +543,7 @@ public class Tags {
             }
             tagFile.flush();
             i=0;
-            for(ClassItem cItem:classes){
+            for(ClassItem cItem:classes) {
                 tagFile.append(cItem.toString());
                 tagFile.newLine();
                 if (i%300==0 ) tagFile.flush();
@@ -532,19 +551,34 @@ public class Tags {
             }
             tagFile.flush();
             i=0;
-            for(MemberItem mi:members){
+            for(MemberItem mi:members) {
                 tagFile.append(mi.toString());
                 tagFile.newLine();
                 if (i%300==0 ) tagFile.flush();
                 i++;
             }
             tagFile.flush();
-        }catch(Exception e){
+        } catch(Exception e) {
             System.err.println(e.getMessage());
-        }finally{
-            try{tagFile.close(); tagFile=null;}catch(Exception e){e.printStackTrace();}
-            try{logError.close(); logError=null;}catch(Exception e){e.printStackTrace();}
-            try{logInfo.close(); logInfo=null;}catch(Exception e){e.printStackTrace();}
+        } finally {
+            try {
+                tagFile.close();
+                tagFile=null;
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                logError.close();
+                logError=null;
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                logInfo.close();
+                logInfo=null;
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
         }
 
     }
@@ -552,42 +586,42 @@ public class Tags {
 
     public static void main (String[] argv) throws Exception {
         System.out.println(
-                           "*****************************************************************\n"+
-                           "**   this program will need about 3 to 15 min,                  **\n"+
-                           "**   maybe half an hour ,(just kidding),but you must be patient.**\n" +
-                           "**   before it exit,you may see a few exceptions                **\n" +
-                           "**   If it don't kill the program ,just ignore it .             **\n" +
-                           "**   and when you add a jar to classpath, you'd better make sure**\n" +
-                           "**   all jars it depends on are in classpath.                   **\n" +
-                           "******************************************************************\n"
-                           );
+            "*****************************************************************\n"+
+            "**   this program will need about 3 to 15 min,                  **\n"+
+            "**   maybe half an hour ,(just kidding),but you must be patient.**\n" +
+            "**   before it exit,you may see a few exceptions                **\n" +
+            "**   If it don't kill the program ,just ignore it .             **\n" +
+            "**   and when you add a jar to classpath, you'd better make sure**\n" +
+            "**   all jars it depends on are in classpath.                   **\n" +
+            "******************************************************************\n"
+        );
 
         System.out.println("log file is located at: " +System.getProperty("java.io.tmpdir")+ "/ajc_error.log");
         System.out.println("log file is located at: " +System.getProperty("java.io.tmpdir")+ "/ajc_info.log\n\n");
 
         System.out.println(
-                           "********************************************************************************************\n"+
-                           "***    you can use this Class like this:                                                 ***\n"+
-                           "***           java Tags                                                                  ***\n"+
-                           "***    all class  in classpath will be tagged.                                           ***\n"+
-                           "***                                                                                      ***\n"+
-                           "***           java Tags \"org\\.hello,org\\.world\"                                      ***\n"+
-                           "***    it would NOT tag those class match \"org.hello\" or \"org.world\" .               ***\n"+
-                           "***                                                                                      ***\n"+
-                           "***           java -cp yourclasspath Tags                                                ***\n"+
-                           "***  if you see java.lang.OutOfMemoryError: PermGen space ,you can increment permsize:   ***\n"+
-                           "***       java -XX:MaxPermSize=512m -Xms256M -Xmx512M Tags                               ***\n"+
-                           "***                                                                                      ***\n"+
-                           "***  before that you'd better backup the  file ~/.java_base.tag,if exists                ***\n"+
-                           "*******************************************************************************************\n\n"
-                           );
+            "********************************************************************************************\n"+
+            "***    you can use this Class like this:                                                 ***\n"+
+            "***           java Tags                                                                  ***\n"+
+            "***    all class  in classpath will be tagged.                                           ***\n"+
+            "***                                                                                      ***\n"+
+            "***           java Tags \"org\\.hello,org\\.world\"                                      ***\n"+
+            "***    it would NOT tag those class match \"org.hello\" or \"org.world\" .               ***\n"+
+            "***                                                                                      ***\n"+
+            "***           java -cp yourclasspath Tags                                                ***\n"+
+            "***  if you see java.lang.OutOfMemoryError: PermGen space ,you can increment permsize:   ***\n"+
+            "***       java -XX:MaxPermSize=512m -Xms256M -Xmx512M Tags                               ***\n"+
+            "***                                                                                      ***\n"+
+            "***  before that you'd better backup the  file ~/.java_base.tag,if exists                ***\n"+
+            "*******************************************************************************************\n\n"
+        );
         try {
             System.out.println("sleep 20 seconds...");
             Thread.sleep(20000);
         } catch (Exception ex) {}
 
         Tags tags = new Tags();
-        if (argv.length > 0){
+        if (argv.length > 0) {
             String[] regexs=argv[0].split(",");
             tags.classExcludeRegexPatternArray = new Pattern[regexs.length];
             for (int m = 0; m < tags.classExcludeRegexPatternArray.length; m++) {
@@ -597,27 +631,27 @@ public class Tags {
         tags.process() ;
 
         System.out.println(
-                           "\n******************************************************************************************\n"+
-                           "***                  exit successful!!!                                                  ***\n"+
-                           "***you will see a file named '.java_base.tag' in your home directory                     ***\n"+
-                           "***  the size of the generated ~/.java_base.tag  is about 2M or bigger,so if your        ***\n"+
-                           "*** .java_base.tag  is too small ,that means your CLASSPATH don't configure correctly.   ***\n"+
-                           "********************************************************************************************\n"
-                           );
+            "\n******************************************************************************************\n"+
+            "***                  exit successful!!!                                                  ***\n"+
+            "***you will see a file named '.java_base.tag' in your home directory                     ***\n"+
+            "***  the size of the generated ~/.java_base.tag  is about 2M or bigger,so if your        ***\n"+
+            "*** .java_base.tag  is too small ,that means your CLASSPATH don't configure correctly.   ***\n"+
+            "********************************************************************************************\n"
+        );
         System.out.println(new File (tags.getHomePath(), ".java_base.tag").getAbsolutePath());
         System.exit(0);
     }
 }
-class PackageItem implements Comparable<PackageItem>{
+class PackageItem implements Comparable<PackageItem> {
     String name;
     int lineNum;
     int classStartLineNum;
     int classEndLineNum;
     Package pkg;
-    public int compareTo(PackageItem pkgItem){
+    public int compareTo(PackageItem pkgItem) {
         return this.name.compareTo(pkgItem.name);
     }
-    public String toString(){
+    public String toString() {
         return this.name+"`"+this.classStartLineNum+"`"+this.classEndLineNum;
     }
 }
@@ -629,32 +663,32 @@ class ClassItem implements Comparable <ClassItem> {
     Class cls;
     PackageItem pkgItem;
     List<MemberItem> members;
-    public int compareTo(ClassItem cItem){
+    public int compareTo(ClassItem cItem) {
         int pkgCmp=this.pkgItem.name.compareTo(cItem.pkgItem.name);
         if( pkgCmp!=0) return pkgCmp;
         return (this.name.compareTo(cItem.name));
     }
-    public int hashCode(){
+    public int hashCode() {
         if (this.pkgItem==null||this.pkgItem.name==null) return this.name.hashCode();
         return (this.name+"."+this.pkgItem.name).hashCode();
     }
-    public boolean equals(Object obj){
+    public boolean equals(Object obj) {
         if (obj==null) return false;
         if(!(obj instanceof ClassItem)) return false;
         ClassItem other=(ClassItem) obj;
         if(this.pkgItem==null &&other.pkgItem==null &&this.name!=null) return this.name.equals(other.name);
-        if(this.pkgItem!=null&&other.pkgItem!=null&&this.name!=null&&this.name.equals(other.name) &&this.pkgItem.name!=null&&this.pkgItem.name.equals(other.pkgItem.name)){
+        if(this.pkgItem!=null&&other.pkgItem!=null&&this.name!=null&&this.name.equals(other.name) &&this.pkgItem.name!=null&&this.pkgItem.name.equals(other.pkgItem.name)) {
             return true;
         }
         return false;
     }
-    public String toString(){
+    public String toString() {
         return this.name+"`"+this.pkgItem.lineNum+"`"+this.memStartLineNum+"`"+this.memEndLineNum;
     }
 
 
 }
-class MemberItem implements Comparable<MemberItem>{
+class MemberItem implements Comparable<MemberItem> {
     String name;
     ClassItem cItem;
     int lineNum;
@@ -664,13 +698,13 @@ class MemberItem implements Comparable<MemberItem>{
     Field field;
     Method method;
     Constructor constructor;
-    public String toString(){
+    public String toString() {
         StringBuffer returnStr=new StringBuffer();
-        if (constructor!=null){
+        if (constructor!=null) {
             returnStr.append("  "+name+"`");
             //append params
-            if (params!=null){
-                for(ClassItemWrapper param:params){
+            if (params!=null) {
+                for(ClassItemWrapper param:params) {
                     if(param.alternativeString!=null) returnStr.append("~"+param.alternativeString+",");
                     else  returnStr.append(param.cItem.lineNum+",");
                 }
@@ -678,26 +712,26 @@ class MemberItem implements Comparable<MemberItem>{
             }
             returnStr.append("`");
             //append exceptions
-            if (exceptions!=null){
-                for(ClassItemWrapper exp:exceptions){
+            if (exceptions!=null) {
+                for(ClassItemWrapper exp:exceptions) {
                     if(exp.alternativeString!=null) returnStr.append("~"+exp.alternativeString+",");
                     else  returnStr.append(exp.cItem.lineNum+",");
                 }
                 if( exceptions.size()>0) returnStr.deleteCharAt(returnStr.length()-1);
             }
-        }else if(field!=null){
+        } else if(field!=null) {
             returnStr.append(" "+name+"`");
             //    returnStr.append(cItem.lineNum+"`");
             //apend the field type
             if(returnType.alternativeString!=null) returnStr.append("~"+returnType.alternativeString);
             else returnStr.append(returnType.cItem.lineNum);
-        }else if (method!=null){
+        } else if (method!=null) {
             returnStr.append(name+"`");
             //append returnType
             if(returnType.alternativeString!=null) {
                 returnStr.append("~"+returnType.alternativeString);
             } else {
-                if(returnType.cItem==null){
+                if(returnType.cItem==null) {
                     System.out.println("mem.name="+name);
                     System.out.println(method.getDeclaringClass().getName());
 
@@ -706,8 +740,8 @@ class MemberItem implements Comparable<MemberItem>{
             }
             returnStr.append("`");
             //append params
-            if (params!=null){
-                for(ClassItemWrapper param:params){
+            if (params!=null) {
+                for(ClassItemWrapper param:params) {
                     if(param.alternativeString!=null) returnStr.append("~"+param.alternativeString+",");
                     else  returnStr.append(param.cItem.lineNum+",");
                 }
@@ -715,8 +749,8 @@ class MemberItem implements Comparable<MemberItem>{
             }
             returnStr.append("`");
             //append exceptions
-            if (exceptions!=null){
-                for(ClassItemWrapper exp:exceptions){
+            if (exceptions!=null) {
+                for(ClassItemWrapper exp:exceptions) {
                     if(exp.alternativeString!=null) returnStr.append("~"+exp.alternativeString+",");
                     else  returnStr.append(exp.cItem.lineNum+",");
                 }
@@ -726,35 +760,35 @@ class MemberItem implements Comparable<MemberItem>{
         }
         return returnStr.toString();
     }
-    public int compareTo(MemberItem memItem){
+    public int compareTo(MemberItem memItem) {
         int classCompareResult=cItem.compareTo(memItem.cItem);
-        if (classCompareResult!=0){
+        if (classCompareResult!=0) {
             return classCompareResult;
         }
-        if (this.field!=null){
+        if (this.field!=null) {
             if (memItem.field==null) return -1;
             return this.name.compareTo(memItem.name);
-        }else if(this.constructor!=null){
+        } else if(this.constructor!=null) {
             if(memItem.constructor==null)  return -1;
             int cmp=this.name.compareTo(memItem.name);
             if(cmp!=0) return cmp;
             return constructor.toString().compareTo( memItem.constructor.toString());
-        }else if(this.method!=null){
+        } else if(this.method!=null) {
             if(memItem.method==null)  return -1;
             int cmp=this.name.compareTo(memItem.name);
             if(cmp!=0) return cmp;
             return method.toString().compareTo( memItem.method.toString());
-        }else{
+        } else {
             return toString().compareTo( memItem.toString());
         }
     }
 }
-class  ClassItemWrapper{
+class  ClassItemWrapper {
     ClassItem cItem;
     String alternativeString;
 }
-class ApplicationException extends Exception{
-    public ApplicationException(String msg){
+class ApplicationException extends Exception {
+    public ApplicationException(String msg) {
         super(msg);
     }
 }
@@ -764,20 +798,20 @@ class Unzip {
      * @param sDestPath    :path ,where to put the ectracted files
      *
      */
-    public static void unzip(File sZipPathFile, File sDestPath){
-        try{
+    public static void unzip(File sZipPathFile, File sDestPath) {
+        try {
             FileInputStream fins = new FileInputStream(sZipPathFile);
             ZipInputStream zins = new ZipInputStream(fins);
             ZipEntry ze = null;
             byte ch[] = new byte[256];
-            while((ze = zins.getNextEntry()) != null){
+            while((ze = zins.getNextEntry()) != null) {
                 File zfile = new File(sDestPath , ze.getName());
                 File fpath = new File(zfile.getParentFile().getPath());
-                if(ze.isDirectory()){
+                if(ze.isDirectory()) {
                     if(!zfile.exists())
                         zfile.mkdirs();
                     zins.closeEntry();
-                }else{
+                } else {
                     if(!fpath.exists())
                         fpath.mkdirs();
                     FileOutputStream fouts = new FileOutputStream(zfile);
@@ -790,7 +824,7 @@ class Unzip {
             }
             fins.close();
             zins.close();
-        }catch(Exception e){
+        } catch(Exception e) {
             System.err.println("Extract error(maybe bad zip(jar) file.):" + e.getMessage());
         }
     }
@@ -801,16 +835,16 @@ class Unzip {
     // }
 
 }
- class CL extends ClassLoader{
+class CL extends ClassLoader {
 
     private File classBasePath=null;
-    public CL(File classBasePath ){
+    public CL(File classBasePath ) {
         this.classBasePath=classBasePath;
-        if(!classBasePath.exists()){
+        if(!classBasePath.exists()) {
             classBasePath.mkdirs();
         }
     }
-    public Class<?> findClass(String name)throws ClassNotFoundException{
+    public Class<?> findClass(String name)throws ClassNotFoundException {
         File classFile=new File(classBasePath, name.replace(".",File.separator)+".class");
         if(!classFile.exists()) throw new ClassNotFoundException("Can't find class:"+name);
         // Add the package information
@@ -818,7 +852,9 @@ class Unzip {
         if (packageIndex != -1) {
             final String packageName = name.substring(0, packageIndex) ;
             final Package classPackage = getPackage(packageName) ;
-            if (classPackage == null) { definePackage(packageName, null, null, null, null, null, null, null) ; }
+            if (classPackage == null) {
+                definePackage(packageName, null, null, null, null, null, null, null) ;
+            }
         }
         byte[] classByte= new byte[(int)classFile.length()];
         FileInputStream fis=null;
@@ -833,17 +869,17 @@ class Unzip {
         }
     }
 }
-class IOUtils{
+class IOUtils {
     /**
      * find out all  readable files under dir recursively
      */
     public static List<File> getAllFilesUnderDir(File dir, final FileFilter fileFilter) {
-        FileFilter acceptDirFileFilterWrapper  = new FileFilter(){
-                public boolean accept(File f)   {
-                    if (f.isDirectory()) return true;
-                    return   fileFilter.accept(f);
-                }
-            };
+        FileFilter acceptDirFileFilterWrapper  = new FileFilter() {
+            public boolean accept(File f)   {
+                if (f.isDirectory()) return true;
+                return   fileFilter.accept(f);
+            }
+        };
         ArrayList<File> files = new ArrayList<File>();
         Stack<File> s = new Stack<File>();
         s.push(dir);
@@ -865,23 +901,23 @@ class IOUtils{
      * delete file or directory recursively.
      */
     public static  void del(File f) {
-        if(f.exists() && f.isDirectory()){
-            if(f.listFiles().length==0){
+        if(f.exists() && f.isDirectory()) {
+            if(f.listFiles().length==0) {
                 f.delete();
-                }else{
+            } else {
                 File delFile[]=f.listFiles();
                 int i =f.listFiles().length;
-                for(int j=0;j<i;j++){
-                if(delFile[j].isDirectory()){
-                    del(delFile[j]);
-                        }
-                    delFile[j].delete();
+                for(int j=0; j<i; j++) {
+                    if(delFile[j].isDirectory()) {
+                        del(delFile[j]);
                     }
+                    delFile[j].delete();
                 }
             }
+        }
     }
 
-    public static void copy(File src, File dist){
+    public static void copy(File src, File dist) {
         try {
             if (!dist.getParentFile().exists())dist.getParentFile().mkdirs();
             FileInputStream fis = new FileInputStream(src);
