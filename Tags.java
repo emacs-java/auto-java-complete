@@ -331,7 +331,6 @@ public class Tags {
     // analyze  Class c ,and populate PackageItem with  its  package info ,and populate ClassItem with its class info
     //then add them to classes and pkgs list
     private ClassItem tagClass(Class c) throws ApplicationException {
-        if(c.isAnnotation()) throw new ApplicationException("sorry ,you are an Annotation:"+c.getName());
         if(c.isAnonymousClass())  throw new ApplicationException("sorry, you are an AnnonymousClass:"+c.getName());
         if(c.isArray())  throw new ApplicationException("sorry ,you are Array:"+c.getName());
         if(c.isPrimitive())throw new ApplicationException("sorry you are a  Primitive type:"+c.getName());
@@ -363,6 +362,7 @@ public class Tags {
         }
         return cItem;
     }
+
     //maybe there are bugs here ,i think i should write it depend on different type ,like annotation enum and so on
     private ClassItemWrapper getClassItemWrapper(Class type) {
         ClassItemWrapper returnType = new ClassItemWrapper();
