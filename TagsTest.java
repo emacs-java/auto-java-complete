@@ -1,10 +1,7 @@
 import static org.junit.Assert.*;
-
-import java.util.Vector;
-
-import java.lang.reflect.Method;
-
 import org.junit.Test;
+import java.util.Vector;
+import java.lang.reflect.Method;
 
 public class TagsTest {
 
@@ -13,12 +10,12 @@ public class TagsTest {
     try {
       Method target = Tags.class.getDeclaredMethod("tagClass", java.lang.Class.class);
       target.setAccessible(true);
-      //ClassItem clsItem = (ClassItem)target.invoke(new Tags(), org.junit.Test.class);
-      ClassItem clsItem = (ClassItem)target.invoke(new Tags(), java.util.Vector.class);
-      assertEquals("Vector", clsItem.name);
-      assertEquals("java.util", clsItem.pkgItem.name);
+      ClassItem clsItem = (ClassItem)target.invoke(new Tags(), org.junit.Test.class);
+      assertEquals("Test", clsItem.name);
+      assertEquals("org.junit", clsItem.pkgItem.name);
     } catch (Exception e) {
-      assertTrue(e.getCause() instanceof ApplicationException);
+      System.out.println(e.getCause());
+      fail("This can't be!");
     }
   }
 }
