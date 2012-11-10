@@ -890,7 +890,8 @@ tag buffer file "
 (defun ajc-find-out-class-by-annotation ()
   "Find out annotations and return a list of annotations."
   (let ((annot-regexp "[:space:]*@\\([A-Z][a-zA-Z]+\\)")
-        (annotations nil))
+        (annotations nil)
+        (case-fold-search nil))
     (save-excursion
       (save-match-data
         (goto-char (point-min))
