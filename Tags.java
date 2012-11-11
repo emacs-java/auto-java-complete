@@ -172,7 +172,6 @@ public class Tags {
         if (className.startsWith("com.sun")) return;
         if (className.startsWith("com.thaiopensource")) return;
         if (className .contains("org.iso_relax.ant")) return;
-        if (className .contains("$")) return;
         if (classExcludeRegexPatternArray != null ) {
             for (int i = 0; i < classExcludeRegexPatternArray.length; i++) {
                 if(classExcludeRegexPatternArray[i].matcher(className).find()) {
@@ -341,6 +340,9 @@ public class Tags {
           ) throw new ApplicationException("sorry ,you are not a  public class:"+c.getName());
         if(c.getPackage()==null) throw new ApplicationException("why don't you hava a package name?:"+c.getName());
         String pkgName=c.getPackage().getName();
+        if (c.isAnnotation() && c.getName().contains("$")) {
+          pkgName = c.getName().substring(0 , c.getName().lastIndexOf('$'));
+        }
         PackageItem pkgItem =null;
         for(int i=0; i<pkgs.size(); i++) {
             if (pkgs.get(i).name.equals(pkgName)) {
