@@ -218,6 +218,10 @@ it is the last line number in tag file" )
  it will save current class-prefix in this variable ,so
  (ajc-complete-class-candidates) can reuse it . ")
 
+(defvar ajc-package-cache-tbl-in-tags nil
+  "Hash table to be used as cache of package names in a tags
+  file.")
+
 (defun ajc-goto-line ( line-num &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
     (when (numberp line-num)
@@ -559,12 +563,32 @@ can be a method item ,or a field item"
           (setq  ajc-position-of-member-first-line (progn   (ajc-goto-line  ajc-member-first-ln) (point)) )
           (setq ajc-member-end-ln     (string-to-number (ajc-read-line 6)))
           (setq  ajc-position-of-member-end-line (progn   (ajc-goto-line  ajc-member-end-ln) (point)) )
+          (setq ajc-package-in-tags-cache (ajc-build-package-cache-tbl-in-tags))
           ;;          (ajc-load-all-sorted-class-items-to-memory)
           (ajc-sort-class)
           )
       (message  ( concat ajc-tag-file " doesn't exists !!!")))
     (setq ajc-is-running t)
     ))
+
+(defun ajc-build-package-cache-tbl-in-tags ()
+  "Return a hash table of package names in tags file.
+KEY is package name and VALUE is `t' if that package name is in
+tags file."
+  (let ((tbl (make-hash-table :test #'equal)))
+    (with-current-buffer ajc-tag-buffer
+      (goto-char (point-min))
+      (forward-line (1- ajc-package-first-ln))
+      (beginning-of-line)
+      (while (re-search-forward "^\\([[:alpha:].]+\\)`"
+                                (save-excursion
+                                  (ajc-goto-line ajc-class-first-ln)
+                                  (beginning-of-line)
+                                  (point))
+                                t)
+        (puthash (match-string-no-properties 1) t tbl)))
+    tbl))
+
 ;;;###autoload
 (defun ajc-reload()
   "restart Auto Java Complete ,when your tag file changed,
@@ -667,6 +691,7 @@ the param `exactly_match' ,means only class name exactly equals
          (line-num    ajc-class-first-ln)
          (end-position ajc-member-first-ln)
          return-list current-line-string)
+    (message "Debug: package-name=%s, class-prefix=%s" package-name class-prefix)
     (with-current-buffer (or buffer (ajc-reload-tag-buffer-maybe))
       (when matched-pkg-item
         (setq line-num (nth 1 matched-pkg-item)
