@@ -218,7 +218,7 @@ it is the last line number in tag file" )
  it will save current class-prefix in this variable ,so
  (ajc-complete-class-candidates) can reuse it . ")
 
-(defvar ajc-package-cache-tbl-in-tags nil
+(defvar ajc-package-in-tags-cache-tbl nil
   "Hash table to be used as cache of package names in a tags
   file.")
 
@@ -563,7 +563,7 @@ can be a method item ,or a field item"
           (setq  ajc-position-of-member-first-line (progn   (ajc-goto-line  ajc-member-first-ln) (point)) )
           (setq ajc-member-end-ln     (string-to-number (ajc-read-line 6)))
           (setq  ajc-position-of-member-end-line (progn   (ajc-goto-line  ajc-member-end-ln) (point)) )
-          (setq ajc-package-in-tags-cache (ajc-build-package-cache-tbl-in-tags))
+          (setq ajc-package-in-tags-cache-tbl (ajc-build-package-in-tags-cache-tbl))
           ;;          (ajc-load-all-sorted-class-items-to-memory)
           (ajc-sort-class)
           )
@@ -571,7 +571,7 @@ can be a method item ,or a field item"
     (setq ajc-is-running t)
     ))
 
-(defun ajc-build-package-cache-tbl-in-tags ()
+(defun ajc-build-package-in-tags-cache-tbl ()
   "Return a hash table of package names in tags file.
 KEY is package name and VALUE is `t' if that package name is in
 tags file."
@@ -691,16 +691,21 @@ the param `exactly_match' ,means only class name exactly equals
          (line-num    ajc-class-first-ln)
          (end-position ajc-member-first-ln)
          return-list current-line-string)
-    (message "Debug: package-name=%s, class-prefix=%s" package-name class-prefix)
+    ;; (message "Debug: package-name=%s, matched-pkg-item=%s, class-prefix=%s"
+    ;;          package-name
+    ;;          matched-pkg-item
+    ;;          class-prefix)
     (with-current-buffer (or buffer (ajc-reload-tag-buffer-maybe))
       (when matched-pkg-item
         (setq line-num (nth 1 matched-pkg-item)
               end-position (nth 2 matched-pkg-item)))
-      (while (< line-num end-position)
-        (setq current-line-string (ajc-read-line line-num))
-        (when (string-match regexp-class-prefix current-line-string)
-          (add-to-list 'return-list (ajc-split-class-item current-line-string)))
-        (setq line-num (1+ line-num)))
+      ;; We only need to search for classes whose package name is in tags file.
+      (when (gethash package-name ajc-package-in-tags-cache-tbl)
+        (while (< line-num end-position)
+          (setq current-line-string (ajc-read-line line-num))
+          (when (string-match regexp-class-prefix current-line-string)
+            (add-to-list 'return-list (ajc-split-class-item current-line-string)))
+          (setq line-num (1+ line-num))))
       return-list)))
 
 ;;(ajc-sort-class)
