@@ -899,6 +899,10 @@ tag buffer file "
         (setq matched-class-strings
               (append matched-class-strings
                       (ajc-find-out-class-by-dot-class-notation)))
+        ;; search for extends Classname
+        (setq matched-class-strings
+              (append matched-class-strings
+                      (ajc-find-out-class-by-extends-notation)))
         ;;remove primitive type and remove duplicate item
         (delete-dups matched-class-strings) (delete "" matched-class-strings)
         (dolist (ele matched-class-strings)
@@ -906,6 +910,17 @@ tag buffer file "
               (delete ele matched-class-strings)))
         matched-class-strings
         ))))
+
+(defun ajc-find-out-class-by-extends-notation ()
+  (let ((extends-class-regexp "extends[[:space:][:punct:]]\\([[:upper:]][[:alpha:]]+\\)\\b")
+        (classes nil)
+        (case-fold-search nil))
+    (save-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (while (re-search-forward extends-class-regexp nil t)
+          (push (match-string-no-properties 1) classes))))
+    classes))
 
 (defun ajc-find-out-class-by-dot-class-notation ()
   (let ((dot-class-regexp "[[:space:][:punct:]]\\([[:upper:]][[:alpha:]]+\\)\\.class\\b")
