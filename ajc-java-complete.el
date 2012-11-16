@@ -661,7 +661,7 @@ then imported one of them first"
     (unless matched-class-item;;if not found from imported section
       (let ((matched-class-items
              (ajc-find-out-matched-class-item-without-package-prefix class-name t)))
-        (message "Debug: class-name=%s, matched-class-items=%s" class-name matched-class-items)
+        ;;(message "Debug: class-name=%s, matched-class-items=%s" class-name matched-class-items)
         (if (= (length matched-class-items) 1)
             (setq matched-class-item (car matched-class-items))
           (setq matched-class-item
@@ -970,7 +970,9 @@ before that it will use y-or-n-p ask user to confirm "
         (import-class-window)
         (user-confirmed-class-items-list)
         (java-buffer (current-buffer))
-        (java-window))
+        (java-window)
+        (use-dialog-box nil)
+        (last-nonmenu-event nil))
     (setq case-fold-search nil)
     (cond ((and import-class-items-list (> (length import-class-items-list) 0))
            (setq import-class-buffer (switch-to-buffer-other-window import-class-buffer t))
