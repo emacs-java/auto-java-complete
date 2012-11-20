@@ -1223,47 +1223,60 @@ if member-prefix is nil or empty string it will return all members under class-i
         (setq line-num (+ line-num 1))))
     return-member-items))
 
-(defun ajc-caculate-class-name-by-variable(variable-name)
+(defun ajc-caculate-class-name-by-variable (variable-name)
   "this function is used to find Class name depend on a varibale name ,for example
  the varibale-name is str ,then if exists 'String str' in source file , String will be returned "
-  (let ((matched-class-name) (variable-line-string) (index-of-var-in-line) (var-stack))
+  (let ((matched-class-name)
+        (variable-line-string)
+        (index-of-var-in-line)
+        (var-stack))
     (setq case-fold-search nil)
     (save-excursion
-      (if (search-backward-regexp  (concat "\\b\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\)*[ \t]+"   variable-name "\\b")   (point-min) t )
-          (setq variable-line-string (ajc-read-line  ( line-number-at-pos (point))))
+      (if (search-backward-regexp
+           (concat "\\b\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\)*[ \t]+"
+                   variable-name
+                   "\\b")
+           (point-min) t)
+          (setq variable-line-string (ajc-read-line (line-number-at-pos (point))))
         (when (search-forward-regexp
-               (concat "\\b\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\)*[ \t]+"   variable-name "\\b")
-               (point-max) t)
-          (setq variable-line-string (ajc-read-line  ( line-number-at-pos (point))))
-          )))
+               (concat "\\b\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\)*[ \t]+"
+                       variable-name
+                       "\\b")
+               (point-max)
+               t)
+          (setq variable-line-string (ajc-read-line (line-number-at-pos (point)))))))
     (when variable-line-string
-      (setq index-of-var-in-line  (string-match  (concat "[ \t]+" variable-name "\\b")  variable-line-string))
-      (setq variable-line-string (substring-no-properties  variable-line-string 0  index-of-var-in-line   ))
+      (setq index-of-var-in-line
+            (string-match (concat "[ \t]+" variable-name "\\b") variable-line-string))
+      (setq variable-line-string
+            (substring-no-properties variable-line-string 0 index-of-var-in-line))
       (setq var-stack (split-string variable-line-string "[( \t]" t))
       (let ((tmp-list))
         (dolist (ele var-stack)
-          (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele "<"  "<"  t))))
+          (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele "<" "<" t))))
         (setq var-stack tmp-list))
       (let ((tmp-list))
         (dolist (ele var-stack)
-          (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele ">"  ">"  t))))
+          (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele ">" ">" t))))
         (setq var-stack tmp-list))
-      (setq var-stack (nreverse var-stack ))
-      (let ((top (pop var-stack)) (parse-finished ))
-        (while  (and top (not parse-finished))
-          (when (string-match "[A-Z][a-zA-Z0-9_]*" top )
-            (setq matched-class-name top)   (setq parse-finished t));; parse finished ,exit the  loop
+      (setq var-stack (nreverse var-stack))
+      (let ((top (pop var-stack))
+            (parse-finished))
+        (while (and top (not parse-finished))
+          (when (string-match "[A-Z][a-zA-Z0-9_]*" top)
+            (setq matched-class-name top) (setq parse-finished t));; parse finished ,exit the  loop
           (when (string-equal ">" top)
-            (let ((e)(right-stack))
-              (push top  right-stack)
+            (let ((e)
+                  (right-stack))
+              (push top right-stack)
               (setq e (pop var-stack))
-              (while (and e (  > (length right-stack) 0))
-                (if (string-equal "<" e ) (pop right-stack))
-                (if (string-equal ">" e ) (push e right-stack))
+              (while (and e (> (length right-stack) 0))
+                (if (string-equal "<" e) (pop right-stack))
+                (if (string-equal ">" e) (push e right-stack))
                 (setq e (pop var-stack)))
               (if e (push e var-stack))))
-          (setq top (pop var-stack))))
-      ) matched-class-name))
+          (setq top (pop var-stack)))))
+    matched-class-name))
 
 ;;TODO: add cache support for method candidates
 ;; if it failed ,then don't try, to waste time.
