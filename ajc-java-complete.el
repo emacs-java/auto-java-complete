@@ -1326,33 +1326,31 @@ and now (current-line)==\"Systema.aaab\" It would
 ;;       (setq ajc-complete-method-candidates-cache candidates)
 ;;       ))
 
-
 (defun ajc-complete-method-candidates-1 (stack-list)
   "get method candidates depend on stack-list, about
  what stack-list it is,check out
  `ajc-parse-splited-line-4-complete-method'"
   (when stack-list
-    (let ((is-dot-last  (= (% (length stack-list ) 2 ) 0))
+    (let ((is-dot-last (= (% (length stack-list) 2) 0))
           top
           return-list
           return-string-list)
-      (setq stack-list (remove "." stack-list ))
+      (setq stack-list (remove "." stack-list))
       (setq top (pop stack-list))
       (let ((class-item nil))
         (if (string-match "^[A-Z][a-zA-Z0-9_]*$" top)
-            (setq class-item (ajc-find-class-first-check-imported  top))
+            (setq class-item (ajc-find-class-first-check-imported top))
           (setq class-item (ajc-find-class-first-check-imported
                             (ajc-caculate-class-name-by-variable top))))
-        (while (and class-item (> (length stack-list ) 1))
+        (while (and class-item (> (length stack-list) 1))
           (setq class-item (nth 1 (car (ajc-find-members class-item (pop stack-list) t)))))
         (if is-dot-last
             (let ((member-string (pop stack-list)))
               (if member-string
-                  (setq class-item  (nth 1 (car  (ajc-find-members class-item member-string t)))))
+                  (setq class-item (nth 1 (car (ajc-find-members class-item member-string t)))))
               (setq return-list (ajc-find-members class-item)))
-          (setq return-list (ajc-find-members class-item   (pop stack-list)))))
+          (setq return-list (ajc-find-members class-item (pop stack-list)))))
       (mapcar 'ajc-method-item-to-candidate return-list))))
-
 
 (defun ajc-get-validated-stack-list-or-nil-4-method-complete(stack-list)
   "if stack-list is validated ,return itself ,else return nil."
