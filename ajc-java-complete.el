@@ -1229,17 +1229,18 @@ if member-prefix is nil or empty string it will return all members under class-i
   (let ((matched-class-name)
         (variable-line-string)
         (index-of-var-in-line)
-        (var-stack))
+        (var-stack)
+        (type-regexp "\\b\\([[:upper:]][[:alnum:]_]+\\(<[^=]*>\\)*\\)[ \t]+"))
     (setq case-fold-search nil)
     (save-excursion
       (if (search-backward-regexp
-           (concat "\\b\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\)*[ \t]+"
+           (concat type-regexp
                    variable-name
                    "\\b")
            (point-min) t)
           (setq variable-line-string (ajc-read-line (line-number-at-pos (point))))
         (when (search-forward-regexp
-               (concat "\\b\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\)*[ \t]+"
+               (concat type-regexp
                        variable-name
                        "\\b")
                (point-max)
