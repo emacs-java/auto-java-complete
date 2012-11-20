@@ -1296,6 +1296,7 @@ and now (current-line)==\"Systema.aaab\" It would
                 (not  ajc-complete-method-candidates-cache))
       (setq is-available nil))
     (setq ajc-complete-method-candidates-cache-stack-list stack-list)
+    ;;(message "DEBUG: is-available=%s" is-available)
     is-available))
 
 (defun ajc-complete-method-candidates()
