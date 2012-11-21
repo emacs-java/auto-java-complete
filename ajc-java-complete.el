@@ -1230,7 +1230,7 @@ if member-prefix is nil or empty string it will return all members under class-i
         (variable-line-string)
         (index-of-var-in-line)
         (var-stack)
-        (type-regexp "\\b\\([[:upper:]][[:alnum:]_]+\\(<[^=]*>\\)*\\)[ \t]+"))
+        (type-regexp "\\b\\(\\([[:alpha:]][[:alnum:]]+\\)[.]?\\)+\\(<[^=]*>\\)*[[:space:]]+"))
     (setq case-fold-search nil)
     (save-excursion
       (if (search-backward-regexp
