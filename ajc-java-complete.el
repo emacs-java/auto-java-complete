@@ -1248,13 +1248,14 @@ if member-prefix is nil or empty string it will return all members under class-i
               (unless (string-match exclude-regexp (match-string-no-properties 1))
                 (setq variable-line-string (ajc-read-line (line-number-at-pos (point))))
                 (throw 'found t))))))
+    ;;(message "DEBUG: variable-line-string=%s" variable-line-string)
     (when variable-line-string
       (setq index-of-var-in-line
             (string-match (concat "[ \t]+" variable-name "\\b") variable-line-string))
       (setq variable-line-string
             (substring-no-properties variable-line-string 0 index-of-var-in-line))
-      (setq var-stack (split-string variable-line-string "[( \t]" t))
-      (message "DEBUG: %s" var-stack)
+      (setq var-stack (split-string variable-line-string "[( \t.]" t))
+      ;;(message "DEBUG: var-stack=%s" var-stack)
       (let ((tmp-list))
         (dolist (ele var-stack)
           (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele "<" "<" t))))
