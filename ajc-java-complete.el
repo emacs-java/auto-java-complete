@@ -1230,22 +1230,23 @@ if member-prefix is nil or empty string it will return all members under class-i
         (variable-line-string)
         (index-of-var-in-line)
         (var-stack)
-        (type-regexp "\\b\\(\\([[:alpha:]][[:alnum:]]+\\)[.]?\\)+\\(<[^=]*>\\)*[[:space:]]+"))
+        (type-regexp "\\b\\(\\([[:alpha:]][[:alnum:]]+\\)[.]?\\)+\\(<[^=]*>\\)*[[:space:]]+")
+        (exclude-regexp "return"))
     (setq case-fold-search nil)
     (save-excursion
-      (if (search-backward-regexp
-           (concat type-regexp
-                   variable-name
-                   "\\b")
-           (point-min) t)
-          (setq variable-line-string (ajc-read-line (line-number-at-pos (point))))
-        (when (search-forward-regexp
-               (concat type-regexp
-                       variable-name
-                       "\\b")
-               (point-max)
-               t)
-          (setq variable-line-string (ajc-read-line (line-number-at-pos (point)))))))
+      (if (catch 'found
+            (while (re-search-backward (concat type-regexp variable-name "\\b")
+                                       (point-min)
+                                       t)
+              (unless (string-match exclude-regexp (match-string-no-properties 1))
+                (setq variable-line-string (ajc-read-line (line-number-at-pos (point))))
+                (throw 'found t))))
+          (catch (while (re-search-forward (concat type-regexp variable-name "\\b")
+                                    (point-max)
+                                    t)
+                   (unless (string-match exclude-regexp (match-string-no-properties 1))
+                     (setq variable-line-string (ajc-read-line (line-number-at-pos (point))))
+                     (throw 'found t))))))
     (when variable-line-string
       (setq index-of-var-in-line
             (string-match (concat "[ \t]+" variable-name "\\b") variable-line-string))
