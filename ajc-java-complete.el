@@ -874,19 +874,24 @@ tag buffer file "
           (add-to-list 'matched-class-strings (match-string-no-properties 1)))
         (goto-char (point-min))
         ;;find method statement
-        (while (search-forward-regexp "^[ \t]*\\(public\\|private\\|static\\|final\\|native\\|synchronized\\|transient\\|volatile\\|strictfp\\| \\|\t\\)*[ \t]+\\(\\([a-zA-Z0-9_]\\|\\( *\t*< *\t*\\)\\|\\( *\t*> *\t*\\)\\|\\( *\t*, *\t*\\)\\|\\( *\t*\\[ *\t*\\)\\|\\(]\\)\\)+\\)[ \t]+[a-zA-Z0-9_]+[ \t]*(\\(.*\\))[ \t]*\\(throws[ \t]+\\([a-zA-Z0-9_, \t\n]*\\)\\)?[ \t\n]*{"  (point-max) 't)
+        (while (search-forward-regexp "^[ \t]*\\(public\\|private\\|static\\|final\\|native\\|synchronized\\|transient\\|volatile\\|strictfp\\| \\|\t\\)*[ \t]+\\(\\([a-zA-Z0-9_]\\|\\( *\t*< *\t*\\)\\|\\( *\t*> *\t*\\)\\|\\( *\t*, *\t*\\)\\|\\( *\t*\\[ *\t*\\)\\|\\(]\\)\\)+\\)[ \t]+[a-zA-Z0-9_]+[ \t]*(\\(.*\\))[ \t]*\\(throws[ \t]+\\([a-zA-Z0-9_, \t\n]*\\)\\)?[ \t\n]*[{;]"  (point-max) 't)
           (let ((exception (match-string-no-properties 11))
                 (returns (match-string-no-properties 2))
                 (params (match-string-no-properties 9)))
             ;;handle return type
-            (setq matched-class-strings (append matched-class-strings  (split-string  returns "\\(,\\|<\\|>\\|]\\|\\[\\| \\|\t\\)"  t)))
+            (setq matched-class-strings
+                  (append matched-class-strings
+                          (split-string returns "\\(,\\|<\\|>\\|]\\|\\[\\| \\|\t\\)"  t)))
 ;;;;handle methods parameters  ;;find out 'Map String Ojbect User' from "Map<String,Object> map,User user"
             (while (and params (> (length params) 0))
               (if (string-match "\\([a-zA-Z0-9_]\\|\\( *\t*< *\t*\\)\\|\\( *\t*>\\)\\|\\( *\t*, *\t*\\)\\|\\( *\t*\\[ *\t*\\)\\|\\(]\\)\\)+" params)
                   (progn (setq matched-class-strings
-                               (append matched-class-strings (split-string (match-string-no-properties 0 params ) split-char-regexp t)))
-                         (string-match "[ \t]*[a-zA-Z0-9_]+[ \t,]?" params  (match-end 0 ))
-                         (setq params (substring-no-properties params  (match-end 0 ))))
+                               (append matched-class-strings
+                                       (split-string (match-string-no-properties 0 params)
+                                                     split-char-regexp
+                                                     t)))
+                         (string-match "[ \t]*[a-zA-Z0-9_]+[ \t,]?" params (match-end 0))
+                         (setq params (substring-no-properties params (match-end 0))))
                 (setq params nil)))
             ;;handle throws Exception1,Exception2, we will exatract Exception1 Exception2 from throws sentence
             (when exception
