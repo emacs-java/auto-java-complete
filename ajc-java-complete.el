@@ -1235,24 +1235,31 @@ if member-prefix is nil or empty string it will return all members under class-i
         (variable-line-string)
         (index-of-var-in-line)
         (var-stack)
-        (type-regexp "\\b\\(\\([[:alpha:]][[:alnum:]]+\\)[.]?\\)+\\(<[^=]*>\\)*[[:space:]]+")
-        (exclude-regexp "return"))
+        (type-regexp "\\(\\([[:alpha:]][[:alnum:]]+\\)[.]?\\)+\\(<[^=]*>\\)*[[:space:]]+")
+        (exclude-regexp "return")
+        (origin-pos (point)))
     (setq case-fold-search nil)
     (save-excursion
-      (if (catch 'found
-            (while (re-search-backward (concat type-regexp variable-name "\\b")
+      (catch 'found
+        ;; Searching in the former part
+        (while (search-backward-regexp (concat "\\b" type-regexp variable-name "\\b")
                                        (point-min)
                                        t)
-              (unless (string-match exclude-regexp (match-string-no-properties 1))
-                (setq variable-line-string (ajc-read-line (line-number-at-pos (point))))
-                (throw 'found t))))
-          (catch 'found
-            (while (re-search-forward (concat type-regexp variable-name "\\b")
-                                      (point-max)
-                                      t)
-              (unless (string-match exclude-regexp (match-string-no-properties 1))
-                (setq variable-line-string (ajc-read-line (line-number-at-pos (point))))
-                (throw 'found t))))))
+          (unless (string-match exclude-regexp (match-string-no-properties 1))
+            (setq variable-line-string
+                  (buffer-substring-no-properties (line-beginning-position)
+                                                  (line-end-position)))
+            (throw 'found t)))
+        ;; Searching in the latter part
+        (goto-char (1+ origin-pos))
+        (while (re-search-forward (concat "\\b" type-regexp variable-name "\\b")
+                                  (point-max)
+                                  t)
+          (unless (string-match exclude-regexp (match-string-no-properties 1))
+            (setq variable-line-string
+                  (buffer-substring-no-properties (line-beginning-position)
+                                                  (line-end-position)))))
+            (throw 'found t)))
     ;;(message "DEBUG: variable-line-string=%s" variable-line-string)
     (when variable-line-string
       (setq index-of-var-in-line
