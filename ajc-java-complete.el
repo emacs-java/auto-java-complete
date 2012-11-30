@@ -647,7 +647,7 @@ instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'"
         (add-to-list 'return-list (car current-item))))
     return-list))
 
-(defun ajc-find-class-first-check-imported(class-name)
+(defun ajc-find-class-first-check-imported (class-name)
   "this function will find class from imported classes,
 if doesn't exists,find from the tag file,
 if more than one class item matched class-name in tag file,
@@ -662,10 +662,11 @@ then imported one of them first"
       (let ((matched-class-items
              (ajc-find-out-matched-class-item-without-package-prefix class-name t)))
         ;;(message "Debug: class-name=%s, matched-class-items=%s" class-name matched-class-items)
-        (if (= (length matched-class-items) 1)
-            (setq matched-class-item (car matched-class-items))
-          (setq matched-class-item
-                (car (ajc-insert-import-at-head-of-source-file matched-class-items))))))
+        (when matched-class-item
+          (if (= (length matched-class-items) 1)
+              (setq matched-class-item (car matched-class-items))
+            (setq matched-class-item
+                  (car (ajc-insert-import-at-head-of-source-file matched-class-items)))))))
     matched-class-item))
 
 ;; (ajc-find-out-matched-class-item "java.io" "Fil")
@@ -1206,7 +1207,7 @@ check out ajc-matched-class-items-cache to find out if ant matched class exists 
     return-list;;return
     ))
 
-(defun ajc-find-members (class-item  &optional member-prefix &optional exactly_match)
+(defun ajc-find-members (class-item  &optional member-prefix exactly_match)
   "find members(field method) under class-item which member name match member-prefix ,
 if member-prefix is nil or empty string it will return all members under class-item"
   (let ((line-num (nth 2 class-item))  (end-position (nth 3 class-item)) (return-member-items)
@@ -1387,12 +1388,13 @@ and now (current-line)==\"Systema.aaab\" It would
                             (ajc-caculate-class-name-by-variable top))))
         (while (and class-item (> (length stack-list) 1))
           (setq class-item (nth 1 (car (ajc-find-members class-item (pop stack-list) t)))))
-        (if is-dot-last
-            (let ((member-string (pop stack-list)))
-              (if member-string
-                  (setq class-item (nth 1 (car (ajc-find-members class-item member-string t)))))
-              (setq return-list (ajc-find-members class-item)))
-          (setq return-list (ajc-find-members class-item (pop stack-list)))))
+        (when class-item
+          (if is-dot-last
+              (let ((member-string (pop stack-list)))
+                (if member-string
+                    (setq class-item (nth 1 (car (ajc-find-members class-item member-string t)))))
+                (setq return-list (ajc-find-members class-item)))
+            (setq return-list (ajc-find-members class-item (pop stack-list))))))
       (mapcar 'ajc-method-item-to-candidate return-list))))
 
 (defun ajc-get-validated-stack-list-or-nil-4-method-complete(stack-list)
