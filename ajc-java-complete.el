@@ -1304,7 +1304,8 @@ if member-prefix is nil or empty string it will return all members under class-i
                                  varname
                                  "[=;[:space:]]")
                          line)
-         (not (string-match-p exclude-regexp line)))))
+         (not (string-match-p exclude-regexp line))
+         (not (string-match-p "[[:space:]]*//" line)))))
 
 
 ;;TODO: add cache support for method candidates
