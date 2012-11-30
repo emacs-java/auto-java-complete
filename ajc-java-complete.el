@@ -1235,27 +1235,28 @@ if member-prefix is nil or empty string it will return all members under class-i
         (variable-line-string)
         (index-of-var-in-line)
         (var-stack)
-        (type-regexp "\\(\\([[:alpha:]][[:alnum:]]+\\)[.]?\\)+\\(<[^=]*>\\)*[[:space:]]+")
-        (exclude-regexp "return")
-        (origin-pos (point)))
-    (setq case-fold-search nil)
+        (origin-pos (point))
+        (needle (concat "[[:space:]]+" variable-name "[;=[:space:]]"))
+        (case-fold-search nil))
     (save-excursion
       (catch 'found
         ;; Searching in the former part
-        (while (search-backward-regexp (concat "\\b" type-regexp variable-name "\\b")
-                                       (point-min)
-                                       t)
-          (unless (string-match exclude-regexp (match-string-no-properties 1))
+        (while (re-search-backward needle (point-min) t)
+          (when (ajc-line-has-typeinfo-p variable-name
+                                         (buffer-substring-no-properties
+                                          (line-beginning-position)
+                                          (line-end-position)))
             (setq variable-line-string
                   (buffer-substring-no-properties (line-beginning-position)
                                                   (line-end-position)))
             (throw 'found t)))
         ;; Searching in the latter part
         (goto-char (1+ origin-pos))
-        (while (re-search-forward (concat "\\b" type-regexp variable-name "\\b")
-                                  (point-max)
-                                  t)
-          (unless (string-match exclude-regexp (match-string-no-properties 1))
+        (while (re-search-forward needle (point-max) t)
+          (when (ajc-line-has-typeinfo-p variable-name
+                                         (buffer-substring-no-properties
+                                          (line-beginning-position)
+                                          (line-end-position)))
             (setq variable-line-string
                   (buffer-substring-no-properties (line-beginning-position)
                                                   (line-end-position)))))
@@ -1294,6 +1295,17 @@ if member-prefix is nil or empty string it will return all members under class-i
               (if e (push e var-stack))))
           (setq top (pop var-stack)))))
     matched-class-name))
+
+(defun ajc-line-has-typeinfo-p (varname line)
+  "Return t if this LINE contains type name, or nil."
+  (let ((type-regexp "\\([[:alpha:]][[:alnum:]]+[.]?\\)+\\(<[^=]*>\\)*[[:space:]]+")
+        (exclude-regexp "return"))
+    (and (string-match-p (concat type-regexp
+                                 varname
+                                 "\\b")
+                         line)
+         (not (string-match-p exclude-regexp line)))))
+
 
 ;;TODO: add cache support for method candidates
 ;; if it failed ,then don't try, to waste time.
