@@ -1302,7 +1302,7 @@ if member-prefix is nil or empty string it will return all members under class-i
         (exclude-regexp "return"))
     (and (string-match-p (concat type-regexp
                                  varname
-                                 "\\b")
+                                 "[=;[:space:]]")
                          line)
          (not (string-match-p exclude-regexp line)))))
 
