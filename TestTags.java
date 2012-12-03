@@ -5,7 +5,7 @@ import org.junit.runners.Parameterized.Parameters;
 import java.util.Vector;
 import java.lang.reflect.Method;
 
-public class TagsTest {
+public class TestTags {
 
   @Test
   public void testTagClass() {
