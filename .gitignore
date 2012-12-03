@@ -1,3 +1,7 @@
 *.elc
 *.class
 *~
+my_java_base.tag
+.gitignore
+bottleneck.txt
+TagsTest.java
