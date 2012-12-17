@@ -155,7 +155,7 @@ public class Tags {
   }
 
   private void processJarFile(File f) {
-    Unzip.unzip(f , randomTmpPath);
+    Unzip.unzip(f, randomTmpPath);
     System.out.println("adding " + f.getAbsolutePath() + "  to classpath...");
     // JarFile jar=null;
     // try { jar = new JarFile(f); } catch (IOException e) {log(e);}
@@ -651,7 +651,7 @@ public class Tags {
       );
     try {
       System.out.println("sleep 20 seconds...");
-      Thread.sleep(20000);
+      Thread.sleep(3000);
     } catch (Exception ex) {}
 
     Tags tags = new Tags();
