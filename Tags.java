@@ -144,7 +144,7 @@ public class Tags {
       for (File clazz : clazzFiles) {
         String classAbsolutePath=clazz.getAbsolutePath();
         String classFullName = classAbsolutePath
-                               .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class") )
+                               .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class"))
                                .replace(fileSeparator,".");
         processClass(classFullName);
       }
@@ -179,7 +179,7 @@ public class Tags {
     if (className.startsWith("com.sun")) return;
     if (className.startsWith("com.thaiopensource")) return;
     if (className .contains("org.iso_relax.ant")) return;
-    if (classExcludeRegexPatternArray != null ) {
+    if (classExcludeRegexPatternArray != null) {
       for (int i = 0; i < classExcludeRegexPatternArray.length; i++) {
         if (classExcludeRegexPatternArray[i].matcher(className).find()) {
           return;
@@ -210,9 +210,9 @@ public class Tags {
           });
       for (File clazz : clazzFiles) {
         String classAbsolutePath=clazz.getAbsolutePath();
-        IOUtils.copy(clazz,new File(randomTmpPath ,classAbsolutePath.substring(dirFullPath.length()+1) ));
+        IOUtils.copy(clazz,new File(randomTmpPath ,classAbsolutePath.substring(dirFullPath.length()+1)));
         // String classFullName = classAbsolutePath
-        //     .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class") )
+        //     .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class"))
         //     .replace(fileSeparator,".");
         // processClass(classFullName);
       }
@@ -556,7 +556,7 @@ public class Tags {
     try {
       tagFile.append("don't try to edit this file ,even this line!!!!") ;
       tagFile.newLine();
-      tagFile.append("package count="+pkgs.size() +"  ,Class count="+classes.size() +" , member count(constructor, field, method)= "+members.size() );
+      tagFile.append("package count="+pkgs.size() +"  ,Class count="+classes.size() +" , member count(constructor, field, method)= "+members.size());
       tagFile.newLine();
       tagFile.append(""+ (shift+1));
       tagFile.newLine();
@@ -564,7 +564,7 @@ public class Tags {
       tagFile.newLine();
       tagFile.append(""+ (shift+pkgs.size()+classes.size()+1));
       tagFile.newLine();
-      tagFile.append(""+ (shift+pkgs.size() +classes.size()+members.size()+1 ));
+      tagFile.append(""+ (shift+pkgs.size() +classes.size()+members.size()+1));
       tagFile.newLine();
       int i=0;
       for (PackageItem pkgItem:pkgs) {
@@ -625,7 +625,7 @@ public class Tags {
       "**   and when you add a jar to classpath, you'd better make sure**\n" +
       "**   all jars it depends on are in classpath.                   **\n" +
       "******************************************************************\n"
-    );
+      );
 
     System.out.println("log file is located at: " +
                        System.getProperty("java.io.tmpdir") + "/ajc_error.log");
@@ -648,7 +648,7 @@ public class Tags {
       "***                                                                                      ***\n"+
       "***  before that you'd better backup the  file ~/.java_base.tag,if exists                ***\n"+
       "*******************************************************************************************\n\n"
-    );
+      );
     try {
       System.out.println("sleep 20 seconds...");
       Thread.sleep(20000);
@@ -671,7 +671,7 @@ public class Tags {
       "***  the size of the generated ~/.java_base.tag  is about 2M or bigger,so if your        ***\n"+
       "*** .java_base.tag  is too small ,that means your CLASSPATH don't configure correctly.   ***\n"+
       "********************************************************************************************\n"
-    );
+      );
     System.out.println(new File (tags.getHomePath(), ".java_base.tag").getAbsolutePath());
     System.exit(0);
   }
@@ -900,7 +900,7 @@ class Unzip {
 class CL extends ClassLoader {
 
   private File classBasePath=null;
-  public CL(File classBasePath ) {
+  public CL(File classBasePath) {
     this.classBasePath=classBasePath;
     if (!classBasePath.exists()) {
       classBasePath.mkdirs();
