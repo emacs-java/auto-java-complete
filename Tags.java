@@ -135,17 +135,17 @@ public class Tags {
       System.out.println("tmp classpath :" + randomTmpPath.getAbsolutePath());
       String dirFullPath = randomTmpPath.getAbsolutePath();
       List<File> clazzFiles = IOUtils.getAllFilesUnderDir
-      (randomTmpPath, new FileFilter() {
-        public boolean accept(File f) {
-          if (f.getName().endsWith(".class")) { return true; }
-          return false;
-        }
-      });
+        (randomTmpPath, new FileFilter() {
+            public boolean accept(File f) {
+              if (f.getName().endsWith(".class")) { return true; }
+              return false;
+            }
+          });
       for (File clazz : clazzFiles) {
         String classAbsolutePath = clazz.getAbsolutePath();
         String classFullName = classAbsolutePath
-                               .substring(dirFullPath.length() + 1 , classAbsolutePath.indexOf(".class"))
-                               .replace(fileSeparator, ".");
+          .substring(dirFullPath.length() + 1 , classAbsolutePath.indexOf(".class"))
+          .replace(fileSeparator, ".");
         processClass(classFullName);
       }
       tagAll();
@@ -202,12 +202,12 @@ public class Tags {
     if (dir != null && dir.isDirectory()) {
       String dirFullPath = dir.getAbsolutePath();
       List<File> clazzFiles = IOUtils.getAllFilesUnderDir
-      (dir, new FileFilter() {
-        public boolean accept(File f) {
-          if (f.getName().endsWith(".class")) { return true; }
-          return false;
-        }
-      });
+        (dir, new FileFilter() {
+            public boolean accept(File f) {
+              if (f.getName().endsWith(".class")) { return true; }
+              return false;
+            }
+          });
       for (File clazz : clazzFiles) {
         String classAbsolutePath = clazz.getAbsolutePath();
         IOUtils.copy(clazz, new File(randomTmpPath , classAbsolutePath.substring(dirFullPath.length() + 1)));
@@ -938,11 +938,11 @@ class IOUtils {
    */
   public static List<File> getAllFilesUnderDir(File dir, final FileFilter fileFilter) {
     FileFilter acceptDirFileFilterWrapper = new FileFilter() {
-      public boolean accept(File f) {
-        if (f.isDirectory()) { return true; }
-        return fileFilter.accept(f);
-      }
-    };
+        public boolean accept(File f) {
+          if (f.isDirectory()) { return true; }
+          return fileFilter.accept(f);
+        }
+      };
     ArrayList<File> files = new ArrayList<File>();
     Stack<File> s = new Stack<File>();
     s.push(dir);
