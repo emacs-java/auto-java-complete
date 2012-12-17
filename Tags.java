@@ -74,7 +74,7 @@ public class Tags {
 
   private String getHomePath() {
     String home = System.getenv("HOME");
-    if(home==null) {
+    if (home==null) {
       home=System.getProperty("user.home");
     }
     return home;
@@ -107,7 +107,7 @@ public class Tags {
     String [] cls=classpath.split( System.getProperty("path.separator"));
     for (int i=0; i<cls.length; i++) {
       String element = cls[i];
-      if(element.equals(".") ||element.equals("./")||element.equals(".\\")) {
+      if (element.equals(".") || element.equals("./")|| element.equals(".\\")) {
         continue;
       }
       File f = new File(element);
@@ -141,7 +141,7 @@ public class Tags {
               return false;
             }
       });
-      for(File clazz : clazzFiles) {
+      for (File clazz : clazzFiles) {
         String classAbsolutePath=clazz.getAbsolutePath();
         String classFullName = classAbsolutePath
                                .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class") )
@@ -181,7 +181,7 @@ public class Tags {
     if (className .contains("org.iso_relax.ant")) return;
     if (classExcludeRegexPatternArray != null ) {
       for (int i = 0; i < classExcludeRegexPatternArray.length; i++) {
-        if(classExcludeRegexPatternArray[i].matcher(className).find()) {
+        if (classExcludeRegexPatternArray[i].matcher(className).find()) {
           return;
         }
       }
@@ -208,7 +208,7 @@ public class Tags {
               return false;
             }
           });
-      for(File clazz : clazzFiles) {
+      for (File clazz : clazzFiles) {
         String classAbsolutePath=clazz.getAbsolutePath();
         IOUtils.copy(clazz,new File(randomTmpPath ,classAbsolutePath.substring(dirFullPath.length()+1) ));
         // String classFullName = classAbsolutePath
@@ -231,8 +231,8 @@ public class Tags {
       //                                }
       //                            }
       //                            );
-      if(jarz!=null) {
-        for(File jarFile:jarz) {
+      if (jarz!=null) {
+        for (File jarFile:jarz) {
           processJarFile(jarFile);
         }
       }
@@ -368,7 +368,7 @@ public class Tags {
       pkgName = c.getName().substring(0 , c.getName().lastIndexOf('$'));
     }
     PackageItem pkgItem =null;
-    for(int i=0; i<pkgs.size(); i++) {
+    for (int i=0; i<pkgs.size(); i++) {
       if (pkgs.get(i).name.equals(pkgName)) {
         pkgItem= pkgs.get(i);
         break;
@@ -509,7 +509,7 @@ public class Tags {
       memItem.cItem=cItem;
       Class[] params = methods[i].getParameterTypes();
       List<ClassItemWrapper> paramsKV=new ArrayList<ClassItemWrapper>();
-      for(Class param : params) {
+      for (Class param : params) {
         paramsKV.add(getClassItemWrapper(param));
       }
       memItem.params=paramsKV;
@@ -590,25 +590,25 @@ public class Tags {
         i++;
       }
       tagFile.flush();
-    } catch(Exception e) {
+    } catch (Exception e) {
       System.err.println(e.getMessage());
     } finally {
       try {
         tagFile.close();
         tagFile=null;
-      } catch(Exception e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
       try {
         logError.close();
         logError=null;
-      } catch(Exception e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
       try {
         logInfo.close();
         logInfo=null;
-      } catch(Exception e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
     }
@@ -746,7 +746,7 @@ class MemberItem implements Comparable<MemberItem> {
       returnStr.append("  "+name+"`");
       //append params
       if (params!=null) {
-        for(ClassItemWrapper param:params) {
+        for (ClassItemWrapper param:params) {
           if (param.alternativeString!=null) {
             returnStr.append("~"+param.alternativeString+",");
           } else {
@@ -902,7 +902,7 @@ class CL extends ClassLoader {
   private File classBasePath=null;
   public CL(File classBasePath ) {
     this.classBasePath=classBasePath;
-    if(!classBasePath.exists()) {
+    if (!classBasePath.exists()) {
       classBasePath.mkdirs();
     }
   }
