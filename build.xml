@@ -1,0 +1,27 @@
+<project name="ajc-java-complete" default="compile.java"
+         xmlns:ivy="antlib:org.apache.ivy.ant">
+  <property file="build.properties"/>
+  <property name="src.dir" location="."/>
+  <property name="src.java.dir" location="${src.dir}"/>
+  <property name="src.test.dir" location="${src.dir}"/>
+  <property name="target.dir" location="./target"/>
+  <property name="target.classes.java.dir" location="${target.dir}/classes/main/java"/>
+  <property name="target.classes.test.dir" location="${target.dir}/classes/test/java"/>
+  <property name="lib.dir" location="lib"/>
+
+  <ivy:retrieve file="./ivy.xml" sync="true"/>
+  <property name="junit.jar" location="${lib.dir}/junit-4.7.jar"/>
+
+  <target name="compile.java">
+    <mkdir dir="${target.classes.java.dir}"/>
+    <javac encoding="utf-8" srcdir="${src.java.dir}" destdir="${target.classes.java.dir}"
+           includeantruntime="false" fork="true">
+      <compilerarg value="-J-Duser.language=en"/>
+      <include name="Tags.java"/>
+      <include name="TagsMain.java"/>
+      <classpath>
+        <pathelement location="${target.classes.java.dir}"/>
+      </classpath>
+    </javac>
+  </target>
+</project>
