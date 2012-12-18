@@ -38,6 +38,7 @@ public class TagsMain {
       );
     try {
       System.out.println("sleep 20 seconds...");
+      // for debug purpose, set it to 3 sec
       Thread.sleep(3000);
     } catch (Exception ex) {}
 

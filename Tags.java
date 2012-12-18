@@ -187,7 +187,7 @@ public class Tags {
       }
     }
     try {
-      //            Class c = Class.forName(className,false,ClassLoader.getSystemClassLoader()) ;
+      // Class c = Class.forName(className,false,ClassLoader.getSystemClassLoader());
       Class c = Class.forName(className, false, _cl);
       _clss.add(c);
     } catch (Throwable t) {
@@ -210,7 +210,7 @@ public class Tags {
           });
       for (File clazz : clazzFiles) {
         String classAbsolutePath = clazz.getAbsolutePath();
-        IOUtils.copy(clazz, new File(_randomTmpPath , classAbsolutePath.substring(dirFullPath.length() + 1)));
+        IOUtils.copy(clazz, new File(_randomTmpPath, classAbsolutePath.substring(dirFullPath.length() + 1)));
         // String classFullName = classAbsolutePath
         //     .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class"))
         //     .replace(fileSeparator,".");
@@ -219,7 +219,9 @@ public class Tags {
       List<File> jarz = IOUtils.getAllFilesUnderDir(dir,
                                                     new FileFilter() {
                                                       public boolean accept(File f) {
-                                                        if (f.getName().endsWith(".jar")) { return true; }
+                                                        if (f.getName().endsWith(".jar")) {
+                                                          return true;
+                                                        }
                                                         return false;
                                                       }
                                                     });
@@ -239,6 +241,7 @@ public class Tags {
     }
   }
 
+  // Process each class in _clss
   private void tagAll() {
     System.out.println("found " + _clss.size() + "  classes.");
     try {
@@ -358,7 +361,7 @@ public class Tags {
     if ((!Modifier.isPublic(c.getModifiers())) &&
         (!c.isInterface()) &&
         (!Modifier.isAbstract(c.getModifiers()))) {
-      throw new ApplicationException("sorry ,you are not a  public class:" + c.getName());
+      throw new ApplicationException("sorry ,you are not a public class:" + c.getName());
     }
     if (c.getPackage() == null) {
       throw new ApplicationException("why don't you hava a package name?:" + c.getName());
@@ -482,7 +485,7 @@ public class Tags {
       if (!Modifier.isPublic(fields[i].getModifiers())) {
         continue;
       }
-      Class fieldType = (Class)   fields[i].getType();
+      Class fieldType = (Class)fields[i].getType();
       ClassItemWrapper returnType = getClassItemWrapper(fieldType);
       MemberItem memItem = new MemberItem();
       memItem.cItem = cItem;
@@ -502,7 +505,7 @@ public class Tags {
       if (!Modifier.isPublic(methods[i].getModifiers())) { continue; }
       MemberItem memItem = new MemberItem();
       memItem.constructor = methods[i];
-      String name = methods[i ].getName() ;
+      String name = methods[i].getName() ;
       if (name.contains(".")) {
         memItem.name = name.substring(name.lastIndexOf(".") + 1);
       } else {
