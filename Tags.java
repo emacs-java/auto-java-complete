@@ -785,7 +785,7 @@ class MemberItem implements Comparable<MemberItem> {
 }
 
 class ClassItemWrapper {
-  ClassItem cItem;
+  protected ClassItem cItem;
   String alternativeString;
 }
 
