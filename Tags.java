@@ -52,21 +52,27 @@ import java.util.zip.*;
  * @author joseph <jixiuf@gmail.com>
  */
 public class Tags {
-  BufferedWriter tagFile = null;
-  PrintWriter logError = null;
-  PrintWriter logInfo = null;
-  List<Class> clss = new LinkedList<Class>();
-  List<PackageItem> pkgs = new LinkedList<PackageItem>();
-  List<ClassItem> classes = new LinkedList<ClassItem>();
-  List<MemberItem> members = new LinkedList<MemberItem>();
-  String fileSeparator = System.getProperty("file.separator");
-  int shift = 6;
+  private BufferedWriter _tagFile = null;
+  private PrintWriter _logError = null;
+  private PrintWriter _logInfo = null;
+  private List<Class> _clss = new LinkedList<Class>();
+  private List<PackageItem> _pkgs = new LinkedList<PackageItem>();
+  private List<ClassItem> _classes = new LinkedList<ClassItem>();
+  private List<MemberItem> _members = new LinkedList<MemberItem>();
+  private String _fileSeparator = System.getProperty("file.separator");
+  private int _shift = 6;
+  protected Pattern[] _classExcludeRegexPatternArray = null;
+  private File _randomTmpPath = new File(System.getProperty("java.io.tmpdir") +
+                                         File.separatorChar +
+                                         UUID.randomUUID().toString() +
+                                         File.separatorChar);
+  private ClassLoader _cl = new CL(_randomTmpPath);
 
   public Tags() {
     try {
-      tagFile = new BufferedWriter(new FileWriter(new File(getHomePath(), ".java_base.tag"))) ;
-      logError = new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_error.log")) ;
-      logInfo = new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_info.log")) ;
+      _tagFile = new BufferedWriter(new FileWriter(new File(getHomePath(), ".java_base.tag"))) ;
+      _logError = new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_error.log")) ;
+      _logInfo = new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_info.log")) ;
     } catch (Exception e) {
       System.err.print(e.getMessage());
     }
@@ -82,25 +88,19 @@ public class Tags {
 
   private void log(Throwable e) {
     System.err.println("cause:" + e.getCause() + "  " + e.getClass().getName() + ":" + e.getMessage());
-    e.printStackTrace(logError);
+    e.printStackTrace(_logError);
   }
 
   private void logInfo(String info) {
-    logInfo.println(info);
+    _logInfo.println(info);
   }
 
   /** If this is not null it's used as a filter for acceptable classes.
-   * Only packages that <code>matches(classExcludeRegexPatternArray)</code> will be tagged.
+   * Only packages that <code>matches(_classExcludeRegexPatternArray)</code> will be tagged.
    */
-  protected Pattern[] classExcludeRegexPatternArray = null;
-  File randomTmpPath = new File(System.getProperty("java.io.tmpdir") +
-                                File.separatorChar +
-                                UUID.randomUUID().toString() +
-                                File.separatorChar);
-  ClassLoader cl = new CL(randomTmpPath);
 
-  //copy $CLASSPATH/**.class to randomTmpPath
-  //unzip $CLASSPATH/**.jar to randomTmpPath
+  //copy $CLASSPATH/**.class to _randomTmpPath
+  //unzip $CLASSPATH/**.jar to _randomTmpPath
   //CLASSLOADER CL will load class from this directory.
   private void prepare() {
     String classpath = System.getProperty("java.class.path");
@@ -121,21 +121,21 @@ public class Tags {
     }
   }
 
-  //clean randomTmpPath directory
+  //clean _randomTmpPath directory
   private void clear() {
-    if (randomTmpPath != null && randomTmpPath.isDirectory()) {
-      IOUtils.del(randomTmpPath);
-      randomTmpPath.delete();
+    if (_randomTmpPath != null && _randomTmpPath.isDirectory()) {
+      IOUtils.del(_randomTmpPath);
+      _randomTmpPath.delete();
     }
   }
 
   public void process() {
-    prepare();//copy or unzip *.class *.jar to randomTmpPath
-    if (randomTmpPath != null && randomTmpPath.isDirectory()) {
-      System.out.println("tmp classpath :" + randomTmpPath.getAbsolutePath());
-      String dirFullPath = randomTmpPath.getAbsolutePath();
+    prepare();//copy or unzip *.class *.jar to _randomTmpPath
+    if (_randomTmpPath != null && _randomTmpPath.isDirectory()) {
+      System.out.println("tmp classpath :" + _randomTmpPath.getAbsolutePath());
+      String dirFullPath = _randomTmpPath.getAbsolutePath();
       List<File> clazzFiles = IOUtils.getAllFilesUnderDir
-        (randomTmpPath, new FileFilter() {
+        (_randomTmpPath, new FileFilter() {
             public boolean accept(File f) {
               if (f.getName().endsWith(".class")) { return true; }
               return false;
@@ -145,7 +145,7 @@ public class Tags {
         String classAbsolutePath = clazz.getAbsolutePath();
         String classFullName = classAbsolutePath
           .substring(dirFullPath.length() + 1 , classAbsolutePath.indexOf(".class"))
-          .replace(fileSeparator, ".");
+          .replace(_fileSeparator, ".");
         processClass(classFullName);
       }
       tagAll();
@@ -155,7 +155,7 @@ public class Tags {
   }
 
   private void processJarFile(File f) {
-    Unzip.unzip(f, randomTmpPath);
+    Unzip.unzip(f, _randomTmpPath);
     System.out.println("adding " + f.getAbsolutePath() + "  to classpath...");
     // JarFile jar=null;
     // try { jar = new JarFile(f); } catch (IOException e) {log(e);}
@@ -179,17 +179,17 @@ public class Tags {
     if (className.startsWith("com.sun")) { return; }
     if (className.startsWith("com.thaiopensource")) { return; }
     if (className .contains("org.iso_relax.ant")) { return; }
-    if (classExcludeRegexPatternArray != null) {
-      for (int i = 0; i < classExcludeRegexPatternArray.length; i++) {
-        if (classExcludeRegexPatternArray[i].matcher(className).find()) {
+    if (_classExcludeRegexPatternArray != null) {
+      for (int i = 0; i < _classExcludeRegexPatternArray.length; i++) {
+        if (_classExcludeRegexPatternArray[i].matcher(className).find()) {
           return;
         }
       }
     }
     try {
       //            Class c = Class.forName(className,false,ClassLoader.getSystemClassLoader()) ;
-      Class c = Class.forName(className, false, cl);
-      clss.add(c);
+      Class c = Class.forName(className, false, _cl);
+      _clss.add(c);
     } catch (Throwable t) {
       log(t);
     }
@@ -210,7 +210,7 @@ public class Tags {
           });
       for (File clazz : clazzFiles) {
         String classAbsolutePath = clazz.getAbsolutePath();
-        IOUtils.copy(clazz, new File(randomTmpPath , classAbsolutePath.substring(dirFullPath.length() + 1)));
+        IOUtils.copy(clazz, new File(_randomTmpPath , classAbsolutePath.substring(dirFullPath.length() + 1)));
         // String classFullName = classAbsolutePath
         //     .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class"))
         //     .replace(fileSeparator,".");
@@ -240,12 +240,12 @@ public class Tags {
   }
 
   private void tagAll() {
-    System.out.println("found " + clss.size() + "  classes.");
+    System.out.println("found " + _clss.size() + "  classes.");
     try {
-      for (Class c : clss) {
+      for (Class c : _clss) {
         try {
           ClassItem cItem = tagClass(c);
-          classes.add(cItem);
+          _classes.add(cItem);
         } catch (ApplicationException e) {
           logInfo(e.getMessage());
         } catch (Throwable ex) {
@@ -253,11 +253,11 @@ public class Tags {
         }
       }
 
-      Collections.sort(pkgs);
-      Collections.sort(classes);
-      System.out.println("tagged " + classes.size() + "  classes.");
+      Collections.sort(_pkgs);
+      Collections.sort(_classes);
+      System.out.println("tagged " + _classes.size() + "  classes.");
 
-      for (ClassItem cItem : classes) {
+      for (ClassItem cItem : _classes) {
         try {
           List<MemberItem> localMems = tagConstructors(cItem);
           localMems.addAll(tagMethods(cItem));
@@ -269,22 +269,22 @@ public class Tags {
           log(ex);
         }
       }
-      int pkg_size = pkgs.size();
-      int classes_size = classes.size();
+      int pkg_size = _pkgs.size();
+      int classes_size = _classes.size();
       PackageItem pkgItem = null;
       ClassItem cItem = null;
 
       for (int i = 0; i < pkg_size; i++) {
         // now pkgs are sorted ,so the line num of the pkg in tag file is the index+1 in pkgs list
-        pkgs.get(i).lineNum = shift + i + 1;
+        _pkgs.get(i).lineNum = _shift + i + 1;
       }
       for (int i = 0; i < classes_size; i++) {
         //the line number of class in tag file is the count of packages
         // plus the index of the class in classes list
         // in this loop ,we will populte the lineNum of each ClassItem and
         // populate the classStartLineNum and classEndLineNum of each package
-        cItem = classes.get(i);
-        cItem.lineNum = shift + pkg_size + i + 1;
+        cItem = _classes.get(i);
+        cItem.lineNum = _shift + pkg_size + i + 1;
         if (i == 0) {
           pkgItem = cItem.pkgItem;
           pkgItem.classStartLineNum = cItem.lineNum;
@@ -303,10 +303,10 @@ public class Tags {
 
       for (int i = 0; i < classes_size; i++) {
         // in this loop ,we will populate basic info about each member of class into  (exclude)
-        cItem = classes.get(i);
-        cItem.memStartLineNum = shift + pkg_size + classes_size + members.size() + 1;
+        cItem = _classes.get(i);
+        cItem.memStartLineNum = _shift + pkg_size + classes_size + _members.size() + 1;
         if (cItem.members != null) {
-          members.addAll(cItem.members);
+          _members.addAll(cItem.members);
           cItem.memEndLineNum = cItem.memStartLineNum + cItem.members.size() - 1;
           cItem.members = null;
         }
@@ -315,10 +315,10 @@ public class Tags {
       cItem = null;
 
       MemberItem memItem = null;
-      int members_size = members.size();
-      int memberLineNum_start = shift + pkg_size + classes_size + 1;
+      int members_size = _members.size();
+      int memberLineNum_start = _shift + pkg_size + classes_size + 1;
       for (int i = 0; i < members_size; i++) {
-        memItem = members.get(i);
+        memItem = _members.get(i);
         memItem.lineNum = memberLineNum_start + i;
         if (i == 0) {
           cItem = memItem.cItem;
@@ -368,22 +368,22 @@ public class Tags {
       pkgName = c.getName().substring(0 , c.getName().lastIndexOf('$'));
     }
     PackageItem pkgItem = null;
-    for (int i = 0; i < pkgs.size(); i++) {
-      if (pkgs.get(i).name.equals(pkgName)) {
-        pkgItem = pkgs.get(i);
+    for (int i = 0; i < _pkgs.size(); i++) {
+      if (_pkgs.get(i).name.equals(pkgName)) {
+        pkgItem = _pkgs.get(i);
         break;
       }
     }
     if (pkgItem == null) {
       pkgItem = new PackageItem();
       pkgItem.name = pkgName;
-      pkgs.add(pkgItem);
+      _pkgs.add(pkgItem);
     }
     ClassItem cItem = new ClassItem();
     cItem.cls = c;
     cItem.name = c.getSimpleName();
     cItem.pkgItem = pkgItem;
-    for (ClassItem ci : classes) {
+    for (ClassItem ci : _classes) {
       if (ci.equals(cItem)) {
         throw new ApplicationException("you have already in ,why come here again! :" + c.getName());
       }
@@ -461,7 +461,7 @@ public class Tags {
     } else if (type.isEnum()) {
       returnType.alternativeString = type.getName();
     } else {
-      for (ClassItem ci : classes) {
+      for (ClassItem ci : _classes) {
         if (type.getName() != null && type.getName().equals(ci.cls.getName())) {
           returnType.cItem = ci;
           break;
@@ -473,6 +473,7 @@ public class Tags {
     }
     return returnType;
   }
+
   //tag Field
   private List<MemberItem> tagFields(ClassItem cItem) throws Throwable {
     Field[] fields = cItem.cls.getDeclaredFields();
@@ -493,6 +494,7 @@ public class Tags {
     Collections.sort(localMems);
     return localMems;
   }
+
   private List<MemberItem> tagConstructors(ClassItem cItem) throws Throwable {
     Constructor[] methods = cItem.cls.getDeclaredConstructors();
     List<MemberItem> localMems = new ArrayList<MemberItem>();
@@ -525,6 +527,7 @@ public class Tags {
     Collections.sort(localMems);
     return localMems;
   }
+
   private List<MemberItem> tagMethods(ClassItem cItem) throws Throwable {
     // Method[] methods = cItem.cls.getDeclaredMethods();
     Method[] methods = cItem.cls.getMethods();
@@ -554,65 +557,64 @@ public class Tags {
 
   private void write() {
     try {
-      tagFile.append("don't try to edit this file ,even this line!!!!") ;
-      tagFile.newLine();
-      tagFile.append("package count=" + pkgs.size() + "  ,Class count=" + classes.size() + " , member count(constructor, field, method)= " + members.size());
-      tagFile.newLine();
-      tagFile.append("" + (shift + 1));
-      tagFile.newLine();
-      tagFile.append("" + (shift + pkgs.size() + 1));
-      tagFile.newLine();
-      tagFile.append("" + (shift + pkgs.size() + classes.size() + 1));
-      tagFile.newLine();
-      tagFile.append("" + (shift + pkgs.size() + classes.size() + members.size() + 1));
-      tagFile.newLine();
+      _tagFile.append("don't try to edit this file ,even this line!!!!") ;
+      _tagFile.newLine();
+      _tagFile.append("package count=" + _pkgs.size() + "  ,Class count=" + _classes.size() + " , member count(constructor, field, method)= " + _members.size());
+      _tagFile.newLine();
+      _tagFile.append("" + (_shift + 1));
+      _tagFile.newLine();
+      _tagFile.append("" + (_shift + _pkgs.size() + 1));
+      _tagFile.newLine();
+      _tagFile.append("" + (_shift + _pkgs.size() + _classes.size() + 1));
+      _tagFile.newLine();
+      _tagFile.append("" + (_shift + _pkgs.size() + _classes.size() + _members.size() + 1));
+      _tagFile.newLine();
       int i = 0;
-      for (PackageItem pkgItem: pkgs) {
-        tagFile.append(pkgItem.toString());
-        tagFile.newLine();
-        if (i % 300 == 0) { tagFile.flush(); }
+      for (PackageItem pkgItem : _pkgs) {
+        _tagFile.append(pkgItem.toString());
+        _tagFile.newLine();
+        if (i % 300 == 0) { _tagFile.flush(); }
         i++;
       }
-      tagFile.flush();
+      _tagFile.flush();
       i = 0;
-      for (ClassItem cItem: classes) {
-        tagFile.append(cItem.toString());
-        tagFile.newLine();
-        if (i % 300 == 0) { tagFile.flush(); }
+      for (ClassItem cItem : _classes) {
+        _tagFile.append(cItem.toString());
+        _tagFile.newLine();
+        if (i % 300 == 0) { _tagFile.flush(); }
         i++;
       }
-      tagFile.flush();
+      _tagFile.flush();
       i = 0;
-      for (MemberItem mi: members) {
-        tagFile.append(mi.toString());
-        tagFile.newLine();
-        if (i % 300 == 0) { tagFile.flush(); }
+      for (MemberItem mi : _members) {
+        _tagFile.append(mi.toString());
+        _tagFile.newLine();
+        if (i % 300 == 0) { _tagFile.flush(); }
         i++;
       }
-      tagFile.flush();
+      _tagFile.flush();
     } catch (Exception e) {
       System.err.println(e.getMessage());
     } finally {
       try {
-        tagFile.close();
-        tagFile = null;
+        _tagFile.close();
+        _tagFile = null;
       } catch (Exception e) {
         e.printStackTrace();
       }
       try {
-        logError.close();
-        logError = null;
+        _logError.close();
+        _logError = null;
       } catch (Exception e) {
         e.printStackTrace();
       }
       try {
-        logInfo.close();
-        logInfo = null;
+        _logInfo.close();
+        _logInfo = null;
       } catch (Exception e) {
         e.printStackTrace();
       }
     }
-
   }
 }
 
