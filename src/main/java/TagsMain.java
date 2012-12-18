@@ -1,3 +1,4 @@
+// -*- coding: utf-8-unix; -*-
 import java.io.File;
 import java.util.regex.Pattern;
 

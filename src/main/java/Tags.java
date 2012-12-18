@@ -1,3 +1,4 @@
+// -*- coding: utf-8-unix; -*-
 // Tags - make a tags table by reflection
 
 // This program is free software; you can redistribute it and/or modify
