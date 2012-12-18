@@ -45,9 +45,9 @@ public class TagsMain {
     Tags tags = new Tags();
     if (argv.length > 0) {
       String[] regexs = argv[0].split(",");
-      tags.classExcludeRegexPatternArray = new Pattern[regexs.length];
-      for (int m = 0; m < tags.classExcludeRegexPatternArray.length; m++) {
-        tags.classExcludeRegexPatternArray[m] = Pattern.compile(regexs[m].replaceAll("\"" , "").replaceAll("'" , ""));
+      tags._classExcludeRegexPatternArray = new Pattern[regexs.length];
+      for (int m = 0; m < tags._classExcludeRegexPatternArray.length; m++) {
+        tags._classExcludeRegexPatternArray[m] = Pattern.compile(regexs[m].replaceAll("\"" , "").replaceAll("'" , ""));
       }
     }
     tags.process() ;
