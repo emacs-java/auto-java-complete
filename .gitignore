@@ -10,3 +10,4 @@ java_base2.tag
 Tags.java.orig
 test/CheckFileExists.java
 *.jar
+test/*
