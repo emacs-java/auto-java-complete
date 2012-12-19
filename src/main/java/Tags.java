@@ -323,18 +323,18 @@ public class Tags {
       int memberLineNum_start = _shift + pkg_size + classes_size + 1;
       for (int i = 0; i < members_size; i++) {
         memItem = _members.get(i);
-        memItem.lineNum = memberLineNum_start + i;
+        memItem._lineNum = memberLineNum_start + i;
         if (i == 0) {
-          cItem = memItem.cItem;
-          cItem._memStartLineNum = memItem.lineNum;
-        } else if (cItem != memItem.cItem) {
-          cItem._memEndLineNum = memItem.lineNum;
-          cItem = memItem.cItem;
-          cItem._memEndLineNum = memItem.lineNum;
+          cItem = memItem._cItem;
+          cItem._memStartLineNum = memItem._lineNum;
+        } else if (cItem != memItem._cItem) {
+          cItem._memEndLineNum = memItem._lineNum;
+          cItem = memItem._cItem;
+          cItem._memEndLineNum = memItem._lineNum;
         }
       }
       if (cItem != null && memItem != null) {
-        cItem._memEndLineNum = memItem.lineNum + 1;
+        cItem._memEndLineNum = memItem._lineNum + 1;
       }
       memItem = null;
       cItem = null;
@@ -489,10 +489,10 @@ public class Tags {
       Class fieldType = (Class)fields[i].getType();
       ClassItemWrapper returnType = getClassItemWrapper(fieldType);
       MemberItem memItem = new MemberItem();
-      memItem.cItem = cItem;
-      memItem.name = fields[i].getName();
-      memItem.returnType = returnType;
-      memItem.field = fields[i];
+      memItem._cItem = cItem;
+      memItem._name = fields[i].getName();
+      memItem._returnType = returnType;
+      memItem._field = fields[i];
       localMems.add(memItem);
     }
     Collections.sort(localMems);
@@ -505,27 +505,27 @@ public class Tags {
     for (int i = 0; i < methods.length; i++) {
       if (!Modifier.isPublic(methods[i].getModifiers())) { continue; }
       MemberItem memItem = new MemberItem();
-      memItem.constructor = methods[i];
+      memItem._constructor = methods[i];
       String name = methods[i].getName() ;
       if (name.contains(".")) {
-        memItem.name = name.substring(name.lastIndexOf(".") + 1);
+        memItem._name = name.substring(name.lastIndexOf(".") + 1);
       } else {
-        memItem.name = name;
+        memItem._name = name;
       }
-      memItem.cItem = cItem;
+      memItem._cItem = cItem;
       Class[] params = methods[i].getParameterTypes();
       List<ClassItemWrapper> paramsKV = new ArrayList<ClassItemWrapper>();
       for (Class param : params) {
         paramsKV.add(getClassItemWrapper(param));
       }
-      memItem.params = paramsKV;
+      memItem._params = paramsKV;
 
       Class[] exceptions = methods[i].getExceptionTypes();
       List<ClassItemWrapper> exceptionsKV = new ArrayList<ClassItemWrapper>();
       for (Class e : exceptions) {
         exceptionsKV.add(getClassItemWrapper(e));
       }
-      memItem.exceptions = exceptionsKV;
+      memItem._exceptions = exceptionsKV;
       localMems.add(memItem);
     }
     Collections.sort(localMems);
@@ -539,20 +539,20 @@ public class Tags {
     for (int i = 0; i < methods.length; i++) {
       if (!Modifier.isPublic(methods[i].getModifiers())) { continue; }
       MemberItem memItem = new MemberItem();
-      memItem.method = methods[i];
-      memItem.name = methods[i].getName();
-      memItem.cItem = cItem;
-      memItem.returnType = getClassItemWrapper(methods[i].getReturnType());
+      memItem._method = methods[i];
+      memItem._name = methods[i].getName();
+      memItem._cItem = cItem;
+      memItem._returnType = getClassItemWrapper(methods[i].getReturnType());
 
       Class[] params = methods[i].getParameterTypes();
       List<ClassItemWrapper> paramsKV = new ArrayList<ClassItemWrapper>();
       for (Class param: params) { paramsKV.add(getClassItemWrapper(param)); }
-      memItem.params = paramsKV;
+      memItem._params = paramsKV;
 
       Class[] exceptions = methods[i].getExceptionTypes();
       List<ClassItemWrapper> exceptionsKV = new ArrayList<ClassItemWrapper>();
       for (Class e: exceptions) { exceptionsKV.add(getClassItemWrapper(e)); }
-      memItem.exceptions = exceptionsKV;
+      memItem._exceptions = exceptionsKV;
       localMems.add(memItem);
     }
     Collections.sort(localMems);
@@ -676,109 +676,110 @@ class ClassItem implements Comparable<ClassItem> {
 }
 
 class MemberItem implements Comparable<MemberItem> {
-  String name;
-  ClassItem cItem;
-  int lineNum;
-  List<ClassItemWrapper> params;
-  List<ClassItemWrapper> exceptions ;
-  ClassItemWrapper returnType;
-  Field field;
-  Method method;
-  Constructor constructor;
+  String _name;
+  ClassItem _cItem;
+  int _lineNum;
+  List<ClassItemWrapper> _params;
+  List<ClassItemWrapper> _exceptions ;
+  ClassItemWrapper _returnType;
+  Field _field;
+  Method _method;
+  Constructor _constructor;
+
   public String toString() {
     StringBuffer returnStr = new StringBuffer();
-    if (constructor != null) {
-      returnStr.append("  " + name + "`");
+    if (_constructor != null) {
+      returnStr.append("  " + _name + "`");
       //append params
-      if (params != null) {
-        for (ClassItemWrapper param: params) {
+      if (_params != null) {
+        for (ClassItemWrapper param: _params) {
           if (param._alternativeString != null) {
             returnStr.append("~" + param._alternativeString + ",");
           } else {
             returnStr.append(param._cItem._lineNum + ",");
           }
         }
-        if (params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
+        if (_params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
       }
       returnStr.append("`");
       //append exceptions
-      if (exceptions != null) {
-        for (ClassItemWrapper exp: exceptions) {
+      if (_exceptions != null) {
+        for (ClassItemWrapper exp : _exceptions) {
           if (exp._alternativeString != null) {
             returnStr.append("~" + exp._alternativeString + ",");
           } else {
             returnStr.append(exp._cItem._lineNum + ",");
           }
         }
-        if (exceptions.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
+        if (_exceptions.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
       }
-    } else if (field != null) {
-      returnStr.append(" " + name + "`");
+    } else if (_field != null) {
+      returnStr.append(" " + _name + "`");
       //    returnStr.append(cItem.lineNum+"`");
       //apend the field type
-      if (returnType._alternativeString != null) {
-        returnStr.append("~" + returnType._alternativeString);
+      if (_returnType._alternativeString != null) {
+        returnStr.append("~" + _returnType._alternativeString);
       } else {
-        returnStr.append(returnType._cItem._lineNum);
+        returnStr.append(_returnType._cItem._lineNum);
       }
-    } else if (method != null) {
-      returnStr.append(name + "`");
+    } else if (_method != null) {
+      returnStr.append(_name + "`");
       //append returnType
-      if (returnType._alternativeString != null) {
-        returnStr.append("~" + returnType._alternativeString);
+      if (_returnType._alternativeString != null) {
+        returnStr.append("~" + _returnType._alternativeString);
       } else {
-        if (returnType._cItem == null) {
-          System.out.println("mem.name=" + name);
-          System.out.println(method.getDeclaringClass().getName());
+        if (_returnType._cItem == null) {
+          System.out.println("mem.name=" + _name);
+          System.out.println(_method.getDeclaringClass().getName());
         }
-        returnStr.append(returnType._cItem._lineNum);
+        returnStr.append(_returnType._cItem._lineNum);
       }
       returnStr.append("`");
       //append params
-      if (params != null) {
-        for (ClassItemWrapper param: params) {
+      if (_params != null) {
+        for (ClassItemWrapper param : _params) {
           if (param._alternativeString != null) {
             returnStr.append("~" + param._alternativeString + ",");
           } else {
             returnStr.append(param._cItem._lineNum + ",");
           }
         }
-        if (params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
+        if (_params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
       }
       returnStr.append("`");
       //append exceptions
-      if (exceptions != null) {
-        for (ClassItemWrapper exp: exceptions) {
+      if (_exceptions != null) {
+        for (ClassItemWrapper exp : _exceptions) {
           if (exp._alternativeString != null) {
             returnStr.append("~" + exp._alternativeString + ",");
           } else {
             returnStr.append(exp._cItem._lineNum + ",");
           }
         }
-        if (exceptions.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
+        if (_exceptions.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
       }
     }
     return returnStr.toString();
   }
 
   public int compareTo(MemberItem memItem) {
-    int classCompareResult = cItem.compareTo(memItem.cItem);
+    int classCompareResult = _cItem.compareTo(memItem._cItem);
     if (classCompareResult != 0) {
       return classCompareResult;
     }
-    if (this.field != null) {
-      if (memItem.field == null) { return -1; }
-      return this.name.compareTo(memItem.name);
-    } else if (this.constructor != null) {
-      if (memItem.constructor == null) { return -1; }
-      int cmp = this.name.compareTo(memItem.name);
+    if (_field != null) {
+      if (memItem._field == null) { return -1; }
+      return _name.compareTo(memItem._name);
+    } else if (_constructor != null) {
+      if (memItem._constructor == null) { return -1; }
+      int cmp = _name.compareTo(memItem._name);
       if (cmp != 0) { return cmp; }
-      return constructor.toString().compareTo(memItem.constructor.toString());
-    } else if (this.method != null) {
-      if (memItem.method == null) { return -1; }
-      int cmp = this.name.compareTo(memItem.name);
+      return _constructor.toString().compareTo(memItem._constructor.toString());
+    } else if (_method != null) {
+      if (memItem._method == null) { return -1; }
+      int cmp = _name.compareTo(memItem._name);
       if (cmp != 0) { return cmp; }
-      return method.toString().compareTo(memItem.method.toString());
+      return _method.toString().compareTo(memItem._method.toString());
     } else {
       return toString().compareTo(memItem.toString());
     }
