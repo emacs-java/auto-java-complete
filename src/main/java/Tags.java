@@ -130,6 +130,7 @@ public class Tags {
     }
   }
 
+  // Entry point and called from TagsMain
   public void process() {
     prepare();//copy or unzip *.class *.jar to _randomTmpPath
     if (_randomTmpPath != null && _randomTmpPath.isDirectory()) {
@@ -171,9 +172,10 @@ public class Tags {
     //     processClass(className);
     // }
   }
-  /**
-     @param className  full className
 
+  /**
+   * Collect Class objects represented by className to be tagged.
+     @param className  full className
   */
   private void processClass(String className) {
     if (className.startsWith("sun")) { return; }
@@ -343,20 +345,18 @@ public class Tags {
     }
   }
 
-  // analyze  Class c ,and populate PackageItem with  its  package info ,and populate ClassItem with its class info
-  //then add them to classes and pkgs list
-  private ClassItem tagClass(Class c) throws ApplicationException {
+  private void checkClassesToExclude(Class c) throws ApplicationException {
     if (c.isAnonymousClass()) {
       throw new ApplicationException("sorry, you are an AnnonymousClass:" + c.getName());
     }
     if (c.isArray()) {
-      throw new ApplicationException("sorry ,you are Array:" + c.getName());
+      throw new ApplicationException("sorry, you are Array:" + c.getName());
     }
     if (c.isPrimitive()) {
-      throw new ApplicationException("sorry you are a  Primitive type:" + c.getName());
+      throw new ApplicationException("sorry you are a Primitive type:" + c.getName());
     }
     if (c.getSimpleName().equals("")) {
-      throw new ApplicationException("why don't you have a name,I don't know how to handle you:" +
+      throw new ApplicationException("why don't you have a name ,I don't know how to handle you:" +
                                      c.getName());
     }
     if ((!Modifier.isPublic(c.getModifiers())) &&
@@ -367,6 +367,13 @@ public class Tags {
     if (c.getPackage() == null) {
       throw new ApplicationException("why don't you hava a package name?:" + c.getName());
     }
+  }
+
+  // analyze Class c, and populate PackageItem with its package info,
+  // and populate ClassItem with its class info,
+  // then add them to _classes and _pkgs list
+  private ClassItem tagClass(Class c) throws ApplicationException {
+    checkClassesToExclude(c);
     String pkgName = c.getPackage().getName();
     if (c.isAnnotation() && c.getName().contains("$")) {
       pkgName = c.getName().substring(0 , c.getName().lastIndexOf('$'));
@@ -389,13 +396,14 @@ public class Tags {
     cItem._pkgItem = pkgItem;
     for (ClassItem ci : _classes) {
       if (ci.equals(cItem)) {
-        throw new ApplicationException("you have already in ,why come here again! :" + c.getName());
+        throw new ApplicationException("you have already in, why come here again! :" + c.getName());
       }
     }
     return cItem;
   }
 
-  //maybe there are bugs here ,i think i should write it depend on different type ,like annotation enum and so on
+  // maybe there are bugs here, i think i should write it depend on different type,
+  // like annotation enum and so on
   private ClassItemWrapper getClassItemWrapper(Class type) {
     ClassItemWrapper returnType = new ClassItemWrapper();
     if (type.isPrimitive()) {
