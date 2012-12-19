@@ -845,15 +845,17 @@ class Unzip {
 
 class CL extends ClassLoader {
 
-  private File classBasePath = null;
+  private File _classBasePath = null;
+
   public CL(File classBasePath) {
-    this.classBasePath = classBasePath;
-    if (!classBasePath.exists()) {
-      classBasePath.mkdirs();
+    _classBasePath = classBasePath;
+    if (!_classBasePath.exists()) {
+      _classBasePath.mkdirs();
     }
   }
+
   public Class<?> findClass(String name) throws ClassNotFoundException {
-    File classFile = new File(classBasePath, name.replace(".", File.separator) + ".class");
+    File classFile = new File(_classBasePath, name.replace(".", File.separator) + ".class");
     if (!classFile.exists()) { throw new ClassNotFoundException("Can't find class:" + name); }
     // Add the package information
     final int packageIndex = name.lastIndexOf('.') ;
