@@ -345,7 +345,7 @@ public class Tags {
     }
   }
 
-  private void checkClassesToExclude(Class c) throws ApplicationException {
+  private void checkClassToExclude(Class c) throws ApplicationException {
     if (c.isAnonymousClass()) {
       throw new ApplicationException("sorry, you are an AnnonymousClass:" + c.getName());
     }
@@ -373,23 +373,27 @@ public class Tags {
   // and populate ClassItem with its class info,
   // then add them to _classes and _pkgs list
   private ClassItem tagClass(Class c) throws ApplicationException {
-    checkClassesToExclude(c);
+    checkClassToExclude(c);
     String pkgName = c.getPackage().getName();
     if (c.isAnnotation() && c.getName().contains("$")) {
       pkgName = c.getName().substring(0 , c.getName().lastIndexOf('$'));
     }
     PackageItem pkgItem = null;
+    // check if pkgName is in list.
     for (int i = 0; i < _pkgs.size(); i++) {
       if (_pkgs.get(i)._name.equals(pkgName)) {
         pkgItem = _pkgs.get(i);
         break;
       }
     }
+    // if there's no such pkgItem, we create a new one and insert it
+    // into list.
     if (pkgItem == null) {
       pkgItem = new PackageItem();
       pkgItem._name = pkgName;
       _pkgs.add(pkgItem);
     }
+    // then we create a new ClassItem and return it.
     ClassItem cItem = new ClassItem();
     cItem._cls = c;
     cItem._name = c.getSimpleName();
@@ -402,8 +406,8 @@ public class Tags {
     return cItem;
   }
 
-  // maybe there are bugs here, i think i should write it depend on different type,
-  // like annotation enum and so on
+  // maybe there are bugs here, i think i should write it depend on
+  // different type, like annotation enum and so on
   private ClassItemWrapper getClassItemWrapper(Class type) {
     ClassItemWrapper returnType = new ClassItemWrapper();
     if (type.isPrimitive()) {
