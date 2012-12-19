@@ -44,7 +44,8 @@ import java.util.jar.*;
 import java.util.zip.*;
 
 
-/** Make a tags table from the class files in a classpath.
+/**
+ * Make a tags table from the class files in a classpath.
  * The classpath is obtained from the property <code>java.class.path</code>
  *
  * The class names that get output must match the <code>classExcludeRegexPatternArray</code>
