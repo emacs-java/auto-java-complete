@@ -345,6 +345,9 @@ public class Tags {
     }
   }
 
+  /**
+   * Check if this Class c is to be excluded or not.
+   */
   private void checkClassToExclude(Class c) throws ApplicationException {
     if (c.isAnonymousClass()) {
       throw new ApplicationException("sorry, you are an AnnonymousClass:" + c.getName());
@@ -408,13 +411,13 @@ public class Tags {
 
   // maybe there are bugs here, i think i should write it depend on
   // different type, like annotation enum and so on
-  private ClassItemWrapper getClassItemWrapper(Class type) {
+  private ClassItemWrapper getClassItemWrapper(Class clazz) {
     ClassItemWrapper returnType = new ClassItemWrapper();
-    if (type.isPrimitive()) {
-      returnType._alternativeString = type.getName();
-    } else if (type.isArray()) {
-      returnType._alternativeString = type.getName();
-      String typeName = type.getName();
+    if (clazz.isPrimitive()) {
+      returnType._alternativeString = clazz.getName();
+    } else if (clazz.isArray()) {
+      returnType._alternativeString = clazz.getName();
+      String typeName = clazz.getName();
       if (typeName.contains("[I")) {
         String tmp = "int";
         for (int i = 0; i < typeName.length(); i++) {
@@ -471,26 +474,28 @@ public class Tags {
         }
         returnType._alternativeString = className;
       }
-    } else if (type.isAnnotation()) {
-      returnType._alternativeString = type.getName();
+    } else if (clazz.isAnnotation()) {
+      returnType._alternativeString = clazz.getName();
       // do nothing
-    } else if (type.isEnum()) {
-      returnType._alternativeString = type.getName();
+    } else if (clazz.isEnum()) {
+      returnType._alternativeString = clazz.getName();
     } else {
       for (ClassItem ci : _classes) {
-        if (type.getName() != null && type.getName().equals(ci._cls.getName())) {
+        if (clazz.getName() != null && clazz.getName().equals(ci._cls.getName())) {
           returnType._cItem = ci;
           break;
         }
       }
       if (returnType._cItem == null) {
-        returnType._alternativeString = type.getName();
+        returnType._alternativeString = clazz.getName();
       }
     }
     return returnType;
   }
 
-  //tag Field
+  // tag Field
+  // Extract public fields and create and return a list
+  // containing info of those fields.
   private List<MemberItem> tagFields(ClassItem cItem) throws Throwable {
     Field[] fields = cItem._cls.getDeclaredFields();
     List<MemberItem> localMems = new ArrayList<MemberItem>();
@@ -575,7 +580,9 @@ public class Tags {
     try {
       _tagFile.append("don't try to edit this file ,even this line!!!!") ;
       _tagFile.newLine();
-      _tagFile.append("package count=" + _pkgs.size() + "  ,Class count=" + _classes.size() + " , member count(constructor, field, method)= " + _members.size());
+      _tagFile.append("package count=" + _pkgs.size() +
+                      "  ,Class count=" + _classes.size() +
+                      " , member count(constructor, field, method)= " + _members.size());
       _tagFile.newLine();
       _tagFile.append("" + (_shift + 1));
       _tagFile.newLine();
@@ -640,6 +647,7 @@ class PackageItem implements Comparable<PackageItem> {
   int _classStartLineNum;
   int _classEndLineNum;
   Package _pkg;
+
   public int compareTo(PackageItem pkgItem) {
     return _name.compareTo(pkgItem._name);
   }
@@ -870,15 +878,15 @@ class CL extends ClassLoader {
     File classFile = new File(_classBasePath, name.replace(".", File.separator) + ".class");
     if (!classFile.exists()) { throw new ClassNotFoundException("Can't find class:" + name); }
     // Add the package information
-    final int packageIndex = name.lastIndexOf('.') ;
+    final int packageIndex = name.lastIndexOf('.');
     if (packageIndex != -1) {
-      final String packageName = name.substring(0, packageIndex) ;
-      final Package classPackage = getPackage(packageName) ;
+      final String packageName = name.substring(0, packageIndex);
+      final Package classPackage = getPackage(packageName);
       if (classPackage == null) {
-        definePackage(packageName, null, null, null, null, null, null, null) ;
+        definePackage(packageName, null, null, null, null, null, null, null);
       }
     }
-    byte[] classByte = new byte[(int) classFile.length()];
+    byte[] classByte = new byte[(int)classFile.length()];
     FileInputStream fis = null;
     try {
       fis = new FileInputStream(classFile);
