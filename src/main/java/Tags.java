@@ -266,7 +266,7 @@ public class Tags {
           List<MemberItem> localMems = tagConstructors(cItem);
           localMems.addAll(tagMethods(cItem));
           localMems.addAll(tagFields(cItem));
-          cItem.members = localMems;
+          cItem._members = localMems;
         } catch (ApplicationException e) {
           logInfo(e.getMessage());
         } catch (Throwable ex) {
@@ -280,7 +280,7 @@ public class Tags {
 
       for (int i = 0; i < pkg_size; i++) {
         // now pkgs are sorted ,so the line num of the pkg in tag file is the index+1 in pkgs list
-        _pkgs.get(i).lineNum = _shift + i + 1;
+        _pkgs.get(i)._lineNum = _shift + i + 1;
       }
       for (int i = 0; i < classes_size; i++) {
         //the line number of class in tag file is the count of packages
@@ -288,19 +288,19 @@ public class Tags {
         // in this loop ,we will populte the lineNum of each ClassItem and
         // populate the classStartLineNum and classEndLineNum of each package
         cItem = _classes.get(i);
-        cItem.lineNum = _shift + pkg_size + i + 1;
+        cItem._lineNum = _shift + pkg_size + i + 1;
         if (i == 0) {
-          pkgItem = cItem.pkgItem;
-          pkgItem.classStartLineNum = cItem.lineNum;
-        } else if (pkgItem != cItem.pkgItem) {
-          pkgItem.classEndLineNum = cItem.lineNum;
-          pkgItem = cItem.pkgItem;
-          pkgItem.classStartLineNum = cItem.lineNum;
+          pkgItem = cItem._pkgItem;
+          pkgItem._classStartLineNum = cItem._lineNum;
+        } else if (pkgItem != cItem._pkgItem) {
+          pkgItem._classEndLineNum = cItem._lineNum;
+          pkgItem = cItem._pkgItem;
+          pkgItem._classStartLineNum = cItem._lineNum;
         }
       }
       if (cItem != null && pkgItem != null) {
         //TODO: cItem maybe null here ,bugfix
-        pkgItem.classEndLineNum = cItem.lineNum + 1; //populate the last pkgLast
+        pkgItem._classEndLineNum = cItem._lineNum + 1; //populate the last pkgLast
       }
       pkgItem = null ;
       cItem = null;
@@ -308,11 +308,11 @@ public class Tags {
       for (int i = 0; i < classes_size; i++) {
         // in this loop ,we will populate basic info about each member of class into  (exclude)
         cItem = _classes.get(i);
-        cItem.memStartLineNum = _shift + pkg_size + classes_size + _members.size() + 1;
-        if (cItem.members != null) {
-          _members.addAll(cItem.members);
-          cItem.memEndLineNum = cItem.memStartLineNum + cItem.members.size() - 1;
-          cItem.members = null;
+        cItem._memStartLineNum = _shift + pkg_size + classes_size + _members.size() + 1;
+        if (cItem._members != null) {
+          _members.addAll(cItem._members);
+          cItem._memEndLineNum = cItem._memStartLineNum + cItem._members.size() - 1;
+          cItem._members = null;
         }
       }
 
@@ -326,15 +326,15 @@ public class Tags {
         memItem.lineNum = memberLineNum_start + i;
         if (i == 0) {
           cItem = memItem.cItem;
-          cItem.memStartLineNum = memItem.lineNum;
+          cItem._memStartLineNum = memItem.lineNum;
         } else if (cItem != memItem.cItem) {
-          cItem.memEndLineNum = memItem.lineNum;
+          cItem._memEndLineNum = memItem.lineNum;
           cItem = memItem.cItem;
-          cItem.memEndLineNum = memItem.lineNum;
+          cItem._memEndLineNum = memItem.lineNum;
         }
       }
       if (cItem != null && memItem != null) {
-        cItem.memEndLineNum = memItem.lineNum + 1;
+        cItem._memEndLineNum = memItem.lineNum + 1;
       }
       memItem = null;
       cItem = null;
@@ -373,20 +373,20 @@ public class Tags {
     }
     PackageItem pkgItem = null;
     for (int i = 0; i < _pkgs.size(); i++) {
-      if (_pkgs.get(i).name.equals(pkgName)) {
+      if (_pkgs.get(i)._name.equals(pkgName)) {
         pkgItem = _pkgs.get(i);
         break;
       }
     }
     if (pkgItem == null) {
       pkgItem = new PackageItem();
-      pkgItem.name = pkgName;
+      pkgItem._name = pkgName;
       _pkgs.add(pkgItem);
     }
     ClassItem cItem = new ClassItem();
-    cItem.cls = c;
-    cItem.name = c.getSimpleName();
-    cItem.pkgItem = pkgItem;
+    cItem._cls = c;
+    cItem._name = c.getSimpleName();
+    cItem._pkgItem = pkgItem;
     for (ClassItem ci : _classes) {
       if (ci.equals(cItem)) {
         throw new ApplicationException("you have already in ,why come here again! :" + c.getName());
@@ -399,80 +399,80 @@ public class Tags {
   private ClassItemWrapper getClassItemWrapper(Class type) {
     ClassItemWrapper returnType = new ClassItemWrapper();
     if (type.isPrimitive()) {
-      returnType.alternativeString = type.getName();
+      returnType._alternativeString = type.getName();
     } else if (type.isArray()) {
-      returnType.alternativeString = type.getName();
+      returnType._alternativeString = type.getName();
       String typeName = type.getName();
       if (typeName.contains("[I")) {
         String tmp = "int";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType.alternativeString = tmp;
+        returnType._alternativeString = tmp;
       } else if (typeName.contains("[F")) {
         String tmp = "float";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType.alternativeString = tmp;
+        returnType._alternativeString = tmp;
       } else if (typeName.contains("[Z")) {
         String tmp = "boolean";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType.alternativeString = tmp;
+        returnType._alternativeString = tmp;
       } else if (typeName.contains("[J")) {
         String tmp = "long";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType.alternativeString = tmp;
+        returnType._alternativeString = tmp;
       } else if (typeName.contains("[B")) {
         String tmp = "byte";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType.alternativeString = tmp;
+        returnType._alternativeString = tmp;
       } else if (typeName.contains("[C")) {
         String tmp = "char";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType.alternativeString = tmp;
+        returnType._alternativeString = tmp;
       } else if (typeName.contains("[S")) {
         String tmp = "char";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType.alternativeString = tmp;
+        returnType._alternativeString = tmp;
       } else if (typeName.contains("[D")) {
         String tmp = "";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType.alternativeString = tmp;
+        returnType._alternativeString = tmp;
       } else if (typeName.contains("[L")) {
         int index = (typeName.indexOf("[L"));
         String className = typeName.substring(index + 2, typeName.length() - 1);
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { className += "[]"; }
         }
-        returnType.alternativeString = className;
+        returnType._alternativeString = className;
       }
     } else if (type.isAnnotation()) {
-      returnType.alternativeString = type.getName();
+      returnType._alternativeString = type.getName();
       // do nothing
     } else if (type.isEnum()) {
-      returnType.alternativeString = type.getName();
+      returnType._alternativeString = type.getName();
     } else {
       for (ClassItem ci : _classes) {
-        if (type.getName() != null && type.getName().equals(ci.cls.getName())) {
-          returnType.cItem = ci;
+        if (type.getName() != null && type.getName().equals(ci._cls.getName())) {
+          returnType._cItem = ci;
           break;
         }
       }
-      if (returnType.cItem == null) {
-        returnType.alternativeString = type.getName();
+      if (returnType._cItem == null) {
+        returnType._alternativeString = type.getName();
       }
     }
     return returnType;
@@ -480,7 +480,7 @@ public class Tags {
 
   //tag Field
   private List<MemberItem> tagFields(ClassItem cItem) throws Throwable {
-    Field[] fields = cItem.cls.getDeclaredFields();
+    Field[] fields = cItem._cls.getDeclaredFields();
     List<MemberItem> localMems = new ArrayList<MemberItem>();
     for (int i = 0; i < fields.length; i++) {
       if (!Modifier.isPublic(fields[i].getModifiers())) {
@@ -500,7 +500,7 @@ public class Tags {
   }
 
   private List<MemberItem> tagConstructors(ClassItem cItem) throws Throwable {
-    Constructor[] methods = cItem.cls.getDeclaredConstructors();
+    Constructor[] methods = cItem._cls.getDeclaredConstructors();
     List<MemberItem> localMems = new ArrayList<MemberItem>();
     for (int i = 0; i < methods.length; i++) {
       if (!Modifier.isPublic(methods[i].getModifiers())) { continue; }
@@ -534,7 +534,7 @@ public class Tags {
 
   private List<MemberItem> tagMethods(ClassItem cItem) throws Throwable {
     // Method[] methods = cItem.cls.getDeclaredMethods();
-    Method[] methods = cItem.cls.getMethods();
+    Method[] methods = cItem._cls.getMethods();
     List<MemberItem> localMems = new ArrayList<MemberItem>();
     for (int i = 0; i < methods.length; i++) {
       if (!Modifier.isPublic(methods[i].getModifiers())) { continue; }
@@ -623,55 +623,55 @@ public class Tags {
 }
 
 class PackageItem implements Comparable<PackageItem> {
-  String name;
-  int lineNum;
-  int classStartLineNum;
-  int classEndLineNum;
-  Package pkg;
+  String _name;
+  int _lineNum;
+  int _classStartLineNum;
+  int _classEndLineNum;
+  Package _pkg;
   public int compareTo(PackageItem pkgItem) {
-    return this.name.compareTo(pkgItem.name);
+    return _name.compareTo(pkgItem._name);
   }
   public String toString() {
-    return this.name + "`" + this.classStartLineNum + "`" + this.classEndLineNum;
+    return _name + "`" + _classStartLineNum + "`" + _classEndLineNum;
   }
 }
 
-class ClassItem implements Comparable <ClassItem> {
-  String name ;
-  int lineNum;
-  int memStartLineNum;
-  int memEndLineNum;
-  Class cls;
-  PackageItem pkgItem;
-  List<MemberItem> members;
+class ClassItem implements Comparable<ClassItem> {
+  String _name;
+  int _lineNum;
+  int _memStartLineNum;
+  int _memEndLineNum;
+  Class _cls;
+  PackageItem _pkgItem;
+  List<MemberItem> _members;
 
   public int compareTo(ClassItem cItem) {
-    int pkgCmp = this.pkgItem.name.compareTo(cItem.pkgItem.name);
+    int pkgCmp = _pkgItem._name.compareTo(cItem._pkgItem._name);
     if (pkgCmp != 0) { return pkgCmp; }
-    return (this.name.compareTo(cItem.name));
+    return (_name.compareTo(cItem._name));
   }
 
   public int hashCode() {
-    if (this.pkgItem == null || this.pkgItem.name == null) { return this.name.hashCode(); }
-    return (this.name + "." + this.pkgItem.name).hashCode();
+    if (_pkgItem == null || _pkgItem._name == null) { return _name.hashCode(); }
+    return (_name + "." + _pkgItem._name).hashCode();
   }
 
   public boolean equals(Object obj) {
     if (obj == null) { return false; }
     if (!(obj instanceof ClassItem)) { return false; }
-    ClassItem other = (ClassItem) obj;
-    if (this.pkgItem == null && other.pkgItem == null && this.name != null) {
-      return this.name.equals(other.name);
+    ClassItem other = (ClassItem)obj;
+    if (_pkgItem == null && other._pkgItem == null && _name != null) {
+      return _name.equals(other._name);
     }
-    if (this.pkgItem != null && other.pkgItem != null && this.name != null &&
-        this.name.equals(other.name) && this.pkgItem.name != null &&
-        this.pkgItem.name.equals(other.pkgItem.name)) {
+    if (_pkgItem != null && other._pkgItem != null && _name != null &&
+        _name.equals(other._name) && _pkgItem._name != null &&
+        _pkgItem._name.equals(other._pkgItem._name)) {
       return true;
     }
     return false;
   }
   public String toString() {
-    return this.name + "`" + this.pkgItem.lineNum + "`" + this.memStartLineNum + "`" + this.memEndLineNum;
+    return _name + "`" + _pkgItem._lineNum + "`" + _memStartLineNum + "`" + _memEndLineNum;
   }
 }
 
@@ -692,10 +692,10 @@ class MemberItem implements Comparable<MemberItem> {
       //append params
       if (params != null) {
         for (ClassItemWrapper param: params) {
-          if (param.alternativeString != null) {
-            returnStr.append("~" + param.alternativeString + ",");
+          if (param._alternativeString != null) {
+            returnStr.append("~" + param._alternativeString + ",");
           } else {
-            returnStr.append(param.cItem.lineNum + ",");
+            returnStr.append(param._cItem._lineNum + ",");
           }
         }
         if (params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -704,10 +704,10 @@ class MemberItem implements Comparable<MemberItem> {
       //append exceptions
       if (exceptions != null) {
         for (ClassItemWrapper exp: exceptions) {
-          if (exp.alternativeString != null) {
-            returnStr.append("~" + exp.alternativeString + ",");
+          if (exp._alternativeString != null) {
+            returnStr.append("~" + exp._alternativeString + ",");
           } else {
-            returnStr.append(exp.cItem.lineNum + ",");
+            returnStr.append(exp._cItem._lineNum + ",");
           }
         }
         if (exceptions.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -716,31 +716,31 @@ class MemberItem implements Comparable<MemberItem> {
       returnStr.append(" " + name + "`");
       //    returnStr.append(cItem.lineNum+"`");
       //apend the field type
-      if (returnType.alternativeString != null) {
-        returnStr.append("~" + returnType.alternativeString);
+      if (returnType._alternativeString != null) {
+        returnStr.append("~" + returnType._alternativeString);
       } else {
-        returnStr.append(returnType.cItem.lineNum);
+        returnStr.append(returnType._cItem._lineNum);
       }
     } else if (method != null) {
       returnStr.append(name + "`");
       //append returnType
-      if (returnType.alternativeString != null) {
-        returnStr.append("~" + returnType.alternativeString);
+      if (returnType._alternativeString != null) {
+        returnStr.append("~" + returnType._alternativeString);
       } else {
-        if (returnType.cItem == null) {
+        if (returnType._cItem == null) {
           System.out.println("mem.name=" + name);
           System.out.println(method.getDeclaringClass().getName());
         }
-        returnStr.append(returnType.cItem.lineNum);
+        returnStr.append(returnType._cItem._lineNum);
       }
       returnStr.append("`");
       //append params
       if (params != null) {
         for (ClassItemWrapper param: params) {
-          if (param.alternativeString != null) {
-            returnStr.append("~" + param.alternativeString + ",");
+          if (param._alternativeString != null) {
+            returnStr.append("~" + param._alternativeString + ",");
           } else {
-            returnStr.append(param.cItem.lineNum + ",");
+            returnStr.append(param._cItem._lineNum + ",");
           }
         }
         if (params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -749,10 +749,10 @@ class MemberItem implements Comparable<MemberItem> {
       //append exceptions
       if (exceptions != null) {
         for (ClassItemWrapper exp: exceptions) {
-          if (exp.alternativeString != null) {
-            returnStr.append("~" + exp.alternativeString + ",");
+          if (exp._alternativeString != null) {
+            returnStr.append("~" + exp._alternativeString + ",");
           } else {
-            returnStr.append(exp.cItem.lineNum + ",");
+            returnStr.append(exp._cItem._lineNum + ",");
           }
         }
         if (exceptions.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -786,8 +786,8 @@ class MemberItem implements Comparable<MemberItem> {
 }
 
 class ClassItemWrapper {
-  protected ClassItem cItem;
-  String alternativeString;
+  protected ClassItem _cItem;
+  String _alternativeString;
 }
 
 class ApplicationException extends Exception {
