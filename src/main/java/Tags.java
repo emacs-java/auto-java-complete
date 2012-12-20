@@ -54,6 +54,9 @@ import java.util.zip.*;
  * @author joseph <jixiuf@gmail.com>
  */
 public class Tags {
+
+  private static final int SHIFT = 6;
+
   private BufferedWriter _tagFile = null;
   private PrintWriter _logError = null;
   private PrintWriter _logInfo = null;
@@ -62,7 +65,6 @@ public class Tags {
   private List<ClassItem> _classes = new LinkedList<ClassItem>();
   private List<MemberItem> _members = new LinkedList<MemberItem>();
   private String _fileSeparator = System.getProperty("file.separator");
-  private int _shift = 6;
   protected Pattern[] _classExcludeRegexPatternArray = null;
   private File _randomTmpPath = new File(System.getProperty("java.io.tmpdir") +
                                          File.separatorChar +
@@ -283,7 +285,7 @@ public class Tags {
 
       for (int i = 0; i < pkg_size; i++) {
         // now pkgs are sorted ,so the line num of the pkg in tag file is the index+1 in pkgs list
-        _pkgs.get(i)._lineNum = _shift + i + 1;
+        _pkgs.get(i)._lineNum = SHIFT + i + 1;
       }
       for (int i = 0; i < classes_size; i++) {
         //the line number of class in tag file is the count of packages
@@ -291,7 +293,7 @@ public class Tags {
         // in this loop ,we will populte the lineNum of each ClassItem and
         // populate the classStartLineNum and classEndLineNum of each package
         cItem = _classes.get(i);
-        cItem._lineNum = _shift + pkg_size + i + 1;
+        cItem._lineNum = SHIFT + pkg_size + i + 1;
         if (i == 0) {
           pkgItem = cItem._pkgItem;
           pkgItem._classStartLineNum = cItem._lineNum;
@@ -311,7 +313,7 @@ public class Tags {
       for (int i = 0; i < classes_size; i++) {
         // in this loop ,we will populate basic info about each member of class into  (exclude)
         cItem = _classes.get(i);
-        cItem._memStartLineNum = _shift + pkg_size + classes_size + _members.size() + 1;
+        cItem._memStartLineNum = SHIFT + pkg_size + classes_size + _members.size() + 1;
         if (cItem._members != null) {
           _members.addAll(cItem._members);
           cItem._memEndLineNum = cItem._memStartLineNum + cItem._members.size() - 1;
@@ -323,7 +325,7 @@ public class Tags {
 
       MemberItem memItem = null;
       int members_size = _members.size();
-      int memberLineNum_start = _shift + pkg_size + classes_size + 1;
+      int memberLineNum_start = SHIFT + pkg_size + classes_size + 1;
       for (int i = 0; i < members_size; i++) {
         memItem = _members.get(i);
         memItem._lineNum = memberLineNum_start + i;
@@ -585,13 +587,13 @@ public class Tags {
                       "  ,Class count=" + _classes.size() +
                       " , member count(constructor, field, method)= " + _members.size());
       _tagFile.newLine();
-      _tagFile.append("" + (_shift + 1));
+      _tagFile.append("" + (SHIFT + 1));
       _tagFile.newLine();
-      _tagFile.append("" + (_shift + _pkgs.size() + 1));
+      _tagFile.append("" + (SHIFT + _pkgs.size() + 1));
       _tagFile.newLine();
-      _tagFile.append("" + (_shift + _pkgs.size() + _classes.size() + 1));
+      _tagFile.append("" + (SHIFT + _pkgs.size() + _classes.size() + 1));
       _tagFile.newLine();
-      _tagFile.append("" + (_shift + _pkgs.size() + _classes.size() + _members.size() + 1));
+      _tagFile.append("" + (SHIFT + _pkgs.size() + _classes.size() + _members.size() + 1));
       _tagFile.newLine();
       int i = 0;
       for (PackageItem pkgItem : _pkgs) {
