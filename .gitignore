@@ -12,3 +12,4 @@ test/CheckFileExists.java
 *.jar
 test/*
 TODO.txt
+memo.txt
