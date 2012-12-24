@@ -378,7 +378,7 @@ public class Tags {
   // analyze Class c, and populate PackageItem with its package info,
   // and populate ClassItem with its class info,
   // then add them to _classes and _pkgs list
-  private ClassItem tagClass(Class c) throws ApplicationException {
+  protected ClassItem tagClass(Class c) throws ApplicationException {
     checkClassToExclude(c);
     String pkgName = c.getPackage().getName();
     if (c.isAnnotation() && c.getName().contains("$")) {
@@ -395,15 +395,11 @@ public class Tags {
     // if there's no such pkgItem, we create a new one and insert it
     // into list.
     if (pkgItem == null) {
-      pkgItem = new PackageItem();
-      pkgItem._name = pkgName;
+      pkgItem = new PackageItem(pkgName);
       _pkgs.add(pkgItem);
     }
     // then we create a new ClassItem and return it.
-    ClassItem cItem = new ClassItem();
-    cItem._cls = c;
-    cItem._name = c.getSimpleName();
-    cItem._pkgItem = pkgItem;
+    ClassItem cItem = new ClassItem(c, c.getSimpleName(), pkgItem);
     for (ClassItem ci : _classes) {
       if (ci.equals(cItem)) {
         throw new ApplicationException("you have already in, why come here again! :" + c.getName());
@@ -642,6 +638,8 @@ public class Tags {
       }
     }
   }
+
+  public List<PackageItem> getPackages() { return _pkgs; }
 }
 
 class PackageItem implements Comparable<PackageItem> {
@@ -651,12 +649,19 @@ class PackageItem implements Comparable<PackageItem> {
   int _classEndLineNum;
   Package _pkg;
 
+  public PackageItem(String name) {
+    _name = name;
+  }
+
   public int compareTo(PackageItem pkgItem) {
     return _name.compareTo(pkgItem._name);
   }
+
   public String toString() {
     return _name + "`" + _classStartLineNum + "`" + _classEndLineNum;
   }
+
+  public String getName() { return _name; }
 }
 
 class ClassItem implements Comparable<ClassItem> {
@@ -667,6 +672,12 @@ class ClassItem implements Comparable<ClassItem> {
   Class _cls;
   PackageItem _pkgItem;
   List<MemberItem> _members;
+
+  public ClassItem(Class cls, String name, PackageItem pkgItem) {
+    _cls = cls;
+    _name = name;
+    _pkgItem = pkgItem;
+  }
 
   public int compareTo(ClassItem cItem) {
     int pkgCmp = _pkgItem._name.compareTo(cItem._pkgItem._name);
@@ -693,9 +704,15 @@ class ClassItem implements Comparable<ClassItem> {
     }
     return false;
   }
+
   public String toString() {
     return _name + "`" + _pkgItem._lineNum + "`" + _memStartLineNum + "`" + _memEndLineNum;
   }
+
+  public PackageItem getPackageItem() { return _pkgItem; }
+  public String getPackageName() { return _pkgItem.getName(); }
+  public String getName() { return _name; }
+  public Class getClazz() { return _cls; }
 }
 
 class MemberItem implements Comparable<MemberItem> {
