@@ -14,4 +14,14 @@ public class TestTags {
     assertEquals("package name should be java.util", "java.util", cItem.getPackageName());
     assertTrue(tags.getPackages().contains(cItem.getPackageItem()));
   }
+
+  @Test
+  public void testTagClassAssertionClassOk() throws ApplicationException {
+    Tags tags = new Tags();
+    ClassItem cItem = tags.tagClass(org.junit.Test.class);
+    assertEquals(org.junit.Test.class, cItem.getClazz());
+    assertEquals("Test", cItem.getName());
+    assertEquals("org.junit", cItem.getPackageName());
+    assertTrue(tags.getPackages().contains(cItem.getPackageItem()));
+  }
 }
