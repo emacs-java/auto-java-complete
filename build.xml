@@ -26,4 +26,29 @@
       </classpath>
     </javac>
   </target>
+
+  <target name="compile.test" depends="compile.java">
+    <mkdir dir="${target.classes.test.dir}"/>
+    <javac encoding="utf-8" srcdir="${src.test.dir}" destdir="${target.classes.test.dir}"
+           includeantruntime="false" fork="true">
+      <compilerarg value="-J-Duser.language=en"/>
+      <include name="TestTags.java"/>
+      <classpath>
+        <pathelement location="${target.classes.java.dir}"/>
+        <pathelement location="${junit.jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="run.test" depends="compile.test">
+    <junit printsummary="true" fork="true" haltonerror="true" haltonfailure="true">
+      <formatter type="plain" usefile="false"/>
+      <test name="TestTags"/>
+      <classpath>
+        <pathelement location="${target.classes.java.dir}"/>
+        <pathelement location="${target.classes.test.dir}"/>
+        <pathelement location="${junit.jar}"/>
+      </classpath>
+    </junit>
+  </target>
 </project>
