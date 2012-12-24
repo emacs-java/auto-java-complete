@@ -387,7 +387,7 @@ public class Tags {
     PackageItem pkgItem = null;
     // check if pkgName is in list.
     for (int i = 0; i < _pkgs.size(); i++) {
-      if (_pkgs.get(i)._name.equals(pkgName)) {
+      if (_pkgs.get(i).getName().equals(pkgName)) {
         pkgItem = _pkgs.get(i);
         break;
       }
