@@ -74,9 +74,9 @@ public class Tags {
 
   public Tags() {
     try {
-      _tagFile = new BufferedWriter(new FileWriter(new File(getHomePath(), ".java_base.tag"))) ;
-      _logError = new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_error.log")) ;
-      _logInfo = new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_info.log")) ;
+      _tagFile = new BufferedWriter(new FileWriter(new File(getHomePath(), ".java_base.tag")));
+      _logError = new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_error.log"));
+      _logInfo = new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_info.log"));
     } catch (Exception e) {
       System.err.print(e.getMessage());
     }
@@ -307,7 +307,7 @@ public class Tags {
         //TODO: cItem maybe null here ,bugfix
         pkgItem._classEndLineNum = cItem._lineNum + 1; //populate the last pkgLast
       }
-      pkgItem = null ;
+      pkgItem = null;
       cItem = null;
 
       for (int i = 0; i < classes_size; i++) {
@@ -522,7 +522,7 @@ public class Tags {
       if (!Modifier.isPublic(methods[i].getModifiers())) { continue; }
       MemberItem memItem = new MemberItem();
       memItem._constructor = methods[i];
-      String name = methods[i].getName() ;
+      String name = methods[i].getName();
       if (name.contains(".")) {
         memItem._name = name.substring(name.lastIndexOf(".") + 1);
       } else {
@@ -577,7 +577,7 @@ public class Tags {
 
   private void write() {
     try {
-      _tagFile.append("don't try to edit this file ,even this line!!!!") ;
+      _tagFile.append("don't try to edit this file ,even this line!!!!");
       _tagFile.newLine();
       _tagFile.append("package count=" + _pkgs.size() +
                       "  ,Class count=" + _classes.size() +
@@ -720,7 +720,7 @@ class MemberItem implements Comparable<MemberItem> {
   ClassItem _cItem;
   int _lineNum;
   List<ClassItemWrapper> _params;
-  List<ClassItemWrapper> _exceptions ;
+  List<ClassItemWrapper> _exceptions;
   ClassItemWrapper _returnType;
   Field _field;
   Method _method;
