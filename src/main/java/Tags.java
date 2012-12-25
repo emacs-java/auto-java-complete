@@ -328,18 +328,18 @@ public class Tags {
       int memberLineNum_start = SHIFT + pkg_size + classes_size + 1;
       for (int i = 0; i < members_size; i++) {
         memItem = _members.get(i);
-        memItem._lineNum = memberLineNum_start + i;
+        memItem.setLineNum(memberLineNum_start + i);
         if (i == 0) {
-          cItem = memItem._cItem;
-          cItem._memStartLineNum = memItem._lineNum;
-        } else if (cItem != memItem._cItem) {
-          cItem._memEndLineNum = memItem._lineNum;
-          cItem = memItem._cItem;
-          cItem._memEndLineNum = memItem._lineNum;
+          cItem = memItem.getClassItem();
+          cItem._memStartLineNum = memItem.getLineNum();
+        } else if (cItem != memItem.getClassItem()) {
+          cItem._memEndLineNum = memItem.getLineNum();
+          cItem = memItem.getClassItem();
+          cItem._memEndLineNum = memItem.getLineNum();
         }
       }
       if (cItem != null && memItem != null) {
-        cItem._memEndLineNum = memItem._lineNum + 1;
+        cItem._memEndLineNum = memItem.getLineNum() + 1;
       }
       memItem = null;
       cItem = null;
@@ -503,45 +503,37 @@ public class Tags {
         continue;
       }
       Class fieldType = (Class)fields[i].getType();
-      ClassItemWrapper returnType = getClassItemWrapper(fieldType);
-      MemberItem memItem = new MemberItem();
-      memItem._cItem = cItem;
-      memItem._name = fields[i].getName();
-      memItem._returnType = returnType;
-      memItem._field = fields[i];
+      MemberItem memItem = new MemberItem(fields[i], fields[i].getName(), cItem);
+      memItem.setReturnType(getClassItemWrapper(fieldType));
       localMems.add(memItem);
     }
     Collections.sort(localMems);
     return localMems;
   }
 
-  private List<MemberItem> tagConstructors(ClassItem cItem) throws Throwable {
-    Constructor[] methods = cItem._cls.getDeclaredConstructors();
+  protected List<MemberItem> tagConstructors(ClassItem cItem) throws Throwable {
+    Constructor[] methods = cItem.getCls().getDeclaredConstructors();
     List<MemberItem> localMems = new ArrayList<MemberItem>();
     for (int i = 0; i < methods.length; i++) {
       if (!Modifier.isPublic(methods[i].getModifiers())) { continue; }
-      MemberItem memItem = new MemberItem();
-      memItem._constructor = methods[i];
       String name = methods[i].getName();
       if (name.contains(".")) {
-        memItem._name = name.substring(name.lastIndexOf(".") + 1);
-      } else {
-        memItem._name = name;
+        name = name.substring(name.lastIndexOf(".") + 1);
       }
-      memItem._cItem = cItem;
+      MemberItem memItem = new MemberItem(methods[i], name, cItem);
       Class[] params = methods[i].getParameterTypes();
       List<ClassItemWrapper> paramsKV = new ArrayList<ClassItemWrapper>();
       for (Class param : params) {
         paramsKV.add(getClassItemWrapper(param));
       }
-      memItem._params = paramsKV;
+      memItem.setParams(paramsKV);
 
       Class[] exceptions = methods[i].getExceptionTypes();
       List<ClassItemWrapper> exceptionsKV = new ArrayList<ClassItemWrapper>();
       for (Class e : exceptions) {
         exceptionsKV.add(getClassItemWrapper(e));
       }
-      memItem._exceptions = exceptionsKV;
+      memItem.setExceptions(exceptionsKV);
       localMems.add(memItem);
     }
     Collections.sort(localMems);
@@ -554,21 +546,18 @@ public class Tags {
     List<MemberItem> localMems = new ArrayList<MemberItem>();
     for (int i = 0; i < methods.length; i++) {
       if (!Modifier.isPublic(methods[i].getModifiers())) { continue; }
-      MemberItem memItem = new MemberItem();
-      memItem._method = methods[i];
-      memItem._name = methods[i].getName();
-      memItem._cItem = cItem;
-      memItem._returnType = getClassItemWrapper(methods[i].getReturnType());
+      MemberItem memItem = new MemberItem(methods[i], methods[i].getName(), cItem);
+      memItem.setReturnType(getClassItemWrapper(methods[i].getReturnType()));
 
       Class[] params = methods[i].getParameterTypes();
       List<ClassItemWrapper> paramsKV = new ArrayList<ClassItemWrapper>();
       for (Class param: params) { paramsKV.add(getClassItemWrapper(param)); }
-      memItem._params = paramsKV;
+      memItem.setParams(paramsKV);
 
       Class[] exceptions = methods[i].getExceptionTypes();
       List<ClassItemWrapper> exceptionsKV = new ArrayList<ClassItemWrapper>();
       for (Class e: exceptions) { exceptionsKV.add(getClassItemWrapper(e)); }
-      memItem._exceptions = exceptionsKV;
+      memItem.setExceptions(exceptionsKV);
       localMems.add(memItem);
     }
     Collections.sort(localMems);
@@ -712,19 +701,47 @@ class ClassItem implements Comparable<ClassItem> {
   public PackageItem getPackageItem() { return _pkgItem; }
   public String getPackageName() { return _pkgItem.getName(); }
   public String getName() { return _name; }
-  public Class getClazz() { return _cls; }
+  public Class getCls() { return _cls; }
 }
 
 class MemberItem implements Comparable<MemberItem> {
-  String _name;
-  ClassItem _cItem;
-  int _lineNum;
-  List<ClassItemWrapper> _params;
-  List<ClassItemWrapper> _exceptions;
-  ClassItemWrapper _returnType;
-  Field _field;
-  Method _method;
-  Constructor _constructor;
+  private String _name;
+  private ClassItem _cItem;
+  private int _lineNum;
+  private List<ClassItemWrapper> _params;
+  private List<ClassItemWrapper> _exceptions;
+  private ClassItemWrapper _returnType;
+  private Field _field;
+  private Method _method;
+  private Constructor _constructor;
+
+  public MemberItem(Method method, String name, ClassItem cItem) {
+    _method = method;
+    _name = name;
+    _cItem = cItem;
+  }
+
+  public MemberItem(Constructor constructor, String name, ClassItem cItem) {
+    _constructor = constructor;
+    _name = name;
+    _cItem = cItem;
+  }
+
+  public MemberItem(Field field, String name, ClassItem cItem) {
+    _field = field;
+    _name = name;
+    _cItem = cItem;
+  }
+
+  public void setParams(List<ClassItemWrapper> params) { _params = params; }
+  public void setExceptions(List<ClassItemWrapper> exceptions) { _exceptions = exceptions; }
+  public void setReturnType(ClassItemWrapper returnType) { _returnType = returnType; }
+  public void setLineNum(int lineNum) { _lineNum = lineNum; }
+
+  public int getLineNum() { return _lineNum; }
+  public ClassItem getClassItem() { return _cItem; }
+  public String getName() { return _name; }
+  public List<ClassItemWrapper> getParams() { return _params; }
 
   public String toString() {
     StringBuffer returnStr = new StringBuffer();
@@ -829,6 +846,9 @@ class MemberItem implements Comparable<MemberItem> {
 class ClassItemWrapper {
   protected ClassItem _cItem;
   String _alternativeString;
+
+  public ClassItem getClassItem() { return _cItem; }
+  public String getAlternativeString() { return _alternativeString; }
 }
 
 class ApplicationException extends Exception {
