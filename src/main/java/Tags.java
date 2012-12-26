@@ -540,7 +540,7 @@ public class Tags {
     return localMems;
   }
 
-  private List<MemberItem> tagMethods(ClassItem cItem) throws Throwable {
+  protected List<MemberItem> tagMethods(ClassItem cItem) throws Throwable {
     // Method[] methods = cItem.cls.getDeclaredMethods();
     Method[] methods = cItem._cls.getMethods();
     List<MemberItem> localMems = new ArrayList<MemberItem>();
@@ -548,7 +548,6 @@ public class Tags {
       if (!Modifier.isPublic(methods[i].getModifiers())) { continue; }
       MemberItem memItem = new MemberItem(methods[i], methods[i].getName(), cItem);
       memItem.setReturnType(getClassItemWrapper(methods[i].getReturnType()));
-
       Class[] params = methods[i].getParameterTypes();
       List<ClassItemWrapper> paramsKV = new ArrayList<ClassItemWrapper>();
       for (Class param: params) { paramsKV.add(getClassItemWrapper(param)); }
@@ -668,6 +667,12 @@ class ClassItem implements Comparable<ClassItem> {
     _pkgItem = pkgItem;
   }
 
+  public ClassItem(Class cls) {
+    _cls = cls;
+    _name = cls.getSimpleName();
+    _pkgItem = new PackageItem(cls.getPackage().getName());
+  }
+
   public int compareTo(ClassItem cItem) {
     int pkgCmp = _pkgItem._name.compareTo(cItem._pkgItem._name);
     if (pkgCmp != 0) { return pkgCmp; }
@@ -742,6 +747,7 @@ class MemberItem implements Comparable<MemberItem> {
   public ClassItem getClassItem() { return _cItem; }
   public String getName() { return _name; }
   public List<ClassItemWrapper> getParams() { return _params; }
+  public Method getMethod() { return _method; }
 
   public String toString() {
     StringBuffer returnStr = new StringBuffer();
