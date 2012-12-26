@@ -10,10 +10,14 @@ import static org.junit.Assert.fail;
 
 public class TestTags {
   private Tags _tags;
+  private Class<?> _someClass;
+  private ClassItem _someClassItem;
 
   @Before
   public void setUp() {
     _tags = new Tags();
+    _someClass = ajc.somepackage.SomeClass.class;
+    _someClassItem = new ClassItem(_someClass);
   }
 
   @Test
@@ -64,9 +68,7 @@ public class TestTags {
 
   @Test
   public void testTagMethodsOk() throws Throwable {
-    Class<?> someClass = ajc.somepackage.SomeClass.class;
-    ClassItem classItem = new ClassItem(someClass);
-    List<MemberItem> memberItems = _tags.tagMethods(classItem);
+    List<MemberItem> memberItems = _tags.tagMethods(_someClassItem);
     ArrayList<String> methodNames = new ArrayList<>();
     // collect method fully-qualified names
     for (MemberItem item : memberItems) {
@@ -82,5 +84,18 @@ public class TestTags {
       assertTrue(String.format("%s should be in memberItems", name),
                  methodNames.contains(name));
     }
+  }
+
+  @Test
+  public void testTagFieldsOk() throws Throwable {
+    List<MemberItem> memberItems = _tags.tagFields(_someClassItem);
+    assertEquals("class SomeClass has only one public field",
+                 1, memberItems.size());
+    assertEquals("The name should be CONSTAND",
+                 "CONSTANT", memberItems.get(0).getName());
+    assertEquals("The name of the class is SomeClass",
+                 "SomeClass", memberItems.get(0).getClassItem().getName());
+    assertEquals("The typename of this field should be int",
+                 "int", memberItems.get(0).getReturnType().getAlternativeString());
   }
 }
