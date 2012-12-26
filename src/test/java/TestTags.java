@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 public class TestTags {
@@ -59,5 +60,27 @@ public class TestTags {
     assertEquals("int", allParams.get(2).get(1).getAlternativeString());
     // Vector(java.util.Collection)
     assertEquals("java.util.Collection", allParams.get(3).get(0).getAlternativeString());
+  }
+
+  @Test
+  public void testTagMethodsOk() throws Throwable {
+    Class<?> someClass = ajc.somepackage.SomeClass.class;
+    ClassItem classItem = new ClassItem(someClass);
+    List<MemberItem> memberItems = _tags.tagMethods(classItem);
+    ArrayList<String> methodNames = new ArrayList<>();
+    // collect method fully-qualified names
+    for (MemberItem item : memberItems) {
+      methodNames.add(item.getMethod().toString());
+    }
+    // create a list with method fully-qualified names in SomeClass.java
+    ArrayList<String> methodNamesInSource = new ArrayList<>();
+    methodNamesInSource.add("public int ajc.somepackage.SomeClass.getIntField()");
+    methodNamesInSource.add("public java.lang.String ajc.somepackage.SomeClass.getStrField()");
+    methodNamesInSource.add("public static void ajc.somepackage.SomeClass.main(java.lang.String[])");
+
+    for (String name : methodNamesInSource) {
+      assertTrue(String.format("%s should be in memberItems", name),
+                 methodNames.contains(name));
+    }
   }
 }
