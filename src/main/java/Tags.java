@@ -496,7 +496,7 @@ public class Tags {
   // Extract public fields and create and return a list
   // containing info of those fields.
   private List<MemberItem> tagFields(ClassItem cItem) throws Throwable {
-    Field[] fields = cItem._cls.getDeclaredFields();
+    Field[] fields = cItem.getCls().getDeclaredFields();
     List<MemberItem> localMems = new ArrayList<MemberItem>();
     for (int i = 0; i < fields.length; i++) {
       if (!Modifier.isPublic(fields[i].getModifiers())) {
@@ -542,7 +542,7 @@ public class Tags {
 
   protected List<MemberItem> tagMethods(ClassItem cItem) throws Throwable {
     // Method[] methods = cItem.cls.getDeclaredMethods();
-    Method[] methods = cItem._cls.getMethods();
+    Method[] methods = cItem.getCls().getMethods();
     List<MemberItem> localMems = new ArrayList<MemberItem>();
     for (int i = 0; i < methods.length; i++) {
       if (!Modifier.isPublic(methods[i].getModifiers())) { continue; }
