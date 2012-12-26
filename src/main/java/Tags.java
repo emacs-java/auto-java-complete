@@ -495,7 +495,7 @@ public class Tags {
   // tag Field
   // Extract public fields and create and return a list
   // containing info of those fields.
-  private List<MemberItem> tagFields(ClassItem cItem) throws Throwable {
+  protected List<MemberItem> tagFields(ClassItem cItem) throws Throwable {
     Field[] fields = cItem.getCls().getDeclaredFields();
     List<MemberItem> localMems = new ArrayList<MemberItem>();
     for (int i = 0; i < fields.length; i++) {
@@ -713,9 +713,9 @@ class MemberItem implements Comparable<MemberItem> {
   private String _name;
   private ClassItem _cItem;
   private int _lineNum;
-  private List<ClassItemWrapper> _params;
-  private List<ClassItemWrapper> _exceptions;
-  private ClassItemWrapper _returnType;
+  private List<ClassItemWrapper> _params;     // used for constructors and methods
+  private List<ClassItemWrapper> _exceptions; // used for constructors and methods
+  private ClassItemWrapper _returnType;       // typename of fields, return value
   private Field _field;
   private Method _method;
   private Constructor _constructor;
@@ -748,6 +748,7 @@ class MemberItem implements Comparable<MemberItem> {
   public String getName() { return _name; }
   public List<ClassItemWrapper> getParams() { return _params; }
   public Method getMethod() { return _method; }
+  public ClassItemWrapper getReturnType() { return _returnType; }
 
   public String toString() {
     StringBuffer returnStr = new StringBuffer();
