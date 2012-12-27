@@ -65,12 +65,20 @@ public class Tags {
   private List<ClassItem> _classes = new LinkedList<ClassItem>();
   private List<MemberItem> _members = new LinkedList<MemberItem>();
   private String _fileSeparator = System.getProperty("file.separator");
-  protected Pattern[] _classExcludeRegexPatternArray = null;
+  private Pattern[] _classExcludeRegexPatternArray = null;
   private File _randomTmpPath = new File(System.getProperty("java.io.tmpdir") +
                                          File.separatorChar +
                                          UUID.randomUUID().toString() +
                                          File.separatorChar);
   private ClassLoader _cl = new CL(_randomTmpPath);
+
+  public Pattern[] getClassExcludeRegexPatternArray() { return _classExcludeRegexPatternArray; }
+  public void setClassExcludeRegexPatternArray(Pattern[] patternArray) {
+    _classExcludeRegexPatternArray = patternArray;
+  }
+  public void setClassExcludeRegexPatternArray(int m, Pattern pattern) {
+    _classExcludeRegexPatternArray[m] = pattern;
+  }
 
   public Tags() {
     try {
