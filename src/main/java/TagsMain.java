@@ -3,7 +3,36 @@ import java.io.File;
 import java.util.regex.Pattern;
 
 public class TagsMain {
-  public static void main(String[] argv) throws Exception {
+  // for debug purpose, set it to 3 sec
+  private static final int SLEEP_TIME = 3000;
+
+  private Tags _tags = new Tags();
+
+  public static void main(String[] args) throws Exception {
+    new TagsMain().run(args);
+    System.exit(0);
+  }
+
+  public void run(String[] args) throws Exception {
+    printStartMessage();
+    try {
+      System.out.println(String.format("sleep %s seconds...", SLEEP_TIME));
+      Thread.sleep(SLEEP_TIME);
+    } catch (Exception ex) {}
+
+    if (args.length > 0) {
+      String[] regexs = args[0].split(",");
+      _tags.setClassExcludeRegexPatternArray(new Pattern[regexs.length]);
+      for (int m = 0; m < _tags.getClassExcludeRegexPatternArray().length; m++) {
+        _tags.setClassExcludeRegexPatternArray(
+          m, Pattern.compile(regexs[m].replaceAll("\"", "").replaceAll("'", "")));
+      }
+    }
+    _tags.process();
+    printEndMessage();
+  }
+
+  private void printStartMessage() {
     System.out.println(
       "*****************************************************************\n" +
       "**   this program will need about 3 to 15 min,                  **\n" +
@@ -37,22 +66,9 @@ public class TagsMain {
       "***  before that you'd better backup the  file ~/.java_base.tag,if exists                ***\n" +
       "*******************************************************************************************\n\n"
       );
-    try {
-      System.out.println("sleep 20 seconds...");
-      // for debug purpose, set it to 3 sec
-      Thread.sleep(3000);
-    } catch (Exception ex) {}
+  }
 
-    Tags tags = new Tags();
-    if (argv.length > 0) {
-      String[] regexs = argv[0].split(",");
-      tags._classExcludeRegexPatternArray = new Pattern[regexs.length];
-      for (int m = 0; m < tags._classExcludeRegexPatternArray.length; m++) {
-        tags._classExcludeRegexPatternArray[m] = Pattern.compile(regexs[m].replaceAll("\"" , "").replaceAll("'" , ""));
-      }
-    }
-    tags.process() ;
-
+  private void printEndMessage() {
     System.out.println(
       "\n******************************************************************************************\n" +
       "***                  exit successful!!!                                                  ***\n" +
@@ -61,7 +77,6 @@ public class TagsMain {
       "*** .java_base.tag  is too small ,that means your CLASSPATH don't configure correctly.   ***\n" +
       "********************************************************************************************\n"
       );
-    System.out.println(new File(tags.getHomePath(), ".java_base.tag").getAbsolutePath());
-    System.exit(0);
+    System.out.println(new File(_tags.getHomePath(), ".java_base.tag").getAbsolutePath());
   }
 }
