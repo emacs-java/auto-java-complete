@@ -271,7 +271,7 @@ public class Tags {
           List<MemberItem> localMems = tagConstructors(cItem);
           localMems.addAll(tagMethods(cItem));
           localMems.addAll(tagFields(cItem));
-          cItem._members = localMems;
+          cItem.setMembers(localMems);
         } catch (ApplicationException e) {
           logInfo(e.getMessage());
         } catch (Throwable ex) {
@@ -293,19 +293,19 @@ public class Tags {
         // in this loop ,we will populte the lineNum of each ClassItem and
         // populate the classStartLineNum and classEndLineNum of each package
         cItem = _classes.get(i);
-        cItem._lineNum = SHIFT + pkg_size + i + 1;
+        cItem.setLineNum(SHIFT + pkg_size + i + 1);
         if (i == 0) {
-          pkgItem = cItem._pkgItem;
-          pkgItem.setClassStartLineNum(cItem._lineNum);
-        } else if (pkgItem != cItem._pkgItem) {
-          pkgItem.setClassEndLineNum(cItem._lineNum);
-          pkgItem = cItem._pkgItem;
-          pkgItem.setClassStartLineNum(cItem._lineNum);
+          pkgItem = cItem.getPackageItem();
+          pkgItem.setClassStartLineNum(cItem.getLineNum());
+        } else if (pkgItem != cItem.getPackageItem()) {
+          pkgItem.setClassEndLineNum(cItem.getLineNum());
+          pkgItem = cItem.getPackageItem();
+          pkgItem.setClassStartLineNum(cItem.getLineNum());
         }
       }
       if (cItem != null && pkgItem != null) {
         //TODO: cItem maybe null here ,bugfix
-        pkgItem.setClassEndLineNum(cItem._lineNum + 1); //populate the last pkgLast
+        pkgItem.setClassEndLineNum(cItem.getLineNum() + 1); //populate the last pkgLast
       }
       pkgItem = null;
       cItem = null;
@@ -313,11 +313,11 @@ public class Tags {
       for (int i = 0; i < classes_size; i++) {
         // in this loop ,we will populate basic info about each member of class into  (exclude)
         cItem = _classes.get(i);
-        cItem._memStartLineNum = SHIFT + pkg_size + classes_size + _members.size() + 1;
-        if (cItem._members != null) {
-          _members.addAll(cItem._members);
-          cItem._memEndLineNum = cItem._memStartLineNum + cItem._members.size() - 1;
-          cItem._members = null;
+        cItem.setMemStartLineNum(SHIFT + pkg_size + classes_size + _members.size() + 1);
+        if (cItem.getMembers() != null) {
+          _members.addAll(cItem.getMembers());
+          cItem.setMemEndLineNum(cItem.getMemStartLineNum() + cItem.getMembers().size() - 1);
+          cItem.setMembers(null);
         }
       }
 
@@ -331,15 +331,15 @@ public class Tags {
         memItem.setLineNum(memberLineNum_start + i);
         if (i == 0) {
           cItem = memItem.getClassItem();
-          cItem._memStartLineNum = memItem.getLineNum();
+          cItem.setMemStartLineNum(memItem.getLineNum());
         } else if (cItem != memItem.getClassItem()) {
-          cItem._memEndLineNum = memItem.getLineNum();
+          cItem.setMemEndLineNum(memItem.getLineNum());
           cItem = memItem.getClassItem();
-          cItem._memEndLineNum = memItem.getLineNum();
+          cItem.setMemEndLineNum(memItem.getLineNum());
         }
       }
       if (cItem != null && memItem != null) {
-        cItem._memEndLineNum = memItem.getLineNum() + 1;
+        cItem.setMemEndLineNum(memItem.getLineNum() + 1);
       }
       memItem = null;
       cItem = null;
@@ -480,7 +480,7 @@ public class Tags {
       returnType._alternativeString = clazz.getName();
     } else {
       for (ClassItem ci : _classes) {
-        if (clazz.getName() != null && clazz.getName().equals(ci._cls.getName())) {
+        if (clazz.getName() != null && clazz.getName().equals(ci.getCls().getName())) {
           returnType._cItem = ci;
           break;
         }
@@ -660,13 +660,23 @@ class PackageItem implements Comparable<PackageItem> {
 }
 
 class ClassItem implements Comparable<ClassItem> {
-  String _name;
-  int _lineNum;
-  int _memStartLineNum;
-  int _memEndLineNum;
-  Class _cls;
-  PackageItem _pkgItem;
-  List<MemberItem> _members;
+  private String _name;
+  private int _lineNum;
+  private int _memStartLineNum;
+  private int _memEndLineNum;
+  private Class _cls;
+  private PackageItem _pkgItem;
+  private List<MemberItem> _members;
+
+  public void setMembers(List<MemberItem> members) { _members = members; }
+  public void setMemStartLineNum(int memStartLineNum) { _memStartLineNum = memStartLineNum; }
+  public void setMemEndLineNum(int memEndLineNum) { _memEndLineNum = memEndLineNum; }
+  public void setLineNum(int lineNum)  { _lineNum = lineNum; }
+
+  public int getLineNum() { return _lineNum; }
+  public int getMemStartLineNum() { return _memStartLineNum; }
+  public int getMemEndLineNum() { return _memEndLineNum; }
+  public List<MemberItem> getMembers() { return _members; }
 
   public ClassItem(Class cls, String name, PackageItem pkgItem) {
     _cls = cls;
@@ -767,7 +777,7 @@ class MemberItem implements Comparable<MemberItem> {
           if (param._alternativeString != null) {
             returnStr.append("~" + param._alternativeString + ",");
           } else {
-            returnStr.append(param._cItem._lineNum + ",");
+            returnStr.append(param._cItem.getLineNum() + ",");
           }
         }
         if (_params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -779,7 +789,7 @@ class MemberItem implements Comparable<MemberItem> {
           if (exp._alternativeString != null) {
             returnStr.append("~" + exp._alternativeString + ",");
           } else {
-            returnStr.append(exp._cItem._lineNum + ",");
+            returnStr.append(exp._cItem.getLineNum() + ",");
           }
         }
         if (_exceptions.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -791,7 +801,7 @@ class MemberItem implements Comparable<MemberItem> {
       if (_returnType._alternativeString != null) {
         returnStr.append("~" + _returnType._alternativeString);
       } else {
-        returnStr.append(_returnType._cItem._lineNum);
+        returnStr.append(_returnType._cItem.getLineNum());
       }
     } else if (_method != null) {
       returnStr.append(_name + "`");
@@ -803,7 +813,7 @@ class MemberItem implements Comparable<MemberItem> {
           System.out.println("mem.name=" + _name);
           System.out.println(_method.getDeclaringClass().getName());
         }
-        returnStr.append(_returnType._cItem._lineNum);
+        returnStr.append(_returnType._cItem.getLineNum());
       }
       returnStr.append("`");
       //append params
@@ -812,7 +822,7 @@ class MemberItem implements Comparable<MemberItem> {
           if (param._alternativeString != null) {
             returnStr.append("~" + param._alternativeString + ",");
           } else {
-            returnStr.append(param._cItem._lineNum + ",");
+            returnStr.append(param._cItem.getLineNum() + ",");
           }
         }
         if (_params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -824,7 +834,7 @@ class MemberItem implements Comparable<MemberItem> {
           if (exp._alternativeString != null) {
             returnStr.append("~" + exp._alternativeString + ",");
           } else {
-            returnStr.append(exp._cItem._lineNum + ",");
+            returnStr.append(exp._cItem.getLineNum() + ",");
           }
         }
         if (_exceptions.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
