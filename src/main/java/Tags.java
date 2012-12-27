@@ -285,7 +285,7 @@ public class Tags {
 
       for (int i = 0; i < pkg_size; i++) {
         // now pkgs are sorted ,so the line num of the pkg in tag file is the index+1 in pkgs list
-        _pkgs.get(i)._lineNum = SHIFT + i + 1;
+        _pkgs.get(i).setLineNum(SHIFT + i + 1);
       }
       for (int i = 0; i < classes_size; i++) {
         //the line number of class in tag file is the count of packages
@@ -296,16 +296,16 @@ public class Tags {
         cItem._lineNum = SHIFT + pkg_size + i + 1;
         if (i == 0) {
           pkgItem = cItem._pkgItem;
-          pkgItem._classStartLineNum = cItem._lineNum;
+          pkgItem.setClassStartLineNum(cItem._lineNum);
         } else if (pkgItem != cItem._pkgItem) {
-          pkgItem._classEndLineNum = cItem._lineNum;
+          pkgItem.setClassEndLineNum(cItem._lineNum);
           pkgItem = cItem._pkgItem;
-          pkgItem._classStartLineNum = cItem._lineNum;
+          pkgItem.setClassStartLineNum(cItem._lineNum);
         }
       }
       if (cItem != null && pkgItem != null) {
         //TODO: cItem maybe null here ,bugfix
-        pkgItem._classEndLineNum = cItem._lineNum + 1; //populate the last pkgLast
+        pkgItem.setClassEndLineNum(cItem._lineNum + 1); //populate the last pkgLast
       }
       pkgItem = null;
       cItem = null;
@@ -631,11 +631,11 @@ public class Tags {
 }
 
 class PackageItem implements Comparable<PackageItem> {
-  String _name;
-  int _lineNum;
-  int _classStartLineNum;
-  int _classEndLineNum;
-  Package _pkg;
+  private String _name;
+  private int _lineNum;
+  private int _classStartLineNum;
+  private int _classEndLineNum;
+  private Package _pkg;
 
   public PackageItem(String name) {
     _name = name;
@@ -650,6 +650,13 @@ class PackageItem implements Comparable<PackageItem> {
   }
 
   public String getName() { return _name; }
+  public int getLineNum() { return _lineNum; }
+
+  public void setLineNum(int lineNum) { _lineNum = lineNum; }
+  public void setClassStartLineNum(int classStartLineNum) {
+    _classStartLineNum = classStartLineNum;
+  }
+  public void setClassEndLineNum(int classEndLineNum) { _classEndLineNum = classEndLineNum; }
 }
 
 class ClassItem implements Comparable<ClassItem> {
@@ -674,14 +681,14 @@ class ClassItem implements Comparable<ClassItem> {
   }
 
   public int compareTo(ClassItem cItem) {
-    int pkgCmp = _pkgItem._name.compareTo(cItem._pkgItem._name);
+    int pkgCmp = _pkgItem.getName().compareTo(cItem._pkgItem.getName());
     if (pkgCmp != 0) { return pkgCmp; }
     return (_name.compareTo(cItem._name));
   }
 
   public int hashCode() {
-    if (_pkgItem == null || _pkgItem._name == null) { return _name.hashCode(); }
-    return (_name + "." + _pkgItem._name).hashCode();
+    if (_pkgItem == null || _pkgItem.getName() == null) { return _name.hashCode(); }
+    return (_name + "." + _pkgItem.getName()).hashCode();
   }
 
   public boolean equals(Object obj) {
@@ -692,15 +699,15 @@ class ClassItem implements Comparable<ClassItem> {
       return _name.equals(other._name);
     }
     if (_pkgItem != null && other._pkgItem != null && _name != null &&
-        _name.equals(other._name) && _pkgItem._name != null &&
-        _pkgItem._name.equals(other._pkgItem._name)) {
+        _name.equals(other._name) && _pkgItem.getName() != null &&
+        _pkgItem.getName().equals(other._pkgItem.getName())) {
       return true;
     }
     return false;
   }
 
   public String toString() {
-    return _name + "`" + _pkgItem._lineNum + "`" + _memStartLineNum + "`" + _memEndLineNum;
+    return _name + "`" + _pkgItem.getLineNum() + "`" + _memStartLineNum + "`" + _memEndLineNum;
   }
 
   public PackageItem getPackageItem() { return _pkgItem; }
