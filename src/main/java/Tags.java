@@ -413,80 +413,80 @@ public class Tags {
   private ClassItemWrapper getClassItemWrapper(Class clazz) {
     ClassItemWrapper returnType = new ClassItemWrapper();
     if (clazz.isPrimitive()) {
-      returnType._alternativeString = clazz.getName();
+      returnType.setAlternativeString(clazz.getName());
     } else if (clazz.isArray()) {
-      returnType._alternativeString = clazz.getName();
+      returnType.setAlternativeString(clazz.getName());
       String typeName = clazz.getName();
       if (typeName.contains("[I")) {
         String tmp = "int";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType._alternativeString = tmp;
+        returnType.setAlternativeString(tmp);
       } else if (typeName.contains("[F")) {
         String tmp = "float";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType._alternativeString = tmp;
+        returnType.setAlternativeString(tmp);
       } else if (typeName.contains("[Z")) {
         String tmp = "boolean";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType._alternativeString = tmp;
+        returnType.setAlternativeString(tmp);
       } else if (typeName.contains("[J")) {
         String tmp = "long";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType._alternativeString = tmp;
+        returnType.setAlternativeString(tmp);
       } else if (typeName.contains("[B")) {
         String tmp = "byte";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType._alternativeString = tmp;
+        returnType.setAlternativeString(tmp);
       } else if (typeName.contains("[C")) {
         String tmp = "char";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType._alternativeString = tmp;
+        returnType.setAlternativeString(tmp);
       } else if (typeName.contains("[S")) {
         String tmp = "char";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType._alternativeString = tmp;
+        returnType.setAlternativeString(tmp);
       } else if (typeName.contains("[D")) {
         String tmp = "";
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { tmp += "[]"; }
         }
-        returnType._alternativeString = tmp;
+        returnType.setAlternativeString(tmp);
       } else if (typeName.contains("[L")) {
         int index = (typeName.indexOf("[L"));
         String className = typeName.substring(index + 2, typeName.length() - 1);
         for (int i = 0; i < typeName.length(); i++) {
           if (typeName.charAt(i) == '[') { className += "[]"; }
         }
-        returnType._alternativeString = className;
+        returnType.setAlternativeString(className);
       }
     } else if (clazz.isAnnotation()) {
-      returnType._alternativeString = clazz.getName();
+      returnType.setAlternativeString(clazz.getName());
       // do nothing
     } else if (clazz.isEnum()) {
-      returnType._alternativeString = clazz.getName();
+      returnType.setAlternativeString(clazz.getName());
     } else {
       for (ClassItem ci : _classes) {
         if (clazz.getName() != null && clazz.getName().equals(ci.getCls().getName())) {
-          returnType._cItem = ci;
+          returnType.setClassItem(ci);
           break;
         }
       }
-      if (returnType._cItem == null) {
-        returnType._alternativeString = clazz.getName();
+      if (returnType.getClassItem() == null) {
+        returnType.setAlternativeString(clazz.getName());
       }
     }
     return returnType;
@@ -774,10 +774,10 @@ class MemberItem implements Comparable<MemberItem> {
       //append params
       if (_params != null) {
         for (ClassItemWrapper param: _params) {
-          if (param._alternativeString != null) {
-            returnStr.append("~" + param._alternativeString + ",");
+          if (param.getAlternativeString() != null) {
+            returnStr.append("~" + param.getAlternativeString() + ",");
           } else {
-            returnStr.append(param._cItem.getLineNum() + ",");
+            returnStr.append(param.getClassItem().getLineNum() + ",");
           }
         }
         if (_params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -786,10 +786,10 @@ class MemberItem implements Comparable<MemberItem> {
       //append exceptions
       if (_exceptions != null) {
         for (ClassItemWrapper exp : _exceptions) {
-          if (exp._alternativeString != null) {
-            returnStr.append("~" + exp._alternativeString + ",");
+          if (exp.getAlternativeString() != null) {
+            returnStr.append("~" + exp.getAlternativeString() + ",");
           } else {
-            returnStr.append(exp._cItem.getLineNum() + ",");
+            returnStr.append(exp.getClassItem().getLineNum() + ",");
           }
         }
         if (_exceptions.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -798,31 +798,31 @@ class MemberItem implements Comparable<MemberItem> {
       returnStr.append(" " + _name + "`");
       //    returnStr.append(cItem.lineNum+"`");
       //apend the field type
-      if (_returnType._alternativeString != null) {
-        returnStr.append("~" + _returnType._alternativeString);
+      if (_returnType.getAlternativeString() != null) {
+        returnStr.append("~" + _returnType.getAlternativeString());
       } else {
-        returnStr.append(_returnType._cItem.getLineNum());
+        returnStr.append(_returnType.getClassItem().getLineNum());
       }
     } else if (_method != null) {
       returnStr.append(_name + "`");
       //append returnType
-      if (_returnType._alternativeString != null) {
-        returnStr.append("~" + _returnType._alternativeString);
+      if (_returnType.getAlternativeString() != null) {
+        returnStr.append("~" + _returnType.getAlternativeString());
       } else {
-        if (_returnType._cItem == null) {
+        if (_returnType.getClassItem() == null) {
           System.out.println("mem.name=" + _name);
           System.out.println(_method.getDeclaringClass().getName());
         }
-        returnStr.append(_returnType._cItem.getLineNum());
+        returnStr.append(_returnType.getClassItem().getLineNum());
       }
       returnStr.append("`");
       //append params
       if (_params != null) {
         for (ClassItemWrapper param : _params) {
-          if (param._alternativeString != null) {
-            returnStr.append("~" + param._alternativeString + ",");
+          if (param.getAlternativeString() != null) {
+            returnStr.append("~" + param.getAlternativeString() + ",");
           } else {
-            returnStr.append(param._cItem.getLineNum() + ",");
+            returnStr.append(param.getClassItem().getLineNum() + ",");
           }
         }
         if (_params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -831,10 +831,10 @@ class MemberItem implements Comparable<MemberItem> {
       //append exceptions
       if (_exceptions != null) {
         for (ClassItemWrapper exp : _exceptions) {
-          if (exp._alternativeString != null) {
-            returnStr.append("~" + exp._alternativeString + ",");
+          if (exp.getAlternativeString() != null) {
+            returnStr.append("~" + exp.getAlternativeString() + ",");
           } else {
-            returnStr.append(exp._cItem.getLineNum() + ",");
+            returnStr.append(exp.getClassItem().getLineNum() + ",");
           }
         }
         if (_exceptions.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
@@ -868,11 +868,16 @@ class MemberItem implements Comparable<MemberItem> {
 }
 
 class ClassItemWrapper {
-  protected ClassItem _cItem;
-  String _alternativeString;
+  private ClassItem _cItem;
+  private String _alternativeString;
 
   public ClassItem getClassItem() { return _cItem; }
   public String getAlternativeString() { return _alternativeString; }
+
+  public void setClassItem(ClassItem cItem) { _cItem = cItem; }
+  public void setAlternativeString(String alternativeString ) {
+    _alternativeString = alternativeString;
+  }
 }
 
 class ApplicationException extends Exception {
