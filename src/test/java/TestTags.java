@@ -110,5 +110,8 @@ public class TestTags {
     }
     Tags tags = new Tags(tagFilename);
     assertTrue(tagFile.exists());
+    if (tagFile.exists()) {
+      tagFile.delete();
+    }
   }
 }
