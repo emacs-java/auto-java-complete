@@ -1,3 +1,5 @@
+import java.io.File;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,5 +99,16 @@ public class TestTags {
                  "SomeClass", memberItems.get(0).getClassItem().getName());
     assertEquals("The typename of this field should be int",
                  "int", memberItems.get(0).getReturnType().getAlternativeString());
+  }
+
+  @Test
+  public void testTagsCtorWithFilename() {
+    String tagFilename = System.getProperty("java.io.tmpdir") + "test.tag";
+    File tagFile = new File(tagFilename);
+    if (tagFile.exists()) {
+      tagFile.delete();
+    }
+    Tags tags = new Tags(tagFilename);
+    assertTrue(tagFile.exists());
   }
 }
