@@ -90,6 +90,16 @@ public class Tags {
     }
   }
 
+  public Tags(String tagFilename) {
+    try {
+      _tagFile = new BufferedWriter(new FileWriter(new File(tagFilename).getAbsolutePath()));
+      _logError = new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_error.log"));
+      _logInfo = new PrintWriter(new File(System.getProperty("java.io.tmpdir"), "ajc_info.log"));
+    } catch (Exception e) {
+      System.err.print(e.getMessage());
+    }
+  }
+
   public String getHomePath() {
     String home = System.getenv("HOME");
     if (home == null) {
