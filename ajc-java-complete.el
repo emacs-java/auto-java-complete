@@ -307,13 +307,15 @@ it is the last line number in tag file")
       field-item)))
 
 (defun append-space-to-item (str)
-  (let ((len (length str)));; insert whitespace between classname and return type
+  "Insert whitespace between classname and return type."
+  (let ((len (length str)))
     (if (< len (- ajc-default-length-of-class 3))
         (setq str
               (concat str
                       (make-string (- (- ajc-default-length-of-class 3)
                                       len)
-                                   32)));;32 mean whitespace
+                                   ;;32 mean whitespace
+                                   32)))
       (setq str (concat str "     ")))))
 
 ;; (ajc-field-to-string (ajc-split-field " out`654 ") )
