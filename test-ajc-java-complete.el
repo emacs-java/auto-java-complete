@@ -2,3 +2,28 @@
 (require 'ert)
 (require 'cl)
 
+(ert-deftest test-ajc-split-pkg-item ()
+  (should (equal '("java.lang" 222 333) (ajc-split-pkg-item "java.lang`222`333"))))
+
+(ert-deftest test-ajc-split-class-item ()
+  (should (equal '("SomeClass" 7 9 25) (ajc-split-class-item "SomeClass`7`9`25"))))
+
+(ert-deftest test-ajc-split-constructor ()
+  (should (equal '("SomeClass" "" "")
+                 (ajc-split-constructor "  SomeClass``")))
+  (should (equal '("SomeClass" ("int") "")
+                 (ajc-split-constructor "  SomeClass`~int`")))
+  (should (equal '("SomeClass" ("java.lang.String") "")
+                 (ajc-split-constructor "  SomeClass`~java.lang.String`")))
+  (should (equal '("SomeClass" ("int" "int" "int") "")
+                 (ajc-split-constructor "  SomeClass`~int,~int,~int`")))
+  (should (equal '("SomeClass" ("double") ("java.lang.Exception"))
+                 (ajc-split-constructor "  SomeClass`~double`~java.lang.Exception"))))
+
+(ert-deftest test-ajc-split-constructor-1 ()
+  (should (equal '("")
+                 (ajc-split-constructor-1 "")))
+  (should (equal '(("int"))
+                 (ajc-split-constructor-1 "~int")))
+  (should (equal '(("int" "int" "int"))
+                 (ajc-split-constructor-1 "~int,~int,~int"))))
