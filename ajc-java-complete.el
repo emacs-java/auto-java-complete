@@ -439,14 +439,15 @@ method-name`~return-type`parameters-type`exceptions"
           (split-list)
           (return-type))
       (setq split-list (split-string method-line-string "`"))
-      ;;handle method name
+      ;; handle method name
       (add-to-list 'method-item (car split-list) t)
+      ;; handle return-type
       (setq return-type (nth 1 split-list))
       (if (string-match "^~" return-type)
           (add-to-list 'method-item (substring-no-properties return-type 1) t)
         (add-to-list 'method-item (ajc-split-class-item-by-class-ln
                                    (string-to-number return-type)) t))
-      ;;handle params if exists
+      ;; handle params if exists
       (if (not (string-equal "" (nth 2 split-list)))
           (let ((params) (param-split-list))
             (setq param-split-list (split-string (nth 2 split-list) "," t))
@@ -457,6 +458,7 @@ method-name`~return-type`parameters-type`exceptions"
                                                    (string-to-number param)))))))
             (setq method-item (append method-item (list params))))
         (setq method-item (append method-item (list ""))))
+      ;; handle exceptions
       (if (not (string-equal "" (nth 3 split-list)))
           (let ((exceptions) (exception-split-list))
             (setq exception-split-list (split-string (nth 3 split-list) "," t))
@@ -482,11 +484,11 @@ method-name`~return-type`parameters-type`exceptions"
       (setq constructor-item
             (append constructor-item
                     ;; handle params if exists
-                    (ajc-split-constructor-1 (nth 1 split-list))
+                    (ajc-split-items (nth 1 split-list))
                     ;; handle exceptions if exists
-                    (ajc-split-constructor-1 (nth 2 split-list)))))))
+                    (ajc-split-items (nth 2 split-list)))))))
 
-(defun ajc-split-constructor-1 (items)
+(defun ajc-split-items (items)
   (if (string-equal "" items)
       (list "")
     (let ((elems nil)
