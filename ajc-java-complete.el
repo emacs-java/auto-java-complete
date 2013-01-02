@@ -455,18 +455,15 @@ method-name`~return-type`parameters-type`exceptions"
 
 (defun ajc-split-constructor (constructor-line-string)
   (when constructor-line-string
-    (let ((constructor-item)
-          (split-list))
-      (setq constructor-line-string (substring-no-properties constructor-line-string 2))
-      (setq split-list (split-string constructor-line-string "`"))
+    (let ((split-list
+           (split-string
+            (substring-no-properties constructor-line-string 2) "`")))
       ;; handle constructor name
-      (add-to-list 'constructor-item (car split-list) t)
-      (setq constructor-item
-            (append constructor-item
-                    ;; handle params if exists
-                    (ajc-split-items (nth 1 split-list))
-                    ;; handle exceptions if exists
-                    (ajc-split-items (nth 2 split-list)))))))
+      (append (list (car split-list))
+              ;; handle params if exists
+              (ajc-split-items (nth 1 split-list))
+              ;; handle exceptions if exists
+              (ajc-split-items (nth 2 split-list))))))
 
 (defun ajc-split-items (items)
   "Handle return-type, parameters-type, and exceptions in ITEMS."
