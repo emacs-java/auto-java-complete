@@ -471,35 +471,32 @@ can be a method item ,or a field item"
 
 (defun ajc-split-constructor (constructor-line-string)
   (when constructor-line-string
-    (let ((constructor-item) (split-list))
+    (let ((constructor-item)
+          (split-list))
       (setq constructor-line-string (substring-no-properties constructor-line-string 2))
       (setq split-list (split-string constructor-line-string "`"))
-      ;;handle constructor name
+      ;; handle constructor name
       (add-to-list 'constructor-item (car split-list) t)
-      ;;handle params if exists
-      (if (not (string-equal "" (nth 1 split-list)))
-          (let ((params) (param-split-list))
-            (setq param-split-list (split-string (nth 1 split-list) "," t))
-            (dolist (param param-split-list)
-              (if (string-match "^~" param)
-                  (setq params (append params (list (substring-no-properties param 1))))
-                (setq params (append params (list (ajc-split-class-item-by-class-ln
-                                                   (string-to-number param)))))))
-            (setq constructor-item (append constructor-item (list params))))
-        (setq constructor-item (append constructor-item (list ""))))
-      (if (not (string-equal "" (nth 2 split-list)))
-          (let ((exceptions) (exception-split-list))
-            (setq exception-split-list (split-string (nth 2 split-list) "," t))
-            (dolist (exception exception-split-list)
-              (if (string-match "^~" exception)
-                  (setq exceptions (append exceptions
-                                           (list (substring-no-properties exception 1))))
-                (progn
-                  (setq exceptions (append exceptions (list (ajc-split-class-item-by-class-ln
-                                                             (string-to-number exception))))))))
-            (setq constructor-item (append constructor-item (list exceptions))))
-        (setq constructor-item (append constructor-item (list ""))))
-      constructor-item)))
+      (setq constructor-item
+            (append constructor-item
+                    ;; handle params if exists
+                    (ajc-split-constructor-1 (nth 1 split-list))
+                    ;; handle exceptions if exists
+                    (ajc-split-constructor-1 (nth 2 split-list)))))))
+
+(defun ajc-split-constructor-1 (items)
+  (if (string-equal "" items)
+      (list "")
+    (let ((elems nil)
+          (elem-lst nil))
+      (setq elem-lst (split-string items "," t))
+      (dolist (e elem-lst)
+        (if (string-match "^~" e)
+            (setq elems (append elems (list (substring-no-properties e 1))))
+          (setq elems (append elems (list (ajc-split-class-item-by-class-ln
+                                           (string-to-number e)))))))
+      (list elems))))
+
 
 (defun ajc-constructor-to-string (constructor-item &optional is-with-exceptions)
   (when constructor-item
