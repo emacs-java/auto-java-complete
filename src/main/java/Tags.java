@@ -156,7 +156,6 @@ public class Tags {
     prepare();//copy or unzip *.class *.jar to _randomTmpPath
     if (_randomTmpPath != null && _randomTmpPath.isDirectory()) {
       System.out.println("tmp classpath :" + _randomTmpPath.getAbsolutePath());
-      String dirFullPath = _randomTmpPath.getAbsolutePath();
       List<File> clazzFiles = IOUtils.getAllFilesUnderDir
         (_randomTmpPath, new FileFilter() {
             public boolean accept(File f) {
@@ -164,17 +163,22 @@ public class Tags {
               return false;
             }
           });
-      for (File clazz : clazzFiles) {
-        String classAbsolutePath = clazz.getAbsolutePath();
-        String classFullName = classAbsolutePath
-          .substring(dirFullPath.length() + 1 , classAbsolutePath.indexOf(".class"))
-          .replace(_fileSeparator, ".");
-        processClass(classFullName);
-      }
+      processClasses(clazzFiles);
       tagAll();
       write();
     }
     clear();
+  }
+
+  public void processClasses(List<File> clazzFiles) {
+    for (File clazz : clazzFiles) {
+      String classAbsolutePath = clazz.getAbsolutePath();
+      String classFullName = classAbsolutePath
+        .substring(_randomTmpPath.getAbsolutePath().length() + 1,
+                   classAbsolutePath.indexOf(".class"))
+        .replace(_fileSeparator, ".");
+      processClass(classFullName);
+    }
   }
 
   private void processJarFile(File f) {
