@@ -278,10 +278,8 @@ it is the last line number in tag file")
   classname`packageLineNum`memberStartLineNum`memberEndLineNum
   this function translate it to a list ,the num will be convert to number "
   (let ((class-item (split-string class-line-string "`" t)))
-    (setcar (nthcdr 1 class-item) (string-to-number (nth 1 class-item)))
-    (setcar (nthcdr 2 class-item) (string-to-number (nth 2 class-item)))
-    (setcar (nthcdr 3 class-item) (string-to-number (nth 3 class-item)))
-    class-item))
+    (append (list (car class-item))
+            (mapcar #'string-to-number (cdr class-item)))))
 
 (defun ajc-split-class-item-by-class-ln
   (class-line-number &optional buffer)
