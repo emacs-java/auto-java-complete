@@ -432,6 +432,8 @@ can be a method item ,or a field item"
     candidate))
 
 (defun ajc-split-method (method-line-string)
+  "METHOD-LINE-STRING is as follows:
+method-name`~return-type`parameters-type`exceptions"
   (when method-line-string
     (let ((method-item)
           (split-list)
