@@ -447,31 +447,11 @@ method-name`~return-type`parameters-type`exceptions"
           (add-to-list 'method-item (substring-no-properties return-type 1) t)
         (add-to-list 'method-item (ajc-split-class-item-by-class-ln
                                    (string-to-number return-type)) t))
-      ;; handle params if exists
-      (if (not (string-equal "" (nth 2 split-list)))
-          (let ((params) (param-split-list))
-            (setq param-split-list (split-string (nth 2 split-list) "," t))
-            (dolist (param param-split-list)
-              (if (string-match "^~" param)
-                  (setq params (append params (list (substring-no-properties param 1))))
-                (setq params (append params (list (ajc-split-class-item-by-class-ln
-                                                   (string-to-number param)))))))
-            (setq method-item (append method-item (list params))))
-        (setq method-item (append method-item (list ""))))
-      ;; handle exceptions
-      (if (not (string-equal "" (nth 3 split-list)))
-          (let ((exceptions) (exception-split-list))
-            (setq exception-split-list (split-string (nth 3 split-list) "," t))
-            (dolist (exception exception-split-list)
-              (if (string-match "^~" exception)
-                  (setq exceptions
-                        (append exceptions (list (substring-no-properties exception 1))))
-                (setq exceptions
-                      (append exceptions (list (ajc-split-class-item-by-class-ln
-                                                (string-to-number exception)))))))
-            (setq method-item (append method-item (list exceptions))))
-        (setq method-item (append method-item (list ""))))
-      method-item)))
+      (append method-item
+              ;; handle params if exists
+              (ajc-split-items (nth 2 split-list))
+              ;; handle exceptions
+              (ajc-split-items (nth 3 split-list))))))
 
 (defun ajc-split-constructor (constructor-line-string)
   (when constructor-line-string
