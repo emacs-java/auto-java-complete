@@ -338,10 +338,10 @@ it is the last line number in tag file")
 ;; (ajc-method-to-string (ajc-split-method "skippedEntity`~void`784`4012") t)
 
 (defun ajc-method-to-string (method-item &optional with-return-type-and-throws)
-  "this is a toString() like function .
-   when param with-detail is not null, it will include
-  return type and exceptions, default it only include method name
-  and params"
+  "This is a toString() like function.
+   When WITH-RETURN-TYPE-AND-THROWS is non nil, it will include
+  return type and exceptions. By default it only includes method
+  name and params"
   (when method-item
     (let ((method-string (car method-item))
           (return-type (nth 1 method-item))
