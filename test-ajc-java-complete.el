@@ -20,10 +20,24 @@
   (should (equal '("SomeClass" ("double") ("java.lang.Exception"))
                  (ajc-split-constructor "  SomeClass`~double`~java.lang.Exception"))))
 
-(ert-deftest test-ajc-split-constructor-1 ()
+(ert-deftest test-ajc-split-items ()
   (should (equal '("")
-                 (ajc-split-constructor-1 "")))
+                 (ajc-split-items "")))
   (should (equal '(("int"))
-                 (ajc-split-constructor-1 "~int")))
+                 (ajc-split-items "~int")))
   (should (equal '(("int" "int" "int"))
-                 (ajc-split-constructor-1 "~int,~int,~int"))))
+                 (ajc-split-items "~int,~int,~int"))))
+
+(ert-deftest test-ajc-split-field ()
+  (should (equal '("CONSTANT" "int")
+                 (ajc-split-field " CONSTANT`~int"))))
+
+(ert-deftest test-ajc-split-method ()
+  (should (equal
+           '("getStrField" "java.lang.String" "" "")
+           (ajc-split-method "getStrField`~java.lang.String``")))
+  (should
+   (equal
+    '("getStringArray" "java.lang.String[]" ("java.util.ArrayList") ("java.lang.Exception"))
+    (ajc-split-method
+     "getStringArray`~java.lang.String[]`~java.util.ArrayList`~java.lang.Exception"))))
