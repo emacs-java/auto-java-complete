@@ -300,7 +300,7 @@ it is the last line number in tag file")
            (field-line-string (substring-no-properties field-line-string 1))
            (split-list (split-string field-line-string "`"))
            (return-type (nth 1 split-list)))
-      ;;handle field name
+      ;; handle field name
       (add-to-list 'field-item (car split-list) t)
       (if (string-match "^~" return-type)
           (add-to-list 'field-item (substring-no-properties return-type 1) t)
@@ -496,7 +496,6 @@ can be a method item ,or a field item"
           (setq elems (append elems (list (ajc-split-class-item-by-class-ln
                                            (string-to-number e)))))))
       (list elems))))
-
 
 (defun ajc-constructor-to-string (constructor-item &optional is-with-exceptions)
   (when constructor-item
