@@ -154,20 +154,46 @@ public class Tags {
   // Entry point and called from TagsMain
   public void process() {
     prepare();//copy or unzip *.class *.jar to _randomTmpPath
-    if (_randomTmpPath != null && _randomTmpPath.isDirectory()) {
-      System.out.println("tmp classpath :" + _randomTmpPath.getAbsolutePath());
-      List<File> clazzFiles = IOUtils.getAllFilesUnderDir
-        (_randomTmpPath, new FileFilter() {
-            public boolean accept(File f) {
-              if (f.getName().endsWith(".class")) { return true; }
-              return false;
-            }
-          });
-      processClasses(clazzFiles);
-      tagAll();
-      write();
+    if (_randomTmpPath == null || _randomTmpPath.isDirectory() == false) {
+      return;
     }
+    List<File> clazzFiles = collectClassFiles();
+    processClasses(clazzFiles);
+    tagAll();
+    write();
     clear();
+  }
+
+  // Another entry point, called from TagsJar
+  public void processJarFiles(File[] files) {
+    if (_randomTmpPath == null || _randomTmpPath.isDirectory() == false) {
+      System.err.println("Warning: random tmp directory cannot be found.");
+      return;
+    }
+    for (File file : files) {
+      processJarFile(file);
+    }
+    List<File> clazzFiles = collectClassFiles();
+    processClasses(clazzFiles);
+    tagAll();
+    write();
+    clear();
+  }
+
+  private List<File> collectClassFiles() {
+    List<File> clazzFiles = null;
+    if (_randomTmpPath == null || _randomTmpPath.isDirectory() == false) {
+      return clazzFiles;
+    }
+    System.out.println("tmp classpath :" + _randomTmpPath.getAbsolutePath());
+    clazzFiles = IOUtils.getAllFilesUnderDir(_randomTmpPath,
+                                             new FileFilter() {
+                                               public boolean accept(File f) {
+                                                 if (f.getName().endsWith(".class")) { return true; }
+                                                 return false;
+                                               }
+                                             });
+    return clazzFiles;
   }
 
   public void processClasses(List<File> clazzFiles) {
