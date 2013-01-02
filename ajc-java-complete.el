@@ -489,6 +489,7 @@ method-name`~return-type`parameters-type`exceptions"
                     (ajc-split-items (nth 2 split-list)))))))
 
 (defun ajc-split-items (items)
+  "Handle return-type, parameters-type, and exceptions in ITEMS."
   (if (string-equal "" items)
       (list "")
     (let ((elems nil)
