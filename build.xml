@@ -9,9 +9,22 @@
   <property name="target.classes.test.dir" location="${target.dir}/classes/test/java"/>
   <property name="lib.dir" location="lib"/>
   <property name="junit.jar" location="${lib.dir}/junit-4.7.jar"/>
+  <property name="someclass.jar" location="test/someclass.jar"/>
 
   <target name="resolve" description="--> retrieve dependencies with ivy">
     <ivy:retrieve file="./ivy.xml" sync="true"/>
+  </target>
+
+  <target name="make.someclass.jar">
+    <java classname="TagsMain"
+          dir="${target.classes.java.dir}"
+          fork="true"
+          jvmargs="-Duser.language=en">
+      <classpath>
+        <pathelement location="test/someclass.jar"/>
+        <pathelement location="${target.classes.java.dir}"/>
+    </classpath>
+    </java>
   </target>
 
   <target name="compile.java" depends="resolve">
@@ -19,8 +32,10 @@
     <javac encoding="utf-8" srcdir="${src.java.dir}" destdir="${target.classes.java.dir}"
            includeantruntime="false" fork="true">
       <compilerarg value="-J-Duser.language=en"/>
+      <compilerarg value="-Xlint:unchecked"/>
       <include name="Tags.java"/>
       <include name="TagsMain.java"/>
+      <include name="TagsJar.java"/>
       <classpath>
         <pathelement location="${target.classes.java.dir}"/>
       </classpath>
@@ -32,10 +47,14 @@
     <javac encoding="utf-8" srcdir="${src.test.dir}" destdir="${target.classes.test.dir}"
            includeantruntime="false" fork="true">
       <compilerarg value="-J-Duser.language=en"/>
+      <compilerarg value="-Xlint:unchecked"/>
       <include name="TestTags.java"/>
+      <include name="TestTagsMain.java"/>
+      <include name="TestTagsJar.java"/>
       <classpath>
         <pathelement location="${target.classes.java.dir}"/>
         <pathelement location="${junit.jar}"/>
+        <pathelement location="${someclass.jar}"/>
       </classpath>
     </javac>
   </target>
@@ -44,11 +63,14 @@
     <junit printsummary="true" fork="true" haltonerror="true" haltonfailure="true">
       <formatter type="plain" usefile="false"/>
       <test name="TestTags"/>
+      <test name="TestTagsJar"/>
       <classpath>
         <pathelement location="${target.classes.java.dir}"/>
         <pathelement location="${target.classes.test.dir}"/>
         <pathelement location="${junit.jar}"/>
+        <pathelement location="${someclass.jar}"/>
       </classpath>
     </junit>
   </target>
+
 </project>
