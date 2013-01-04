@@ -934,7 +934,7 @@ before that it will use y-or-n-p ask user to confirm "
   (save-excursion   (goto-char (point-min))
     (let* ((class-start (save-excursion
                 (re-search-forward
-                 "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[ \t\n]*\\({\\|extends\\|implements\\)\\)"  nil 't))))
+                 "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[\n \t]*\\({\\|extends\\|implements\\|<\\)\\)" nil 't))))
       (if (not class-start);; then this is a jsp file
           (let ((all-class-strings ""))
             (dolist (class-item class-items)
@@ -978,7 +978,7 @@ return a list of each line string (exclude keyword 'import') "
         (setq case-fold-search nil)
         (let ((class-start (save-excursion
            (re-search-forward
-            "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[\n \t]*\\({\\|extends\\|implements\\)\\)" nil 't))))
+            "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[\n \t]*\\({\\|extends\\|implements\\|<\\)\\)" nil 't))))
           (if class-start ;;if found class or interface key words ,then this is a java file  ,if not  it is a jsp file
               (while (re-search-forward "^[ \t]*import[ \t]+\\([a-zA-Z0-9_\\.\\*]+\\)[ \t]*;" class-start 't)
                 (add-to-list 'imported-lines  (match-string-no-properties 1))
