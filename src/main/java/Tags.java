@@ -611,7 +611,7 @@ public class Tags {
     return localMems;
   }
 
-  private void writeTagInfo(BufferedWriter writer) throws Exception {
+  private void writeTagHeader(BufferedWriter writer) throws Exception {
     writer.append("don't try to edit this file ,even this line!!!!");
     writer.newLine();
     writer.append("package count=" + _pkgs.size() +
@@ -628,37 +628,10 @@ public class Tags {
     writer.newLine();
   }
 
-  // write package info
-  private void writePackageInfo(BufferedWriter writer) throws Exception {
+  private <T> void writeItemInfo(BufferedWriter writer, List<T> items) throws Exception {
     int i = 0;
-    for (PackageItem pkgItem : _pkgs) {
-      writer.append(pkgItem.toString());
-      writer.newLine();
-      if (i % 300 == 0) { writer.flush(); }
-      i++;
-    }
-    writer.flush();
-  }
-
-  // write class info
-  private void writeClassInfo(BufferedWriter writer) throws Exception {
-    // write class info
-    int i = 0;
-    for (ClassItem cItem : _classes) {
-      writer.append(cItem.toString());
-      writer.newLine();
-      if (i % 300 == 0) { writer.flush(); }
-      i++;
-    }
-    writer.flush();
-    i = 0;
-  }
-
-  // write field info
-  private void writeMemberInfo(BufferedWriter writer) throws Exception {
-    int i = 0;
-    for (MemberItem mi : _members) {
-      writer.append(mi.toString());
+    for (T item : items) {
+      writer.append(item.toString());
       writer.newLine();
       if (i % 300 == 0) { writer.flush(); }
       i++;
@@ -668,10 +641,10 @@ public class Tags {
 
   private void write() {
     try {
-      writeTagInfo(_tagFile);
-      writePackageInfo(_tagFile);
-      writeClassInfo(_tagFile);
-      writeMemberInfo(_tagFile);
+      writeTagHeader(_tagFile);
+      writeItemInfo(_tagFile, _pkgs);
+      writeItemInfo(_tagFile, _classes);
+      writeItemInfo(_tagFile, _members);
     } catch (Exception e) {
       System.err.println(e.getMessage());
     } finally {
