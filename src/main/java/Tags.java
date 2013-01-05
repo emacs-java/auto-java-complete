@@ -61,7 +61,7 @@ public class Tags {
   private PrintWriter _logError = null;
   private PrintWriter _logInfo = null;
   private List<Class> _clss = new LinkedList<Class>();
-  private List<PackageItem> _pkgs = new LinkedList<PackageItem>();
+  private List<PackageItem> _packages = new LinkedList<PackageItem>();
   private List<ClassItem> _classes = new LinkedList<ClassItem>();
   private List<MemberItem> _members = new LinkedList<MemberItem>();
   private String _fileSeparator = System.getProperty("file.separator");
@@ -310,7 +310,7 @@ public class Tags {
         }
       }
 
-      Collections.sort(_pkgs);
+      Collections.sort(_packages);
       Collections.sort(_classes);
       System.out.println("tagged " + _classes.size() + "  classes.");
 
@@ -326,14 +326,15 @@ public class Tags {
           log(ex);
         }
       }
-      int pkg_size = _pkgs.size();
+      int pkg_size = _packages.size();
       int classes_size = _classes.size();
       PackageItem pkgItem = null;
       ClassItem cItem = null;
 
       for (int i = 0; i < pkg_size; i++) {
-        // now pkgs are sorted ,so the line num of the pkg in tag file is the index+1 in pkgs list
-        _pkgs.get(i).setLineNum(SHIFT + i + 1);
+        // now _packages are sorted, so the line num of packages in
+        // tag file is the index+1 in _packages list
+        _packages.get(i).setLineNum(SHIFT + i + 1);
       }
       for (int i = 0; i < classes_size; i++) {
         //the line number of class in tag file is the count of packages
@@ -425,7 +426,7 @@ public class Tags {
 
   // analyze Class c, and populate PackageItem with its package info,
   // and populate ClassItem with its class info,
-  // then add them to _classes and _pkgs list
+  // then add them to _classes and _packages list
   protected ClassItem tagClass(Class c) throws ApplicationException {
     checkClassToExclude(c);
     String pkgName = c.getPackage().getName();
@@ -434,9 +435,9 @@ public class Tags {
     }
     PackageItem pkgItem = null;
     // check if pkgName is in list.
-    for (int i = 0; i < _pkgs.size(); i++) {
-      if (_pkgs.get(i).getName().equals(pkgName)) {
-        pkgItem = _pkgs.get(i);
+    for (int i = 0; i < _packages.size(); i++) {
+      if (_packages.get(i).getName().equals(pkgName)) {
+        pkgItem = _packages.get(i);
         break;
       }
     }
@@ -444,7 +445,7 @@ public class Tags {
     // into list.
     if (pkgItem == null) {
       pkgItem = new PackageItem(pkgName);
-      _pkgs.add(pkgItem);
+      _packages.add(pkgItem);
     }
     // then we create a new ClassItem and return it.
     ClassItem cItem = new ClassItem(c, c.getSimpleName(), pkgItem);
@@ -614,17 +615,17 @@ public class Tags {
   private void writeTagHeader(BufferedWriter writer) throws Exception {
     writer.append("don't try to edit this file ,even this line!!!!");
     writer.newLine();
-    writer.append("package count=" + _pkgs.size() +
+    writer.append("package count=" + _packages.size() +
                     "  ,Class count=" + _classes.size() +
                     " , member count(constructor, field, method)= " + _members.size());
     writer.newLine();
     writer.append("" + (SHIFT + 1));
     writer.newLine();
-    writer.append("" + (SHIFT + _pkgs.size() + 1));
+    writer.append("" + (SHIFT + _packages.size() + 1));
     writer.newLine();
-    writer.append("" + (SHIFT + _pkgs.size() + _classes.size() + 1));
+    writer.append("" + (SHIFT + _packages.size() + _classes.size() + 1));
     writer.newLine();
-    writer.append("" + (SHIFT + _pkgs.size() + _classes.size() + _members.size() + 1));
+    writer.append("" + (SHIFT + _packages.size() + _classes.size() + _members.size() + 1));
     writer.newLine();
   }
 
@@ -642,7 +643,7 @@ public class Tags {
   private void write() {
     try {
       writeTagHeader(_tagFile);
-      writeItemInfo(_tagFile, _pkgs);
+      writeItemInfo(_tagFile, _packages);
       writeItemInfo(_tagFile, _classes);
       writeItemInfo(_tagFile, _members);
     } catch (Exception e) {
@@ -669,7 +670,7 @@ public class Tags {
     }
   }
 
-  public List<PackageItem> getPackages() { return _pkgs; }
+  public List<PackageItem> getPackages() { return _packages; }
 }
 
 class PackageItem implements Comparable<PackageItem> {
