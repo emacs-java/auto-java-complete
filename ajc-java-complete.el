@@ -1102,32 +1102,33 @@ before that it will use y-or-n-p ask user to confirm "
                                          "." (car ele) ";\n"))))))))))))
 
 (defun ajc-find-out-import-line ()
-  "make a regex to match the packages in the import statements ,
-return a list of each line string (exclude keyword 'import') "
-  (let ((imported-lines))
-    (save-match-data
-      (save-excursion
-        (goto-char (point-min))
-        (setq case-fold-search nil)
-        (let ((class-start (save-excursion
-                             (re-search-forward
-                              "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[\n \t]*\\({\\|extends\\|implements\\)\\)"
-                              nil
-                              't))))
-          (if class-start
-              ;;if found class or interface key words ,
-              ;;then this is a java file  ,if not  it is a jsp file
-              (while (re-search-forward "^[ \t]*import[ \t]+\\([a-zA-Z0-9_\\.\\*]+\\)[ \t]*;"
-                                        class-start
-                                        't)
-                (add-to-list 'imported-lines (match-string-no-properties 1))
-                (end-of-line))
-            ;;may be this is a jsp file
-            (while (re-search-forward "\\bimport=\"\\(.*?\\)[ \t]*\"[ \t]+" (point-max) 't)
-              (setq imported-lines (append imported-lines
-                                           (split-string (match-string-no-properties 1) "[ \t,]" t)))
-              (end-of-line))))))
-    imported-lines))
+  "make a regex to match the packages in the import statements,
+return a list of each line string (exclude keyword 'import')"
+  (save-match-data
+    (save-excursion
+      (goto-char (point-min))
+      (let ((case-fold-search nil)
+            (imported-lines nil)
+            (class-start (save-excursion
+                           (re-search-forward
+                            "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[\n \t]*\\({\\|extends\\|implements\\)\\)"
+                            nil
+                            't))))
+        (if class-start
+            ;; if found class or interface key words,
+            ;; then this is a java file, if not it is a jsp file
+            (while (re-search-forward
+                    "^[ \t]*import[ \t]+\\(static[ \t]+\\)?\\([a-zA-Z0-9_\\.\\*]+\\)[ \t]*;"
+                    class-start
+                    't)
+              (add-to-list 'imported-lines (match-string-no-properties 2))
+              (end-of-line))
+          ;; maybe this is a jsp file
+          (while (re-search-forward "\\bimport=\"\\(.*?\\)[ \t]*\"[ \t]+" (point-max) 't)
+            (setq imported-lines (append imported-lines
+                                         (split-string (match-string-no-properties 1) "[ \t,]" t)))
+            (end-of-line)))
+        imported-lines))))
 
 (defun ajc-caculate-all-imported-class-items (&optional exclude_java_lang)
   "find out all imported class  ,default include class in java.lang.*"
