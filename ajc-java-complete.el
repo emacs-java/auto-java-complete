@@ -817,14 +817,23 @@ tag buffer file "
 ;;   (kill-buffer (get-buffer  ajc-tmp-sorted-class-buffer-name)))
 
 (defun ajc-import-package-candidates ()
-  "this function is the candidates , so you can bind it with a key sequence
-  it will return a list, for example `( java.lang ,java.ref)"
+  "This function is the candidates, so you can bind it with a key sequence.
+It will return a list of packages, for example `( java.lang ,java.ref)."
   (save-excursion
-    (let ((prefix-string) (matched-pkg-strings))
-      (setq case-fold-search nil)
+    (let ((prefix-string nil)
+          (matched-pkg-strings nil)
+          (case-fold-search nil))
       (when
-          (re-search-backward ;;search import string in java file or jsp file ,now support jsp
-           "\\(?:\\(?:import=\"\\(?:.*[ \t\n]*,[ \t\n]*\\)*\\)\\|\\(?:import[ \t]+\\)\\)\\([a-zA-Z0-9_\\.]*\\)"
+          ;;search import string in java file or jsp file. Now support jsp
+          (re-search-backward
+           (concat
+           "\\(?:"
+           "\\(?:import=\"\\(?:.*[ \t\n]*,[ \t\n]*\\)*\\)" ; for jsp
+           "\\|"
+           "\\(?:import[ \t]+\\)\\(static[ \t]\\)?"        ; for java
+           "\\)"
+           "\\([a-zA-Z0-9_\\.]*\\)"
+           )
            nil t)
         (setq prefix-string (match-string-no-properties 1))
         (when (and ajc-matched-import-cache-list  ;;first try completion from cache
@@ -847,7 +856,8 @@ tag buffer file "
         (setq ajc-matched-import-cache-list matched-pkg-strings)))))
 
 (defun ajc-find-out-class-by-parse-source ()
-  "find out class in current  java source file, then will import  them if they haven't been imported   "
+  "Find out class in current java source file, then import them if
+they haven't been imported."
   (save-excursion
     (save-match-data
       (let ((matched-class-strings)
@@ -968,9 +978,10 @@ tag buffer file "
     annotations))
 
 (defun ajc-caculate-all-unimported-class-items ()
-  "this function will find out all unimported Class itmes , it just do a subtration
-   (ajc-find-out-class-by-parse-source) -(ajc-caculate-all-imported-class-items)
-what you need to do next, is just import the unimported class  "
+  "Find out all unimported Class itmes.
+It just do subtraction:
+(ajc-find-out-class-by-parse-source) - (ajc-caculate-all-imported-class-items).
+What you need to do next is just import the unimported classes."
   (let ((imported-class-names (mapcar 'car (ajc-caculate-all-imported-class-items)))
         (class-names-in-source (ajc-find-out-class-by-parse-source))
         (unimported-class-items))
@@ -983,13 +994,13 @@ what you need to do next, is just import the unimported class  "
     unimported-class-items))
 
 (defun ajc-import-all-unimported-class ()
-  "import all unimported class ."
+  "Import all unimported class."
   (interactive)
   (ajc-insert-import-at-head-of-source-file
    (ajc-caculate-all-unimported-class-items)))
 
 (defun ajc-import-class-under-point ()
-  "import class under point."
+  "Import class under point."
   (interactive)
   (let ((cur-word (current-word)))
     (when (and cur-word (> (length cur-word) 0))
@@ -1001,8 +1012,8 @@ what you need to do next, is just import the unimported class  "
        (ajc-find-out-matched-class-item-without-package-prefix cur-word t)))))
 
 (defun ajc-insert-import-at-head-of-source-file (import-class-items-list)
-  "insert 'import sentence' at head of java source file,
-before that it will use y-or-n-p ask user to confirm "
+  "Insert 'import sentence' at the head of java source file
+using `y-or-n-p' to ask user to confirm."
   (let ((import-class-buffer "*ajc-import-java-class*")
         (import-class-window)
         (user-confirmed-class-items-list)
@@ -1102,8 +1113,8 @@ before that it will use y-or-n-p ask user to confirm "
                                          "." (car ele) ";\n"))))))))))))
 
 (defun ajc-find-out-import-line ()
-  "make a regex to match the packages in the import statements,
-return a list of each line string (exclude keyword 'import')"
+  "Make a regex to match the packages in the import statements and
+return a list of each line string excluding keyword 'import'."
   (save-match-data
     (save-excursion
       (goto-char (point-min))
@@ -1131,12 +1142,12 @@ return a list of each line string (exclude keyword 'import')"
         imported-lines))))
 
 (defun ajc-caculate-all-imported-class-items (&optional exclude_java_lang)
-  "find out all imported class  ,default include class in java.lang.*"
+  "Find out all imported class. By default it includes classes in java.lang.*."
   (let ((imported-line (ajc-find-out-import-line))
         (element)
         (index)
-        (return-class-items))
-    (setq case-fold-search nil)
+        (return-class-items)
+        (case-fold-search nil))
     (dolist (element imported-line)
       (setq index (string-match "\\.\\*$" element))
       (if index   ;;import a package
@@ -1212,7 +1223,7 @@ return a list of each line string (exclude keyword 'import')"
     is-available))
 
 (defun ajc-complete-class-candidates ()
-  "complete class name with (current-word) as class-prefix"
+  "Complete class name with (current-word) as class-prefix"
   (when (ajc-is-available-4-complete-class-p)
     (let ((candidate)
           (candidates)
@@ -1225,8 +1236,9 @@ return a list of each line string (exclude keyword 'import')"
       candidates)))
 
 (defun ajc-complete-class-with-cache (class-prefix)
-  "find out class name starts with class-prefix ,before search tag file ,it first
-check out ajc-matched-class-items-cache to find out if ant matched class exists "
+  "Find out class name which starts with CLASS-PREFIX.
+Before searching in tag file, it first check out
+`ajc-matched-class-items-cache' if there is matched class."
   (let ((return-list))
     (setq case-fold-search nil)
     (when (and class-prefix
@@ -1253,8 +1265,9 @@ check out ajc-matched-class-items-cache to find out if ant matched class exists 
     return-list))
 
 (defun ajc-find-members (class-item &optional member-prefix exactly_match)
-  "find members(field method) under class-item which member name match member-prefix ,
-if member-prefix is nil or empty string it will return all members under class-item"
+  "Find members (field, method) under CLASS-ITEM which matche MEMBER-PREFIX.
+If MEMBER-PREFIX is nil or empty string, it will return all members
+under class-item."
   (let ((line-num (nth 2 class-item))
         (end-position (nth 3 class-item))
         (return-member-items)
@@ -1279,8 +1292,9 @@ if member-prefix is nil or empty string it will return all members under class-i
     return-member-items))
 
 (defun ajc-caculate-class-name-by-variable (variable-name)
-  "this function is used to find Class name depend on a varibale name ,for example
- the varibale-name is str ,then if exists 'String str' in source file , String will be returned "
+  "Find class name of VARIBALE-NAME.
+Suppose that VARIABLE-NAME is str. If a statement 'String str' exists
+in a source file, String will be returned."
   (let ((matched-class-name)
         (variable-line-string)
         (index-of-var-in-line)
@@ -1374,11 +1388,10 @@ if member-prefix is nil or empty string it will return all members under class-i
 (defvar ajc-complete-method-candidates-cache-stack-list nil)
 
 (defun ajc-complete-method-is-available ()
-  "check whether method completion is available or not ,
-suppose previous (current-line)==\"Systema.aaa\"
-but it failed to get any candidates,
-and now (current-line)==\"Systema.aaab\" It would
- not get any candidates too ,we needn't try to complete it ."
+  "Check whether method completion is available or not.
+Suppose previous (current-line)==\"Systema.aaa\" but it failed to get
+any candidates, and now (current-line)==\"Systema.aaab\" It would not
+get any candidates too, we needn't try to complete it."
   (let ((stack-list (ajc-get-validated-stack-list-or-nil-4-method-complete
                      (ajc-parse-splited-line-4-complete-method)))
         (is-available t))
@@ -1422,9 +1435,9 @@ and now (current-line)==\"Systema.aaab\" It would
 ;;       ))
 
 (defun ajc-complete-method-candidates-1 (stack-list)
-  "get method candidates depend on stack-list, about
- what stack-list it is,check out
- `ajc-parse-splited-line-4-complete-method'"
+  "Get method candidates depending on stack-list, about what
+stack-list it is, check out
+`ajc-parse-splited-line-4-complete-method'"
   (when stack-list
     (let ((is-dot-last (= (% (length stack-list) 2) 0))
           top
@@ -1449,36 +1462,37 @@ and now (current-line)==\"Systema.aaab\" It would
       (mapcar 'ajc-method-item-to-candidate return-list))))
 
 (defun ajc-get-validated-stack-list-or-nil-4-method-complete (stack-list)
-  "if stack-list is validated ,return itself ,else return nil."
+  "If stack-list is validated, return itself, else return nil."
   (when (and stack-list (> (length stack-list) 0))
     (let ((current-item (car stack-list))
           (validated-stack-list stack-list)
           (index 1)
           (next-item))
-      (if (and (> (length stack-list) 1)
-               (string-match "^[a-zA-Z0-9_]+$" current-item))
-          (while (and validated-stack-list current-item)
-            (setq next-item (nth index stack-list))
-            (if (string-match "^[a-zA-Z0-9_]+$" current-item)
-                (if next-item
-                    (if (not (string-equal "." next-item))
-                        (setq validated-stack-list nil))))
-            (if (string-equal "." current-item)
-                (if next-item
-                    (if (not (string-match "^[a-zA-Z0-9_]+$" next-item))
-                        (setq validated-stack-list nil))))
-            (setq current-item next-item)
-            (setq index (+ 1 index)))
+      (when (and (> (length stack-list) 1)
+                 (string-match "^[a-zA-Z0-9_]+$" current-item))
+        (while (and validated-stack-list current-item)
+          (setq next-item (nth index stack-list))
+          (if (string-match "^[a-zA-Z0-9_]+$" current-item)
+              (if next-item
+                  (if (not (string-equal "." next-item))
+                      (setq validated-stack-list nil))))
+          (if (string-equal "." current-item)
+              (if next-item
+                  (if (not (string-match "^[a-zA-Z0-9_]+$" next-item))
+                      (setq validated-stack-list nil))))
+          (setq current-item next-item)
+          (setq index (+ 1 index)))
         (setq validated-stack-list nil))
       validated-stack-list)))
 
 (defun ajc-parse-splited-line-4-complete-method ()
-  " parse current line  for complete method  ,suppose current line is
-System.getProperty(str.substring(3)).to
-first ajc-split-line-4-complete-method will split this line to
-'System' '.' 'getProperty' '(' 'str' '.' 'substring' '(' '3' ')' ')' '.' 'to'
-ajc-remove-unnecessary-items-4-complete-method will remove anything between ( and )  ,so only
-'System'  '.' 'getProperty'  '.'  'to'  is left "
+  "Parse current line for complete method.
+Suppose current line is System.getProperty(str.substring(3)).to.
+First ajc-split-line-4-complete-method will split this line to
+'System' '.' 'getProperty' '(' 'str' '.' 'substring' '(' '3' ')' ')'
+'.' 'to'.  ajc-remove-unnecessary-items-4-complete-method will remove
+anything between ( and ), so only 'System' '.' 'getProperty' '.' 'to'
+are left."
   (let* ((line-string (buffer-substring-no-properties (line-beginning-position) (point)))
          (splited-line-items (ajc-split-line-4-complete-method line-string)))
     (ajc-remove-unnecessary-items-4-complete-method splited-line-items)))
