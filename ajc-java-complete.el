@@ -980,7 +980,7 @@ they haven't been imported."
 (defun ajc-caculate-all-unimported-class-items ()
   "Find out all unimported Class itmes.
 It just do subtraction:
-(ajc-find-out-class-by-parse-source) - (ajc-caculate-all-imported-class-items).
+ (ajc-find-out-class-by-parse-source) - (ajc-caculate-all-imported-class-items).
 What you need to do next is just import the unimported classes."
   (let ((imported-class-names (mapcar 'car (ajc-caculate-all-imported-class-items)))
         (class-names-in-source (ajc-find-out-class-by-parse-source))
