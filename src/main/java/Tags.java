@@ -337,9 +337,9 @@ public class Tags {
         _packages.get(i).setLineNum(SHIFT + i + 1);
       }
       for (int i = 0; i < classes_size; i++) {
-        //the line number of class in tag file is the count of packages
+        // the line number of class in tag file is the count of packages
         // plus the index of the class in classes list
-        // in this loop ,we will populte the lineNum of each ClassItem and
+        // in this loop, we will populte the lineNum of each ClassItem and
         // populate the classStartLineNum and classEndLineNum of each package
         cItem = _classes.get(i);
         cItem.setLineNum(SHIFT + pkg_size + i + 1);
