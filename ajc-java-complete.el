@@ -423,7 +423,7 @@ can be a method item ,or a field item"
               (field-short-string (ajc-field-to-string field-or-method-item nil)))
           (setq candidate (propertize field-short-string 'view field-full-string)))
       (let ((method-full-string (ajc-method-to-string field-or-method-item t))
-           (method-short-string (ajc-method-to-string field-or-method-item nil)))
+            (method-short-string (ajc-method-to-string field-or-method-item nil)))
         (setq candidate
               (propertize method-short-string
                           'view method-full-string
@@ -482,8 +482,8 @@ method-name`~return-type`parameters-type`exceptions"
 (defun ajc-constructor-to-string (constructor-item &optional is-with-exceptions)
   (when constructor-item
     (let ((constructor-string (car constructor-item))
-         (params (nth 1 constructor-item))
-         (exceptions (nth 2 constructor-item)))
+          (params (nth 1 constructor-item))
+          (exceptions (nth 2 constructor-item)))
       (if (stringp params)
           (setq constructor-string (concat constructor-string "()"))
         (progn
@@ -508,9 +508,9 @@ method-name`~return-type`parameters-type`exceptions"
 (defun ajc-constructor-to-yasnippet-templete (constructor-item)
   (when constructor-item
     (let ((constructor-string (car constructor-item))
-         (params (nth 1 constructor-item))
-         (exceptions (nth 2 constructor-item))
-         (index 0))
+          (params (nth 1 constructor-item))
+          (exceptions (nth 2 constructor-item))
+          (index 0))
       (if (stringp params)
           (setq constructor-string (concat constructor-string "()"))
         (setq constructor-string (concat constructor-string "("))
@@ -518,7 +518,7 @@ method-name`~return-type`parameters-type`exceptions"
           (when (stringp param)
             (setq constructor-string
                   (concat constructor-string "${" (number-to-string (+ index 1)) ":"
-                           param "} , ")))
+                          param "} , ")))
           (when (listp param)
             (setq constructor-string (concat constructor-string
                                              "${"
@@ -753,17 +753,18 @@ then we search AbstractC ,we just need to search line number from 1 3 "
       (let ((end ?Z) (index ?A) (index2 ?A) (two-char)
             (two-char-item) (next-start-search-postion))
         (setq ajc-two-char-list nil)
-        (while (<= index end) (setq index2 ?A)
-               (while ( <= index2 ?z)
-                 (setq two-char (concat (char-to-string index) (char-to-string index2)))
-                 (setq two-char-item
-                       (ajc-build-map-4-search-class
-                        two-char ajc-tmp-sorted-class-buffer-name (or next-start-search-postion 1)))
-                 (if two-char-item
-                     (add-to-list 'ajc-two-char-list two-char-item  t)
-                   (setq next-start-search-postion (nth 2 two-char-item)))
-                 (if (= index2 ?Z) (setq index2 ?a) (setq index2 (+ index2 1))))
-               (setq index (+ index 1)))))))
+        (while (<= index end)
+          (setq index2 ?A)
+          (while (<= index2 ?z)
+            (setq two-char (concat (char-to-string index) (char-to-string index2)))
+            (setq two-char-item
+                  (ajc-build-map-4-search-class
+                   two-char ajc-tmp-sorted-class-buffer-name (or next-start-search-postion 1)))
+            (if two-char-item
+                (add-to-list 'ajc-two-char-list two-char-item  t)
+              (setq next-start-search-postion (nth 2 two-char-item)))
+            (if (= index2 ?Z) (setq index2 ?a) (setq index2 (+ index2 1))))
+          (setq index (+ index 1)))))))
 
 (defun ajc-build-map-4-search-class (two-char-prefix
                                      ajc-tmp-sorted-class-buffer-name
