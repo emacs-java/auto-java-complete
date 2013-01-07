@@ -769,13 +769,16 @@ then we search AbstractC ,we just need to search line number from 1 3 "
 (defun ajc-build-map-4-search-class (two-char-prefix
                                      ajc-tmp-sorted-class-buffer-name
                                      start-search-postion)
-  "suppose two-char-prefix is 'Ab' and ajc-tmp-sorted-class-buffer-name is the buffer
- ,all lines in it is the classname has been sorted by classname
-it is cut from tag file between ajc-class-first-ln and ajc-member-first-ln ,and sorted by (sort-lines)
-then this function is try to find out className begin with two-char-prefix ,and got the start position
-and end position ,record in a list ,when search class name begin with two-char-prefix ,we just need to
-find it from the start position to the end position ,it is faster than directly searching the unsorted
-tag buffer file "
+  "Suppose two-char-prefix is 'Ab' and
+ ajc-tmp-sorted-class-buffer-name is the buffer. All lines in this
+ buffer are alphabetically-sorted classnames. these are cut from tag
+ file between ajc-class-first-ln and ajc-member-first-ln, and sorted
+ by `sort-lines' This function tries to find out classnames which
+ begin with TWO-CHAR-PREFIX, get the start position and end position,
+ and record them in a list. When searching for a classname which begin
+ with two-char-prefix, we just need to do search from the start
+ position to the end position. This is faster than directly searching
+ the unsorted tag buffer file."
   (with-current-buffer ajc-tmp-sorted-class-buffer-name
     (goto-char start-search-postion)
     (let ((char1 (string-to-char (substring-no-properties two-char-prefix 0 1)))
