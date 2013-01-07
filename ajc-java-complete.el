@@ -769,36 +769,38 @@ then we search AbstractC ,we just need to search line number from 1 3 "
 (defun ajc-build-map-4-search-class (two-char-prefix
                                      ajc-tmp-sorted-class-buffer-name
                                      start-search-postion)
-  "Suppose two-char-prefix is 'Ab' and
- ajc-tmp-sorted-class-buffer-name is the buffer. All lines in this
- buffer are alphabetically-sorted classnames. these are cut from tag
- file between ajc-class-first-ln and ajc-member-first-ln, and sorted
- by `sort-lines' This function tries to find out classnames which
- begin with TWO-CHAR-PREFIX, get the start position and end position,
- and record them in a list. When searching for a classname which begin
- with two-char-prefix, we just need to do search from the start
- position to the end position. This is faster than directly searching
- the unsorted tag buffer file."
+  "Return a list of form (two-char-prefix start end): start is
+the position where a classname which begins with two-char-prefix
+is first found, and end is the position those classnames are no
+longer found.  Suppose two-char-prefix is 'Ab' and
+ajc-tmp-sorted-class-buffer-name is the buffer. All lines in this
+buffer are alphabetically-sorted classnames. these are cut from
+tag file between ajc-class-first-ln and ajc-member-first-ln, and
+sorted by `sort-lines' This function tries to find out classnames
+which begin with TWO-CHAR-PREFIX, get the start position and end
+position, and record them in a list. When searching for a
+classname which begin with two-char-prefix, we just need to do
+search from the start position to the end position. This is
+faster than directly searching the unsorted tag buffer file."
   (with-current-buffer ajc-tmp-sorted-class-buffer-name
     (goto-char start-search-postion)
     (let ((char1 (string-to-char (substring-no-properties two-char-prefix 0 1)))
           (char2 (string-to-char (substring-no-properties two-char-prefix 1 2)))
           start end has-found-first return-item end-position end-prefix-regexp case-fold-search)
-      (if (or (= char1 ?Z) (= char2 ?z) (= char2 ?Z))
-          (setq end-position (line-number-at-pos (point-max)))
-        (progn
-          (if (< char2 ?a)
-              (setq end-prefix-regexp (concat "^" (char-to-string char1)
-                                              "[a-z"
-                                              (char-to-string (+ 1 char2)) "-Z]\\|^"
-                                              (char-to-string (+ char1 1)) "[a-zA-Z]"))
+      (when (or (= char1 ?Z) (= char2 ?z) (= char2 ?Z))
+        (setq end-position (line-number-at-pos (point-max)))
+        (if (< char2 ?a)
             (setq end-prefix-regexp (concat "^" (char-to-string char1)
-                                            "[" (char-to-string (+ 1 char2))
-                                            "-z]\\|^" (char-to-string (+ char1 1)) "[a-zA-Z]")))
-          (goto-char start-search-postion)
-          (if (re-search-forward end-prefix-regexp (point-max) t)
-              (setq end-position (point))
-            (setq end-position (point-max)))))
+                                            "[a-z"
+                                            (char-to-string (+ 1 char2)) "-Z]\\|^"
+                                            (char-to-string (+ char1 1)) "[a-zA-Z]"))
+          (setq end-prefix-regexp (concat "^" (char-to-string char1)
+                                          "[" (char-to-string (+ 1 char2))
+                                          "-z]\\|^" (char-to-string (+ char1 1)) "[a-zA-Z]")))
+        (goto-char start-search-postion)
+        (if (re-search-forward end-prefix-regexp (point-max) t)
+            (setq end-position (point))
+          (setq end-position (point-max))))
       (goto-char start-search-postion)
       (while (re-search-forward (concat "^" two-char-prefix) end-position t)
         (when (not has-found-first)
