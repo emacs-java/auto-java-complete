@@ -772,7 +772,7 @@ then we search AbstractC ,we just need to search line number from 1 3 "
   "Return a list of form (two-char-prefix start end): start is
 the position where a classname which begins with two-char-prefix
 is first found, and end is the position those classnames are no
-longer found.  Suppose two-char-prefix is 'Ab' and
+longer found. Suppose two-char-prefix is 'Ab' and
 ajc-tmp-sorted-class-buffer-name is the buffer. All lines in this
 buffer are alphabetically-sorted classnames. these are cut from
 tag file between ajc-class-first-ln and ajc-member-first-ln, and
