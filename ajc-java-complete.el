@@ -644,17 +644,17 @@ instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'"
     return-list))
 
 (defun ajc-find-class-first-check-imported (class-name)
-  "this function will find class from imported classes,
-if doesn't exists,find from the tag file,
-if more than one class item matched class-name in tag file,
-then imported one of them first"
+  "Find class from imported classes. If it cannot find it, then
+find from the tag file. If there are more than one class item
+matching CLASS-NAME in tag file, import one of them first."
   (let* ((imported-class (ajc-caculate-all-imported-class-items))
          (matched-class-item
           (catch 'found
             (dolist (item imported-class)
               (when (string-equal class-name (car item))
                 (throw 'found item))))))
-    (unless matched-class-item;;if not found from imported section
+    (unless matched-class-item
+      ;; if not found from imported section
       (let ((matched-class-items
              (ajc-find-out-matched-class-item-without-package-prefix class-name t)))
         ;;(message "Debug: class-name=%s, matched-class-items=%s" class-name matched-class-items)
@@ -1401,6 +1401,9 @@ get any candidates too, we needn't try to complete it."
   (let ((stack-list (ajc-get-validated-stack-list-or-nil-4-method-complete
                      (ajc-parse-splited-line-4-complete-method)))
         (is-available t))
+    ;; stack-list is, for example, '("System" "." "out" "." "p"),
+    ;; and ajc-complete-method-candidates-cache-stack-list is
+    ;; '("System" "." "out" ".")
     (when (and ajc-complete-method-candidates-cache-stack-list
                (string-match (concat "^"
                                      (regexp-quote
@@ -1408,9 +1411,12 @@ get any candidates too, we needn't try to complete it."
                                        ajc-complete-method-candidates-cache-stack-list)))
                               (ajc-concat-list-as-string stack-list))
                 (not ajc-complete-method-candidates-cache))
+      ;; If ajc-complete-method-candidates-cache is nil, it means that
+      ;; completion was not possible on the previous input. So the
+      ;; next completion is also not possible.
       (setq is-available nil))
     (setq ajc-complete-method-candidates-cache-stack-list stack-list)
-    ;;(message "DEBUG: is-available=%s" is-available)
+    ;(message "DEBUG: is-available=%s" is-available)
     is-available))
 
 (defun ajc-complete-method-candidates ()
@@ -1453,7 +1459,10 @@ stack-list it is, check out
       (setq top (pop stack-list))
       (let ((class-item nil))
         (if (string-match "^[A-Z][a-zA-Z0-9_]*$" top)
+            ;; If this is class name, we do searching from imported
+            ;; classes.
             (setq class-item (ajc-find-class-first-check-imported top))
+          ;; Else find out classname before doing search.
           (setq class-item (ajc-find-class-first-check-imported
                             (ajc-caculate-class-name-by-variable top))))
         (while (and class-item (> (length stack-list) 1))
