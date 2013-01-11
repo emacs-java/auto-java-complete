@@ -1271,7 +1271,7 @@ Before searching in tag file, it first check out
     return-list))
 
 (defun ajc-find-members (class-item &optional member-prefix exactly_match)
-  "Find members (field, method) under CLASS-ITEM which matche MEMBER-PREFIX.
+  "Find members (field, method) under CLASS-ITEM which match MEMBER-PREFIX.
 If MEMBER-PREFIX is nil or empty string, it will return all members
 under class-item."
   (let ((line-num (nth 2 class-item))
