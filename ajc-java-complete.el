@@ -718,12 +718,7 @@ the param `exactly_match' ,means only class name exactly equals
 ;; (ajc-find-out-matched-class-item-without-package-prefix "_ServantLocatorStub")
 (defun ajc-find-out-matched-class-item-without-package-prefix
   (class-prefix &optional exactly_match)
-  "actully you can use ajc-find-out-matched-class-item to do
-the same thing ,just let package-prefix nil but it is very slowly ,
-it need to search all the line in tag file just to find out one class item .
-so this function use ajc-load-all-sorted-clas-items-to-memory
-to sort the class section and load it in memory and build a index for it,
-limit : length of class-prefix must larger than 2"
+  "Return class-items that begin with CLASS-PREFIX."
   (with-current-buffer (get-buffer ajc-tmp-sorted-class-buffer-name)
     (let ((matched-class-items)
           (case-fold-search nil)
