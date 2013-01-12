@@ -236,10 +236,10 @@ it is the last line number in tag file")
                                     (line-end-position))))
 
 (defun ajc-split-string-with-separator (str regexp &optional replacement omit-nulls)
-  "this function is a tool like split-string,
-  but it treat separator as an element of returned list
-  for example (ajc-split-string-with-separator abc.def.g \"\\.\" \".\")
-  will return '(\"abc\" \".\" \"def\" \".\" \"g\")"
+  "This function is a tool like split-string, but it treat separator
+as an element of returned list. For example
+ (ajc-split-string-with-separator abc.def.g \"\\.\" \".\") will return
+'(\"abc\" \".\" \"def\" \".\" \"g\")"
   (when str
     (let (split-list substr match-end)
       (if (string-match regexp str)
@@ -1553,12 +1553,17 @@ this function will remove anything between ( and )  ,so only
 'getProperty' '(' 'str' '.' 'substring' '(' '3' ')' ')' '.'
 'to'."
   (save-excursion
-    (let* ((stack-list nil))
-      (setq case-fold-search nil)
+    (let* ((stack-list nil)
+           (case-fold-search nil))
+      ;; \" => '
       (setq line-string (replace-regexp-in-string "\\\\\"" "'" line-string))
+      ;; "foo" => String
       (setq line-string (replace-regexp-in-string "\".*?\"" "String" line-string))
+      ;; remove new keyword
       (setq line-string (replace-regexp-in-string "\\bnew\\b"    "" line-string))
+      ;; remove return keyword
       (setq line-string (replace-regexp-in-string "\\breturn\\b" "" line-string))
+      ;; remove this keyword
       (setq line-string (replace-regexp-in-string "\\this\\b" "" line-string))
       (while (string-match "=\\(.*\\)" line-string)
         (setq line-string (match-string-no-properties 1 line-string)))
