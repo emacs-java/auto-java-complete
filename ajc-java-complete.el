@@ -1548,11 +1548,10 @@ this function will remove anything between ( and )  ,so only
 ;;   )
 
 (defun ajc-split-line-4-complete-method (line-string)
-  "this function is used to complete method ,first this function will split line-string to small items
-for example : suppose line-string is
-System.getProperty(str.substring(3)).to
-then this function split it to
-'System' '.' 'getProperty' '(' 'str' '.' 'substring' '(' '3' ')' ')' '.' 'to' "
+  "Split line-string to small items, for example,
+'System.getProperty(str.substring(3)).to' to 'System' '.'
+'getProperty' '(' 'str' '.' 'substring' '(' '3' ')' ')' '.'
+'to'."
   (save-excursion
     (let* ((stack-list nil))
       (setq case-fold-search nil)
@@ -1563,10 +1562,10 @@ then this function split it to
       (setq line-string (replace-regexp-in-string "\\this\\b" "" line-string))
       (while (string-match "=\\(.*\\)" line-string)
         (setq line-string (match-string-no-properties 1 line-string)))
-      ;;split line-string with "." ,but add "." as an element at its position in list
+      ;; split line-string by ".", but add "." as an element at its position in list
       (setq stack-list (ajc-split-string-with-separator line-string "[ \t]*\\.[ \t]*" "." t))
-      ;;split each element  with "(" ,but add "(" as an element at its position in list
-      ;;and merge all the list in a list
+      ;; split each element with "(", but add "(" as an element at its position in list
+      ;; and merge all the list in a list
       (let ((ele) (tmp-list))
         (dolist (ele stack-list)
           (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele "(" "(" t))))
