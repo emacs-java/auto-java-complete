@@ -1475,30 +1475,21 @@ stack-list it is, check out
 
 (defun ajc-get-validated-stack-list-or-nil-4-method-complete (stack-list)
   "If stack-list is validated, return itself, else return nil."
-  (when (and stack-list (> (length stack-list) 0))
-    (let ((current-item (car stack-list))
-          (validated-stack-list stack-list)
-          (index 1)
-          (next-item))
-      (if (and (> (length stack-list) 1)
-               (string-match "^[a-zA-Z0-9_]+$" current-item))
-          (while (and validated-stack-list current-item)
-            (setq next-item (nth index stack-list))
-            (cond
-             ((string-match "^[a-zA-Z0-9_]+$" current-item)
-              (when (and next-item
-                         (not (string-equal "." next-item)))
-                (setq validated-stack-list nil)))
-             ((string-equal "." current-item)
-              (when (and next-item
-                         (not (string-match "^[a-zA-Z0-9_]+$" next-item)))
-                (setq validated-stack-list nil)))
-             (t
-              (setq validated-stack-list nil)))
-            (setq current-item next-item)
-            (setq index (+ 1 index)))
-        (setq validated-stack-list nil))
-      validated-stack-list)))
+  (cond ((or (< (length stack-list) 2)
+             (not (string-match "^[a-zA-Z0-9_]+$" (car stack-list))))
+         nil)
+        (t
+         (loop for current-item in stack-list
+               for next-item in (cdr stack-list)
+               with regexp = "^[a-zA-Z0-9_]+$"
+               if (string-match regexp current-item)
+               do (unless (string-equal "." next-item)
+                    (return nil))
+               else if (string-equal "." current-item)
+               do (unless (string-match regexp next-item)
+                    (return nil))
+               else do (return nil)
+               finally (return stack-list)))))
 
 (defun ajc-parse-splited-line-4-complete-method (line-string)
   "Parse current line for complete method.
