@@ -672,14 +672,14 @@ matching CLASS-NAME in tag file, import one of them first."
 ;; (ajc-find-out-matched-class-item nil "File")
 ;; (print (length (ajc-find-out-matched-class-item nil nil)))
 (defun ajc-find-out-matched-class-item (package-name class-prefix &optional exactly_match buffer)
-  "this function is use to find out all Class whose package name is
-`package-name' and ClassName  starts with `class-prefix' if package-name
-is nil, then try to find out all Class whose ClassName starts with
-`class-prefix' if `class-prefix' is nil or empty string ,it will try to
-find out all Class in package `package-name' if both  `package-name'
-and class-prefix are nil, then it will return all Class in all package
-the param `exactly_match' ,means only class name exactly equals
- to `class-prefix' will be return"
+  "Find out all classes which start with CLASS-PREFIX, and whose
+package name is PACKAGE-NAME. If PACKAGE-NAME is nil, then try to
+find out all classes whose classnames start with CLASS-PREFIX. If
+CLASS-PREFIX is nil or empty string, it will try to find out all
+classes in package PACKAGE-NAME. If both PACKAGE-NAME and
+CLASS-PREFIX are nil, then return all classes in all packages.
+EXACTLY_MATCH means that only class name which exactly matches
+CLASS-PREFIX will be returned."
   (let* ((class-prefix (or class-prefix ""))
          (regexp-class-prefix
           (if exactly_match
