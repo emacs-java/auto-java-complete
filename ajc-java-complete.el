@@ -1388,13 +1388,13 @@ in a source file, String will be returned."
 (defvar ajc-complete-method-candidates-cache nil)
 (defvar ajc-complete-method-candidates-cache-stack-list nil)
 
-(defun ajc-complete-method-is-available ()
+(defun ajc-complete-method-is-available (line-string)
   "Check whether method completion is available or not.
 Suppose previous (current-line)==\"Systema.aaa\" but it failed to get
 any candidates, and now (current-line)==\"Systema.aaab\" It would not
 get any candidates too, we needn't try to complete it."
   (let ((stack-list (ajc-get-validated-stack-list-or-nil-4-method-complete
-                     (ajc-parse-splited-line-4-complete-method)))
+                     (ajc-parse-splited-line-4-complete-method line-string)))
         (is-available t))
     ;; stack-list is, for example, '("System" "." "out" "." "p"),
     ;; and ajc-complete-method-candidates-cache-stack-list is
@@ -1416,7 +1416,9 @@ get any candidates too, we needn't try to complete it."
 
 (defun ajc-complete-method-candidates ()
   "Get method completion candidates."
-  (when (ajc-complete-method-is-available)
+  (when (ajc-complete-method-is-available (buffer-substring-no-properties
+                                           (line-beginning-position)
+                                           (point)))
     (setq ajc-complete-method-candidates-cache
           (ajc-complete-method-candidates-1 ajc-complete-method-candidates-cache-stack-list))))
 
@@ -1478,24 +1480,27 @@ stack-list it is, check out
           (validated-stack-list stack-list)
           (index 1)
           (next-item))
-      (when (and (> (length stack-list) 1)
-                 (string-match "^[a-zA-Z0-9_]+$" current-item))
-        (while (and validated-stack-list current-item)
-          (setq next-item (nth index stack-list))
-          (if (string-match "^[a-zA-Z0-9_]+$" current-item)
-              (if next-item
-                  (if (not (string-equal "." next-item))
-                      (setq validated-stack-list nil))))
-          (if (string-equal "." current-item)
-              (if next-item
-                  (if (not (string-match "^[a-zA-Z0-9_]+$" next-item))
-                      (setq validated-stack-list nil))))
-          (setq current-item next-item)
-          (setq index (+ 1 index)))
+      (if (and (> (length stack-list) 1)
+               (string-match "^[a-zA-Z0-9_]+$" current-item))
+          (while (and validated-stack-list current-item)
+            (setq next-item (nth index stack-list))
+            (cond
+             ((string-match "^[a-zA-Z0-9_]+$" current-item)
+              (when (and next-item
+                         (not (string-equal "." next-item)))
+                (setq validated-stack-list nil)))
+             ((string-equal "." current-item)
+              (when (and next-item
+                         (not (string-match "^[a-zA-Z0-9_]+$" next-item)))
+                (setq validated-stack-list nil)))
+             (t
+              (setq validated-stack-list nil)))
+            (setq current-item next-item)
+            (setq index (+ 1 index)))
         (setq validated-stack-list nil))
       validated-stack-list)))
 
-(defun ajc-parse-splited-line-4-complete-method ()
+(defun ajc-parse-splited-line-4-complete-method (line-string)
   "Parse current line for complete method.
 Suppose current line is System.getProperty(str.substring(3)).to.
 First ajc-split-line-4-complete-method will split this line to
@@ -1503,9 +1508,8 @@ First ajc-split-line-4-complete-method will split this line to
 '.' 'to'.  ajc-remove-unnecessary-items-4-complete-method will remove
 anything between ( and ), so only 'System' '.' 'getProperty' '.' 'to'
 are left."
-  (let* ((line-string (buffer-substring-no-properties (line-beginning-position) (point)))
-         (splited-line-items (ajc-split-line-4-complete-method line-string)))
-    (ajc-remove-unnecessary-items-4-complete-method splited-line-items)))
+  (ajc-remove-unnecessary-items-4-complete-method
+   (ajc-split-line-4-complete-method line-string)))
 
 (defun ajc-remove-unnecessary-items-4-complete-method (splited-line-items)
   " System.getProperty(str.substring(3)).to
