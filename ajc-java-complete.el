@@ -1448,7 +1448,7 @@ get any candidates too, we needn't try to complete it."
 stack-list is, check out
 `ajc-parse-splited-line-4-complete-method'"
   (when stack-list
-    (let ((is-dot-last (= (% (length stack-list) 2) 0))
+    (let ((is-dot-last (string= "." (car (last stack-list))))
           top
           return-list
           return-string-list
