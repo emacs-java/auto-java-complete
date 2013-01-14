@@ -1292,7 +1292,7 @@ under class-item."
         (setq line-num (+ line-num 1))))
     return-member-items))
 
-(defun ajc-caculate-class-name-by-variable (variable-name)
+(defun ajc-calculate-class-name-by-variable (variable-name)
   "Find class name of VARIBALE-NAME.
 Suppose that VARIABLE-NAME is str. If a statement 'String str' exists
 in a source file, String will be returned."
@@ -1462,7 +1462,7 @@ stack-list is, check out
             (setq class-item (ajc-find-class-first-check-imported top))
           ;; Else find out classname before doing search.
           (setq class-item (ajc-find-class-first-check-imported
-                            (ajc-caculate-class-name-by-variable top))))
+                            (ajc-calculate-class-name-by-variable top))))
         (while (and class-item (> (length stack-list) 1))
           (setq class-item (nth 1 (car (ajc-find-members class-item (pop stack-list) t)))))
         (when class-item
