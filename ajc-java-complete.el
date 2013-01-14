@@ -647,10 +647,10 @@ instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'"
   "Find class from imported classes. If it cannot find it, then
 find from the tag file. If there are more than one class item
 matching CLASS-NAME in tag file, import one of them first."
-  (let* ((imported-class (ajc-caculate-all-imported-class-items))
+  (let* ((imported-classes (ajc-caculate-all-imported-class-items))
          (matched-class-item
           (catch 'found
-            (dolist (item imported-class)
+            (dolist (item imported-classes)
               (when (string-equal class-name (car item))
                 (throw 'found item))))))
     (unless matched-class-item
@@ -1444,14 +1444,15 @@ get any candidates too, we needn't try to complete it."
 ;;       ))
 
 (defun ajc-complete-method-candidates-1 (stack-list)
-  "Get method candidates depending on stack-list, about what
-stack-list it is, check out
+  "Get method candidates depending on stack-list. To see what
+stack-list is, check out
 `ajc-parse-splited-line-4-complete-method'"
   (when stack-list
     (let ((is-dot-last (= (% (length stack-list) 2) 0))
           top
           return-list
-          return-string-list)
+          return-string-list
+          (case-fold-search nil))
       (setq stack-list (remove "." stack-list))
       (setq top (pop stack-list))
       (let ((class-item nil))
