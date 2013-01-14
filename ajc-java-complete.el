@@ -647,7 +647,7 @@ instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'"
   "Find class from imported classes. If it cannot find it, then
 find from the tag file. If there are more than one class item
 matching CLASS-NAME in tag file, import one of them first."
-  (let* ((imported-classes (ajc-caculate-all-imported-class-items))
+  (let* ((imported-classes (ajc-calculate-all-imported-class-items))
          (matched-class-item
           (catch 'found
             (dolist (item imported-classes)
@@ -981,9 +981,9 @@ they haven't been imported."
 (defun ajc-caculate-all-unimported-class-items ()
   "Find out all unimported Class itmes.
 It just do subtraction:
- (ajc-find-out-class-by-parse-source) - (ajc-caculate-all-imported-class-items).
+ (ajc-find-out-class-by-parse-source) - (ajc-calculate-all-imported-class-items).
 What you need to do next is just import the unimported classes."
-  (let ((imported-class-names (mapcar 'car (ajc-caculate-all-imported-class-items)))
+  (let ((imported-class-names (mapcar 'car (ajc-calculate-all-imported-class-items)))
         (class-names-in-source (ajc-find-out-class-by-parse-source))
         (unimported-class-items))
     (print class-names-in-source)
@@ -1142,7 +1142,7 @@ return a list of each line string excluding keyword 'import'."
             (end-of-line)))
         imported-lines))))
 
-(defun ajc-caculate-all-imported-class-items (&optional exclude_java_lang)
+(defun ajc-calculate-all-imported-class-items (&optional exclude_java_lang)
   "Find out all imported class. By default it includes classes in java.lang.*."
   (let ((imported-lines (ajc-find-out-import-line))
         (element)
