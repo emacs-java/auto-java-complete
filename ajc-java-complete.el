@@ -978,7 +978,7 @@ they haven't been imported."
           (push (match-string-no-properties 1) annotations))))
     annotations))
 
-(defun ajc-caculate-all-unimported-class-items ()
+(defun ajc-calculate-all-unimported-class-items ()
   "Find out all unimported Class itmes.
 It just do subtraction:
  (ajc-find-out-class-by-parse-source) - (ajc-calculate-all-imported-class-items).
@@ -998,7 +998,7 @@ What you need to do next is just import the unimported classes."
   "Import all unimported class."
   (interactive)
   (ajc-insert-import-at-head-of-source-file
-   (ajc-caculate-all-unimported-class-items)))
+   (ajc-calculate-all-unimported-class-items)))
 
 (defun ajc-import-class-under-point ()
   "Import class under point."
