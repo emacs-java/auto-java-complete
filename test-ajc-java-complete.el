@@ -41,3 +41,52 @@
     '("getStringArray" "java.lang.String[]" ("java.util.ArrayList") ("java.lang.Exception"))
     (ajc-split-method
      "getStringArray`~java.lang.String[]`~java.util.ArrayList`~java.lang.Exception"))))
+
+(ert-deftest test-ajc-get-validated-stack-list-or-nil-4-method-complete ()
+  (should (equal
+           '("a" ".")
+           (ajc-get-validated-stack-list-or-nil-4-method-complete '("a" "."))))
+  (should (equal
+           '("System" "." "out" ".")
+           (ajc-get-validated-stack-list-or-nil-4-method-complete
+            '("System" "." "out" "."))))
+  (should (equal nil
+                 (ajc-get-validated-stack-list-or-nil-4-method-complete '())))
+  (should (equal nil
+                 (ajc-get-validated-stack-list-or-nil-4-method-complete '("a" "." "-"))))))
+
+(ert-deftest test-ajc-complete-method-candidates-1 ()
+  (should
+   (equal '("equals(Object)" "exit(int)" "err")
+          (ajc-complete-method-candidates-1 '("System" "." "e")))))
+
+(ert-deftest test-ajc-find-class-first-check-imported ()
+  (should
+   (equal '("System" 28 24120 24159)
+          (ajc-find-class-first-check-imported "System"))))
+
+(ert-deftest test-ajc-split-line-4-complete-method ()
+  (should
+   (equal
+    '("System" "." "getProperty" "(" "str" "." "substring" "(" "3" ")" ")" "."
+      "to")
+    (ajc-split-line-4-complete-method "System.getProperty(str.substring(3)).to")))
+  (should
+   (equal '("Obj" "(" ")" "." "r")
+          (ajc-split-line-4-complete-method "new Obj().r"))))
+
+(ert-deftest test-ajc-split-string-with-separator ()
+  (should
+   (equal '("abc" "." "def" "." "g")
+          (ajc-split-string-with-separator "abc.def.g" "\\." "."))))
+
+(ert-deftest test-ajc-complete-method-is-available ()
+  (should
+   (equal t
+          (ajc-complete-method-is-available "System.getProperty(str.substring(3)).to")))
+  (should
+   (equal nil
+          (let ((ajc-complete-method-candidates-cache-stack-list
+                 '("System" "." "getProperty" "." "t"))
+                (ajc-complete-method-candidates-cache nil))
+            (ajc-complete-method-is-available "System.getProperty(str.substring(3)).to")))))
