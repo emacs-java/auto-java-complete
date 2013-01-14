@@ -1149,7 +1149,8 @@ return a list of each line string excluding keyword 'import'."
         imported-lines))))
 
 (defun ajc-calculate-all-imported-class-items (&optional exclude_java_lang)
-  "Find out all imported class. By default it includes classes in java.lang.*."
+  "Find out all imported classes.
+By default it includes classes in java.lang.*."
   (let ((imported-lines (ajc-find-out-import-line))
         (element)
         (index)
@@ -1157,13 +1158,15 @@ return a list of each line string excluding keyword 'import'."
         (case-fold-search nil))
     (dolist (element imported-lines)
       (setq index (string-match "\\.\\*$" element))
-      (if index   ;;import a package
+      (if index
+          ;; this is like 'import org.junit.*;' statement
           (setq return-class-items
                 (append return-class-items
                         (ajc-find-out-matched-class-item
                          (substring-no-properties element 0 index)
                          nil)))
-        (progn  ;;import a class
+        (progn
+          ;; This is a FQN
           (string-match "^\\(.+\\)\\.\\([a-zA-Z0-9_]+\\)$" element)
           (setq return-class-items
                 (append return-class-items
@@ -1172,9 +1175,9 @@ return a list of each line string excluding keyword 'import'."
                          (match-string-no-properties 2 element)
                          t))))))
     (if exclude_java_lang
-        (setq return-class-items return-class-items)
-      (setq return-class-items (append return-class-items
-                                       (ajc-find-out-matched-class-item "java.lang" nil))))))
+        return-class-items
+      (append return-class-items
+              (ajc-find-out-matched-class-item "java.lang" nil)))))
 
 (defun ajc-complete-constructor-candidates ()
   (let (candidates class-items)
