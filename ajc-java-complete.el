@@ -1144,12 +1144,12 @@ return a list of each line string excluding keyword 'import'."
 
 (defun ajc-caculate-all-imported-class-items (&optional exclude_java_lang)
   "Find out all imported class. By default it includes classes in java.lang.*."
-  (let ((imported-line (ajc-find-out-import-line))
+  (let ((imported-lines (ajc-find-out-import-line))
         (element)
         (index)
         (return-class-items)
         (case-fold-search nil))
-    (dolist (element imported-line)
+    (dolist (element imported-lines)
       (setq index (string-match "\\.\\*$" element))
       (if index   ;;import a package
           (setq return-class-items
