@@ -1114,18 +1114,24 @@ using `y-or-n-p' to ask user to confirm."
                                          "." (car ele) ";\n"))))))))))))
 
 (defun ajc-find-out-import-line ()
-  "Make a regex to match the packages in the import statements and
+  "Return a list of import statement lines.
+Make a regex to match the packages in the import statements and
 return a list of each line string excluding keyword 'import'."
   (save-match-data
     (save-excursion
       (goto-char (point-min))
       (let ((case-fold-search nil)
             (imported-lines nil)
-            (class-start (save-excursion
-                           (re-search-forward
-                            "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[\n \t]*\\({\\|extends\\|implements\\)\\)"
-                            nil
-                            't))))
+            (class-start
+             (save-excursion
+               (re-search-forward
+                (concat
+                 "\\("
+                 "\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[\n \t]*"
+                 "\\({\\|extends\\|implements\\)"
+                 "\\)")
+                nil
+                't))))
         (if class-start
             ;; if found class or interface key words,
             ;; then this is a java file, if not it is a jsp file
