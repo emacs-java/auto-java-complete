@@ -730,11 +730,11 @@ CLASS-PREFIX will be returned."
                              (list nil (point-min) (point-max)))))
       (goto-char (nth 1 two-char-item))
       (while (re-search-forward regexp-class-prefix (nth 2 two-char-item) t)
-        (add-to-list 'matched-class-items
-                     (ajc-split-class-item
-                      (buffer-substring-no-properties
-                       (line-beginning-position) (line-end-position))) t))
-      matched-class-items)))
+        (push (ajc-split-class-item
+               (buffer-substring-no-properties
+                (line-beginning-position) (line-end-position)))
+              matched-class-items))
+      (nreverse matched-class-items))))
 
 (defun ajc-sort-class ()
   "sort class for search ,we build a table for example ((Ab 1 3) (Ac 4 6))
