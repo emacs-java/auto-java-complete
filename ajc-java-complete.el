@@ -828,32 +828,33 @@ It will return a list of packages, for example `( java.lang ,java.ref)."
           ;;search import string in java file or jsp file. Now support jsp
           (re-search-backward
            (concat
-           "\\(?:"
-           "\\(?:import=\"\\(?:.*[ \t\n]*,[ \t\n]*\\)*\\)" ; for jsp
-           "\\|"
-           "\\(?:import[ \t]+\\)\\(static[ \t]\\)?"        ; for java
-           "\\)"
-           "\\([a-zA-Z0-9_\\.]*\\)"
-           )
+            "\\(?:import=\"\\(?:.*[ \t\n]*,[ \t\n]*\\)*\\)" ; for jsp
+            "\\|"
+            "\\(^import[ \t]+\\)\\(static[ \t]\\)?"         ; for java
+            "\\([a-zA-Z0-9_\\.]+\\)"
+            )
            nil t)
-        (setq prefix-string (match-string-no-properties 1))
-        (when (and ajc-matched-import-cache-list  ;;first try completion from cache
+        (setq prefix-string (match-string-no-properties 3))
+        ;;(message "Debug: prefix-string=%s" prefix-string)
+        ;; first try completion from cache
+        (when (and ajc-matched-import-cache-list
                    (string-match (concat "^" ajc-previous-matched-import-prefix) prefix-string))
           (setq matched-pkg-strings (all-completions prefix-string ajc-matched-import-cache-list)))
         (when (= (length matched-pkg-strings) 0)
-          ;;if there are 0 matched in cache then find it out from tag files
-          (setq matched-pkg-strings ;;add pkgs
+          ;; if there are 0 matched in cache then find it out from tag files
+          (setq matched-pkg-strings ;; add pkgs
                 (append matched-pkg-strings
                         (ajc-shrunk-matched-pkgs prefix-string)))
           (let ((index_of_last_dot (string-match "\\.[a-zA-Z_0-9]*$" prefix-string));;add classes
-                (package-prefix) (class-prefix))
+                (package-prefix)
+                (class-prefix))
             (when index_of_last_dot
               (setq package-prefix (substring-no-properties prefix-string 0 index_of_last_dot))
               (setq class-prefix (substring-no-properties prefix-string (+ 1 index_of_last_dot)))
               (dolist (element (ajc-find-out-matched-class-item package-prefix class-prefix))
                 (add-to-list 'matched-pkg-strings (concat package-prefix "." (car element)))))))
         ;;        (setq ajc-is-importing-packages-p t)
-        (setq ajc-previous-matched-import-prefix prefix-string) ;;
+        (setq ajc-previous-matched-import-prefix prefix-string)
         (setq ajc-matched-import-cache-list matched-pkg-strings)))))
 
 (defun ajc-find-out-class-by-parse-source ()
