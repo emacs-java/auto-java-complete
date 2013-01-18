@@ -806,17 +806,6 @@ faster than directly searching the unsorted tag buffer file."
         (setq return-item (list two-char-prefix start end)))
       return-item)))
 
-;; (defun ajc-load-all-sorted-class-items-to-memory()
-;;   (ajc-sort-class);;first sort the class ,and populate ajc-two-char-list variable
-;;   (with-current-buffer  ajc-tmp-sorted-class-buffer-name
-;;     (goto-char (point-min))
-;;     (let ((max-line-num (line-number-at-pos (point-max)))(line-num 1))
-;;       (while  (< line-num max-line-num)
-;;         (add-to-list 'ajc-all-sorted-class-items
-;;                      (ajc-split-class-item (ajc-read-line line-num)) t)
-;;         (setq line-num (+ line-num 1)))))
-;;   (kill-buffer (get-buffer  ajc-tmp-sorted-class-buffer-name)))
-
 (defun ajc-import-package-candidates ()
   "This function is the candidates, so you can bind it with a key sequence.
 It will return a list of packages, for example `( java.lang ,java.ref)."
@@ -1428,27 +1417,6 @@ get any candidates too, we needn't try to complete it."
                                            (point)))
     (setq ajc-complete-method-candidates-cache
           (ajc-complete-method-candidates-1 ajc-complete-method-candidates-cache-stack-list))))
-
-;;
-;; (defun ajc-complete-method-candidates-with-cache()
-;;  "this function works ,but I found it useless"
-;;   (let ((candidates)
-;;         (stack-list (ajc-get-validated-stack-listd-stack-or-nil-4-method-complete
-;;                      (ajc-parse-splited-line-4-complete-method)))
-;;         )
-;;     (if ajc-complete-method-candidates-cache-stack-list
-;;         (if (string-equal "." (car (last stack-list)))
-;;             (setq candidates (ajc-complete-method-candidates-without-cache));;complete without cache
-;;           (if (and (= (length stack-list) (length ajc-complete-method-candidates-cache-stack-list))
-;;                      (string-match (concat "^" (regexp-quote  (ajc-concat-list-as-string ajc-complete-method-candidates-cache-stack-list))) (ajc-concat-list-as-string stack-list)))
-;;                      (setq candidates ajc-complete-method-candidates-cache)
-;;                      (setq candidates (ajc-complete-method-candidates-without-cache));;complete without cache
-;;                  ))
-;;       (setq candidates (ajc-complete-method-candidates-without-cache));;else complete without cache
-;;       )
-;;       (setq ajc-complete-method-candidates-cache-stack-list stack-list)
-;;       (setq ajc-complete-method-candidates-cache candidates)
-;;       ))
 
 (defun ajc-complete-method-candidates-1 (stack-list)
   "Get method candidates depending on stack-list. To see what
