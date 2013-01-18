@@ -757,7 +757,7 @@ then we search AbstractC ,we just need to search line number from 1 3 "
                   (ajc-build-map-4-search-class
                    two-char ajc-tmp-sorted-class-buffer-name (or next-start-search-postion 1)))
             (if two-char-item
-                (add-to-list 'ajc-two-char-list two-char-item  t)
+                (add-to-list 'ajc-two-char-list two-char-item t)
               (setq next-start-search-postion (nth 2 two-char-item)))
             (if (= index2 ?Z) (setq index2 ?a) (setq index2 (+ index2 1))))
           (setq index (+ index 1)))))))
