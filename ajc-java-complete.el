@@ -1221,17 +1221,15 @@ By default it includes classes in java.lang.*."
     return-complete-list))
 
 (defun ajc-is-available-4-complete-class-p ()
-  "only when this function return t ,then ajc-complete-class-candidates
-    will try to find out candidates  "
+  "Return t if current-word begins like classname."
   (let ((class-prefix (current-word))
-        (is-available))
-    (setq case-fold-search nil)
+        (is-available)
+        (case-fold-search nil))
     (when (and class-prefix
                (> (length class-prefix) 0)
                (string-match "^[A-Z][a-zA-Z0-9_]*$" class-prefix))
       (setq ajc-current-class-prefix-4-complete-class class-prefix)
-      (setq is-available t))
-    is-available))
+      t)))
 
 (defun ajc-complete-class-candidates ()
   "Complete class name with (current-word) as class-prefix"
