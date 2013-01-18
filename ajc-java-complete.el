@@ -1245,8 +1245,9 @@ By default it includes classes in java.lang.*."
 
 (defun ajc-complete-class-with-cache (class-prefix)
   "Find out class name which starts with CLASS-PREFIX.
-Before searching in tag file, it first check out
-`ajc-matched-class-items-cache' if there is matched class."
+Before searching in tag file, it first checks out
+`ajc-matched-class-items-cache' to see if there is a matched
+class."
   (let ((return-list))
     (setq case-fold-search nil)
     (when (and class-prefix
@@ -1258,10 +1259,9 @@ Before searching in tag file, it first check out
                 (add-to-list 'return-list class-item t)))
         (setq return-list (ajc-find-out-matched-class-item-without-package-prefix class-prefix)))
       (when (> (length return-list) 0)
-        ;; if find matched ,update cache ,or not
+        ;; if find matched names, update cache
         (setq ajc-previous-class-prefix class-prefix)
         (setq ajc-matched-class-items-cache return-list)))
-    ;; return
     return-list))
 
 (defun ajc-build-list-with-nth-on-each-element (list index)
