@@ -38,9 +38,16 @@
   '((candidates . (ajc-import-package-candidates))
     (prefix . prefix-support-jsp-importing)))
 
+(defun ajc-fqn-prefix ()
+  (save-excursion
+    (when (re-search-backward "\\([[:space:]]\\|^\\)"
+                              (save-excursion (beginning-of-line) (point))
+                              t)
+      (match-end 0))))
+
 (ac-define-source ajc-class
   '((candidates . (ajc-complete-class-candidates ))
-   (prefix . "\\b\\([A-Z][a-zA-Z0-9_]*\\)")
+   (prefix . ajc-fqn-prefix)
    (cache)))
 
 (ac-define-source ajc-constructor
@@ -59,6 +66,12 @@
 
 (ac-define-source ajc-keywords
   '((candidates . (ajc-java-keywords-candidates))))
+
+(ac-define-source ajc-fqn
+  '((candidates . (ajc-fqn-candidates))
+    (prefix . "\\b\\([a-zA-Z][a-zA-Z0-9_.]+\\)")
+    (cache)))
+
 ;; end of sources
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -71,6 +84,7 @@
   (add-to-list 'ac-sources 'ac-source-ajc-class)
   (add-to-list 'ac-sources 'ac-source-ajc-constructor)
   (add-to-list 'ac-sources 'ac-source-ajc-import)
+  (add-to-list 'ac-sources 'ac-source-ajc-fqn)
 ;; auto import all Class in source file
 (local-set-key (kbd "C-c i") 'ajc-import-all-unimported-class)
 ;; import Class where under point
