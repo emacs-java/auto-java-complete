@@ -644,9 +644,10 @@ instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'"
     return-list))
 
 (defun ajc-find-class-first-check-imported (class-name)
-  "Find class from imported classes. If it cannot find it, then
-find from the tag file. If there are more than one class item
-matching CLASS-NAME in tag file, import one of them first."
+  "Return class-item that matches CLASS-NAME.
+If it cannot find it from imported classes, then find from the
+tag file. If there are more than one class item matching
+CLASS-NAME in tag file, import one of them first."
   (let* ((imported-classes (ajc-calculate-all-imported-class-items))
          (matched-class-item
           (catch 'found
@@ -854,6 +855,41 @@ with PREFIX-STRING."
         (dolist (element (ajc-find-out-matched-class-item package-prefix class-prefix))
           (push (concat package-prefix "." (car element)) ret))))
     ret))
+
+(defun ajc-fqn-candidates ()
+  "Return candidates for FQN like prefix."
+  (when (and ac-prefix (string-match "^[a-zA-Z][a-zA-Z0-9._]+" ac-prefix))
+    (ajc-fqn-candidates-1 ac-prefix)))
+
+(defun ajc-fqn-candidates-1 (prefix)
+  "Return candidates which begin with PREFIX.
+
+For example, if PREFIX is \"java.lang.Math.P\", then this should
+return \"PI\"."
+  ;; (message "DEBUG: ajc-fqn-candidates-1, prefix=%s" prefix)
+  (or (ajc-package-candidates prefix)
+      ;; We assume the word before the last dot is class name, so we
+      ;; search for members of that class.
+      (let* ((package-name
+              (and (string-match "\\(.*\\)\\.\\([A-Z][a-zA-Z_0-9]+\\)\\.\\([^.]*\\)$"
+                                 prefix)
+                   (match-string-no-properties 1 prefix)))
+             (class-name (match-string-no-properties 2 prefix))
+             (member-prefix (match-string-no-properties 3 prefix))
+             (class-item (car (and package-name
+                                   class-name
+                                   (ajc-find-out-matched-class-item
+                                    package-name
+                                    class-name
+                                    t)))))
+        ;; (message "DEBUG: ajc-fqn-candidates-1, package-name=%s" package-name)
+        ;; (message "DEBUG: ajc-fqn-candidates-1, class-name=%s" class-name)
+        ;; (message "DEBUG: ajc-fqn-candidates-1, member-prefix=%s" member-prefix)
+        (and class-item
+             (mapcar (lambda (e)
+                       (concat prefix e))
+                     (mapcar #'ajc-method-item-to-candidate
+                             (ajc-find-members class-item member-prefix)))))))
 
 (defun ajc-find-out-class-by-parse-source ()
   "Find out class in current java source file, then import them if
