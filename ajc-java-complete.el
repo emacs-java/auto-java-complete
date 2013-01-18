@@ -1327,11 +1327,11 @@ under class-item."
       (while (< line-num end-position)
         (setq current-line-string (ajc-read-line line-num))
         (if (string-match regexp-method-prefix current-line-string)
-            (add-to-list 'return-member-items (ajc-split-method current-line-string) t)
+            (push (ajc-split-method current-line-string) return-member-items)
           (when (string-match regexp-field-prefix current-line-string)
-            (add-to-list 'return-member-items (ajc-split-field current-line-string) t)))
+            (push (ajc-split-field current-line-string) return-member-items)))
         (setq line-num (+ line-num 1))))
-    return-member-items))
+    (nreverse return-member-items)))
 
 (defun ajc-calculate-class-name-by-variable (variable-name)
   "Find class name of VARIBALE-NAME.
