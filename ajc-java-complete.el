@@ -414,8 +414,9 @@ as an element of returned list. For example
       method-string)))
 
 (defun ajc-method-item-to-candidate (field-or-method-item)
-  "translate `field-or-method-item' to candidate ,`field-or-method-item'
-can be a method item ,or a field item"
+  "Translate 'field-or-method-item' to
+candidate. 'field-or-method-item' can be a method item, or a
+field item."
   (let ((candidate))
     (if (= 2 (length field-or-method-item))
         ;; lenth of field is 2 (only field and returntype)
