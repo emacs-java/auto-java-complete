@@ -1239,10 +1239,9 @@ By default it includes classes in java.lang.*."
           (class-items (ajc-complete-class-with-cache ajc-current-class-prefix-4-complete-class)))
       (dolist (class-item class-items)
         (setq candidate (car class-item))
-        (add-to-list 'candidates
-                     (propertize candidate 'view (ajc-class-to-string class-item t))
-                     t))
-      candidates)))
+        (push (propertize candidate 'view (ajc-class-to-string class-item t))
+              candidates))
+      (nreverse candidates))))
 
 (defun ajc-complete-class-with-cache (class-prefix)
   "Find out class name which starts with CLASS-PREFIX.
