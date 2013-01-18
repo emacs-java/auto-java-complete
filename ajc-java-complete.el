@@ -352,11 +352,11 @@ as an element of returned list. For example
         (setq method-string (concat method-string "("))
         (dolist (param params)
           (when (stringp param)
-            (setq method-string (concat method-string param " , ")))
+            (setq method-string (concat method-string param ", ")))
           (when (listp param)
-            (setq method-string (concat method-string (car param) " , "))))
+            (setq method-string (concat method-string (car param) ", "))))
         (setq method-string
-              (replace-regexp-in-string " , $" ")" method-string)))
+              (replace-regexp-in-string ", $" ")" method-string)))
       (when with-return-type-and-throws
         (setq method-string (append-space-to-item method-string))
         (cond ((stringp return-type)
@@ -367,9 +367,9 @@ as an element of returned list. For example
           (setq method-string (concat method-string ajc-throws-char))
           (dolist (exception exceptions)
             (when (stringp exception)
-              (setq method-string (concat method-string exception " , ")))
+              (setq method-string (concat method-string exception ", ")))
             (when (listp exception)
-              (setq method-string (concat method-string (car exception) " , "))))
+              (setq method-string (concat method-string (car exception) ", "))))
           (setq method-string (replace-regexp-in-string ", $" "" method-string))))
       method-string)))
 
