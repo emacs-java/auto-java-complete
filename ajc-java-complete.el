@@ -278,15 +278,14 @@ example, (ajc-split-pkg-item \"`java.lang`222`333\") will return
                   (or buffer (ajc-reload-tag-buffer-maybe)))))
 
 (defun ajc-split-class-item (class-line-string)
-  "the format of class-line-string is
-  classname`packageLineNum`memberStartLineNum`memberEndLineNum
-  this function translate it to a list ,the num will be convert to number "
+  "The format of CLASS-LINE-STRING is
+  \"classname`packageLineNum`memberStartLineNum`memberEndLineNum\".
+This function translates it to a list."
   (let ((class-item (split-string class-line-string "`" t)))
     (append (list (car class-item))
             (mapcar #'string-to-number (cdr class-item)))))
 
-(defun ajc-split-class-item-by-class-ln
-  (class-line-number &optional buffer)
+(defun ajc-split-class-item-by-class-ln (class-line-number &optional buffer)
   (ajc-split-class-item
    (ajc-read-line class-line-number
                   (or buffer (ajc-reload-tag-buffer-maybe)))))
@@ -343,9 +342,9 @@ example, (ajc-split-pkg-item \"`java.lang`222`333\") will return
 
 (defun ajc-method-to-string (method-item &optional with-return-type-and-throws)
   "This is a toString() like function.
-   When WITH-RETURN-TYPE-AND-THROWS is non nil, it will include
-  return type and exceptions. By default it only includes method
-  name and params"
+When WITH-RETURN-TYPE-AND-THROWS is non nil, it will include
+return type and exceptions. By default it only includes method
+name and params."
   (when method-item
     (let ((method-string (car method-item))
           (return-type (nth 1 method-item))
@@ -418,9 +417,9 @@ example, (ajc-split-pkg-item \"`java.lang`222`333\") will return
       method-string)))
 
 (defun ajc-method-item-to-candidate (field-or-method-item)
-  "Translate 'field-or-method-item' to
-candidate. 'field-or-method-item' can be a method item, or a
-field item."
+  "Translate FIELD-OR-METHOD-ITEM to
+candidate. FIELD-OR-METHOD-ITEM can be a method item, or a field
+item."
   (let ((candidate))
     (if (= 2 (length field-or-method-item))
         ;; lenth of field is 2 (only field and returntype)
@@ -537,7 +536,8 @@ method-name`~return-type`parameters-type`exceptions"
 
 ;; find tag file
 (defun ajc-init ()
-  "find java tag file and do some initial works, like  populate some variables "
+  "Find java tag file and do some initial work like setting some
+variables."
   (unless ajc-is-running
     (setq ajc-tag-file (file-truename (expand-file-name ajc-tag-file)))
     (if (file-exists-p ajc-tag-file)
@@ -591,8 +591,8 @@ tags file."
 
 ;;;###autoload
 (defun ajc-reload ()
-  "restart Auto Java Complete ,when your tag file changed,
-you can use this function restart AutoJavaComplete "
+  "Restart Auto Java Complete. When your tag file has changed,
+you can use this function to restart AutoJavaComplete."
   (interactive)
   (setq ajc-is-running nil)
   (ajc-init))
@@ -600,7 +600,7 @@ you can use this function restart AutoJavaComplete "
 (defalias 'auto-java-complete-reload 'ajc-reload)
 
 (defun ajc-reload-tag-buffer-maybe ()
-  "check if the ajc-tag-buffer is still live ,if not reload it "
+  "Check if `ajc-tag-buffer' is still alive. If not, reload it."
   (unless ajc-tag-buffer
     (ajc-init))
   ajc-tag-buffer)
