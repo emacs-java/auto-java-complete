@@ -1259,7 +1259,8 @@ By default it includes classes in java.lang.*."
     return-complete-list))
 
 (defun ajc-is-available-4-complete-class-p ()
-  "Return t if current-word begins like classname."
+  "Return t if current-word begins like classname and set
+`ajc-current-class-prefix-4-complete-class'."
   (let ((class-prefix (current-word))
         (is-available)
         (case-fold-search nil))
@@ -1270,16 +1271,12 @@ By default it includes classes in java.lang.*."
       t)))
 
 (defun ajc-complete-class-candidates ()
-  "Complete class name with (current-word) as class-prefix"
+  "Return class name candidates whose class names begin with the
+value of `current-word'."
   (when (ajc-is-available-4-complete-class-p)
-    (let ((candidate)
-          (candidates)
-          (class-items (ajc-complete-class-with-cache ajc-current-class-prefix-4-complete-class)))
-      (dolist (class-item class-items)
-        (setq candidate (car class-item))
-        (push (propertize candidate 'view (ajc-class-to-string class-item t))
-              candidates))
-      (nreverse candidates))))
+    (mapcar (lambda (class-item)
+              (propertize (car class-item) 'view (ajc-class-to-string class-item t)))
+            (ajc-complete-class-with-cache ajc-current-class-prefix-4-complete-class))))
 
 (defun ajc-complete-class-with-cache (class-prefix)
   "Find out class name which starts with CLASS-PREFIX.
