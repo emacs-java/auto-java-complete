@@ -748,7 +748,7 @@ for AbstractC, we just need to search line number from 1 to 3."
       (erase-buffer)
       (insert-buffer-substring (ajc-reload-tag-buffer-maybe)
                                ajc-position-of-class-first-line ajc-position-of-member-first-line)
-      (sort-lines nil 1 (point-max)
+      (sort-lines nil 1 (point-max))
       (let ((end ?Z) (index ?A) (index2 ?A) (two-char)
             (two-char-item) (next-start-search-postion))
         (setq ajc-two-char-list nil)
