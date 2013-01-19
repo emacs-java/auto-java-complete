@@ -241,7 +241,7 @@ file.")
                                     (line-end-position))))
 
 (defun ajc-split-string-with-separator (str regexp &optional replacement omit-nulls)
-  "This function is a tool like split-string, but it treat separator
+  "This function is a tool like split-string, but it treats separator
 as an element of returned list. For example
  (ajc-split-string-with-separator abc.def.g \"\\.\" \".\") will return
 '(\"abc\" \".\" \"def\" \".\" \"g\")"
