@@ -1288,8 +1288,8 @@ value of `current-word'."
 Before searching in tag file, it first checks out
 `ajc-matched-class-items-cache' to see if there is a matched
 class."
-  (let ((return-list))
-    (setq case-fold-search nil)
+  (let ((return-list)
+        (case-fold-search nil))
     (when (and class-prefix
                (string-match "[A-Z][a-zA-Z0-9_]*" class-prefix))
       (if (and ajc-previous-class-prefix
