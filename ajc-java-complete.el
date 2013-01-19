@@ -739,8 +739,10 @@ CLASS-PREFIX will be returned."
       (nreverse matched-class-items))))
 
 (defun ajc-sort-class ()
-  "sort class for search ,we build a table for example ((Ab 1 3) (Ac 4 6))
-then we search AbstractC ,we just need to search line number from 1 3 "
+  "Sort class name in buffer `ajc-tmp-sorted-class-buffer-name'.
+
+We build a table like ((Ab 1 3) (Ac 4 6)) so that when searching
+for AbstractC, we just need to search line number from 1 to 3."
   (let ((case-fold-search nil))
     (with-current-buffer (get-buffer-create ajc-tmp-sorted-class-buffer-name)
       (erase-buffer)
