@@ -748,7 +748,7 @@ for AbstractC, we just need to search line number from 1 to 3."
       (erase-buffer)
       (insert-buffer-substring (ajc-reload-tag-buffer-maybe)
                                ajc-position-of-class-first-line ajc-position-of-member-first-line)
-      (sort-lines nil 1 (point-max))
+      (sort-lines nil 1 (point-max)
       (let ((end ?Z) (index ?A) (index2 ?A) (two-char)
             (two-char-item) (next-start-search-postion))
         (setq ajc-two-char-list nil)
@@ -772,15 +772,16 @@ for AbstractC, we just need to search line number from 1 to 3."
 the position where a classname which begins with two-char-prefix
 is first found, and end is the position those classnames are no
 longer found. Suppose two-char-prefix is 'Ab' and
-ajc-tmp-sorted-class-buffer-name is the buffer. All lines in this
-buffer are alphabetically-sorted classnames. these are cut from
-tag file between ajc-class-first-ln and ajc-member-first-ln, and
-sorted by `sort-lines' This function tries to find out classnames
-which begin with TWO-CHAR-PREFIX, get the start position and end
-position, and record them in a list. When searching for a
-classname which begin with two-char-prefix, we just need to do
-search from the start position to the end position. This is
-faster than directly searching the unsorted tag buffer file."
+`ajc-tmp-sorted-class-buffer-name' is the buffer. All lines in
+this buffer are alphabetically-sorted classnames. These are cut
+from tag file between `ajc-class-first-ln' and
+`ajc-member-first-ln', and sorted by `sort-lines' This function
+tries to find out classnames which begin with TWO-CHAR-PREFIX,
+get the start position and end position, and record them in a
+list. When searching for a classname which begin with
+two-char-prefix, we just need to do search from the start
+position to the end position. This is faster than directly
+searching in the unsorted tag buffer file."
   (with-current-buffer ajc-tmp-sorted-class-buffer-name
     (goto-char start-search-postion)
     (let ((char1 (string-to-char (substring-no-properties two-char-prefix 0 1)))
