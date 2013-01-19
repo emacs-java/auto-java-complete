@@ -234,7 +234,7 @@ file.")
       (forward-line (1- line-num)))))
 
 (defun ajc-read-line (line-number &optional buffer)
-  "read a line  and return the string"
+  "Read a line at LINE-NUMBER and return the string."
   (with-current-buffer (or buffer (current-buffer))
     (ajc-goto-line line-number)
     (buffer-substring-no-properties (line-beginning-position)
