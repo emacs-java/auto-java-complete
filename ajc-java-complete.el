@@ -633,10 +633,10 @@ will be returned. So we will try to convert '((packageName 12 33 )) to
 
 ;; (ajc-shrunk-matched-pkgs "java.aw") == java.awt
 (defun ajc-shrunk-matched-pkgs (pkg-prefix)
-  "this function is used for list matched package.
-when you import a package in head of your java file,
-when you typed in 'jav-|-', then it will list 'java javax'
-instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'"
+  "Return a list of packages whose name begins with PKG-PREFIX.
+When you import a package at the head of your java source file,
+and when you type in 'jav-|-', then it will list 'java javax'
+instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'."
   (let ((matched-pkg-items (ajc-find-out-matched-pkg-item pkg-prefix))
         (index-of-first-dot 0)
         (return-list)
