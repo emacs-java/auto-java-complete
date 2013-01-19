@@ -262,9 +262,10 @@ as an element of returned list. For example
       split-list)))
 
 (defun ajc-split-pkg-item (pkg-line-string)
-  "the format pkg-line-string is  str`num`num
-  this function translate it to a list ,the num will be string2number
-  give me  `java.lang`222`333 ,return '(\"java.lang\" 222 333) "
+  "The format PKG-LINE-STRING is \"str`num`num\".
+This function translates it to a list. For
+example, (ajc-split-pkg-item \"`java.lang`222`333\") will return
+'(\"java.lang\" 222 333) "
   (let ((pkg-item (split-string pkg-line-string "`" t)))
     (setcar (nthcdr 1 pkg-item) (string-to-number (nth 1 pkg-item)))
     (setcar (nthcdr 2 pkg-item) (string-to-number (nth 2 pkg-item)))
