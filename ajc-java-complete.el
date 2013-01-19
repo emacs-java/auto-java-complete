@@ -272,9 +272,7 @@ example, (ajc-split-pkg-item \"`java.lang`222`333\") will return
     pkg-item))
 
 (defun ajc-split-pkg-item-by-pkg-ln (pkg-line-number &optional buffer)
-  "the format pkg-line-string is str`num`num
-   this function translate it to a list ,the num will be
-   string2number return a list of pkg info of line-number "
+  "Return a list of translated package line at PKG-LINE-NUMBER."
   (ajc-split-pkg-item
    (ajc-read-line pkg-line-number
                   (or buffer (ajc-reload-tag-buffer-maybe)))))
