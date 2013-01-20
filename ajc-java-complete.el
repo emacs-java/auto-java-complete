@@ -179,9 +179,22 @@ a class faster.")
 starts with Ab are in the position of 0~2 (because of 0-origin)
 in `ajc-all-sorted-class-items'.")
 
+(defvar ajc-two-char-tbl (make-hash-table :test #'equal)
+  "Hash table in which to store two-char-items.
+For example, \"Ab\" => ((0 1 3) (1 4 15)),
+\"Ac\" => ((0 4 10) (1 16 22)) and so on.")
+
 (defvar ajc-tmp-sorted-class-buffer-name " *ajc-tmp-sorted-class*")
 
+(defvar ajc-tmp-sorted-class-buffer-list nil
+  "A list of buffer names holding sorted classnames. Each buffer
+in this list corresponds to tags file.")
+
 (defvar ajc-tag-buffer nil "This is the buffer of tag file.")
+
+(defvar ajc-tag-buffer-list nil
+  "A list of tags buffer. Each buffer corresponds to a tag
+file.")
 
 (defvar ajc-package-first-ln 0
   "The first line number of the package section in tag file")
@@ -202,6 +215,9 @@ It is the last line number in tag file.")
 (defvar ajc-position-of-class-first-line 1)
 (defvar ajc-position-of-member-first-line 1)
 (defvar ajc-position-of-member-end-line 1)
+
+(defvar ajc-position-of-class-first-line-list nil)
+(defvar ajc-position-of-member-first-line-list nil)
 
 (defvar ajc-matched-class-items-cache nil
   "When searching for class-prefix without package-name,
@@ -534,11 +550,38 @@ method-name`~return-type`parameters-type`exceptions"
         (setq constructor-string (replace-regexp-in-string " , $" ")$0" constructor-string)))
       (setq constructor-string constructor-string))))
 
+(defun ajc-get-line-and-position (buffer line-number)
+  "Return cons cell of number which is got by reading line at
+LINE-NUMBER in BUFFER and position of that line."
+  (let ((lnum (string-to-number (ajc-read-line line-number buffer))))
+    (cons lnum (ajc-get-position-by-line lnum buffer))))
+
+(defun ajc-get-package-line-and-position (buffer)
+  "Return cons cell of (package-first-line . position-of-class-first-line)."
+  (ajc-get-line-and-position buffer 3))
+
+(defun ajc-get-class-line-and-position (buffer)
+  "Return cons cell of (class-first-line . position-of-class-first-line)."
+  (ajc-get-line-and-position buffer 4))
+
+(defun ajc-get-member-lines-and-positions (buffer)
+  "Return cons cell of
+ ((member-first-line . position-of-member-first-line) .
+  (member-end-line . position-of-member-end-line))."
+  (cons (ajc-get-line-and-position buffer 5)
+        (ajc-get-line-and-position buffer 6)))
+
+(defun ajc-get-position-by-line (line buffer)
+  (with-current-buffer buffer
+    (goto-char (point-min))
+    (forward-line (1- line))
+    (point)))
+
 ;; find tag file
 (defun ajc-init ()
   "Find java tag file and do some initial work like setting some
 variables."
-  (unless ajc-is-running
+  (unless ajc-is-runningnil
     (setq ajc-tag-file (file-truename (expand-file-name ajc-tag-file)))
     (if (file-exists-p ajc-tag-file)
         (with-current-buffer (find-file-noselect ajc-tag-file)
@@ -549,22 +592,9 @@ variables."
           (setq buffer-read-only t)
           (fundamental-mode)
           (setq case-fold-search nil)
-          (setq ajc-package-first-ln (string-to-number (ajc-read-line 3)))
-          (setq ajc-position-of-package-first-line
-                (progn (ajc-goto-line ajc-package-first-ln)
-                       (point)))
-          (setq ajc-class-first-ln (string-to-number (ajc-read-line 4)))
-          (setq ajc-position-of-class-first-line
-                (progn (ajc-goto-line ajc-class-first-ln)
-                       (point)))
-          (setq ajc-member-first-ln (string-to-number (ajc-read-line 5)))
-          (setq ajc-position-of-member-first-line
-                (progn (ajc-goto-line ajc-member-first-ln)
-                       (point)))
-          (setq ajc-member-end-ln (string-to-number (ajc-read-line 6)))
-          (setq ajc-position-of-member-end-line
-                (progn (ajc-goto-line ajc-member-end-ln)
-                       (point)))
+          (ajc-set-package-lines-and-positions)
+          (ajc-set-class-lines-and-positions)
+          (ajc-set-member-lines-and-positions)
           (setq ajc-package-in-tags-cache-tbl (ajc-build-package-in-tags-cache-tbl))
           ;;          (ajc-load-all-sorted-class-items-to-memory)
           (ajc-sort-class))
@@ -599,11 +629,11 @@ you can use this function to restart AutoJavaComplete."
 ;;;###autoload
 (defalias 'auto-java-complete-reload 'ajc-reload)
 
-(defun ajc-reload-tag-buffer-maybe ()
+(defun ajc-reload-tag-buffer-maybe (&optional buffer)
   "Check if `ajc-tag-buffer' is still alive. If not, reload it."
-  (unless ajc-tag-buffer
+  (unless (or buffer ajc-tag-buffer)
     (ajc-init))
-  ajc-tag-buffer)
+  (or buffer ajc-tag-buffer))
 
 ;; (ajc-find-out-matched-pkg-item "java.awt")
 ;; (ajc-find-out-matched-pkg-item "java.awt" t)
@@ -770,13 +800,50 @@ for AbstractC, we just need to search line number from 1 to 3."
             (if (= index2 ?Z) (setq index2 ?a) (setq index2 (+ index2 1))))
           (setq index (+ index 1)))))))
 
-(defun ajc-build-map-4-search-class (two-char-prefix
-                                     ajc-tmp-sorted-class-buffer-name
-                                     start-search-postion)
+(defun ajc-sort-class-1 (ix class-buffer-name tag-buffer two-char-item-tbl)
+  "Sort in buffer CLASS-BUFFER-NAME class-items in TAG-BUFFER, and
+return the resultant TWO-CHAR-ITEM-TBL.
+
+IX is an index of TAG-BUFFER in
+`ajc-tag-buffer-list'. CLASS-BUFFER-NAME is the name of buffer
+containing sorted class-items. two-char-item-tbl is a hash
+table."
+  (let ((case-fold-search nil))
+    (with-current-buffer (get-buffer-create class-buffer-name)
+      (erase-buffer)
+      ;; insert class part of tag-buffer
+      (insert-buffer-substring (ajc-reload-tag-buffer-maybe tag-buffer)
+                               (nth ix ajc-position-of-class-first-line-list)
+                               (nth ix ajc-position-of-member-first-line-list))
+      (sort-lines nil 1 (point-max))
+      (let ((end ?Z) (index ?A) (index2 ?A) (two-char)
+            (two-char-item) (next-start-search-postion))
+        (setq ajc-two-char-list nil)
+        (while (<= index end)
+          (setq index2 ?A)
+          (while (<= index2 ?z)
+            (setq two-char (concat (char-to-string index) (char-to-string index2)))
+            (setq two-char-item
+                  (ajc-create-two-char-item
+                   two-char class-buffer-name (or next-start-search-postion 1) ix))
+            (if two-char-item
+                (puthash two-char
+                         (push two-char-item
+                               (gethash two-char two-char-item-tbl nil))
+                         two-char-item-tbl)
+              (setq next-start-search-postion (nth 2 two-char-item)))
+            (if (= index2 ?Z) (setq index2 ?a) (setq index2 (+ index2 1))))
+          (setq index (+ index 1)))))
+    two-char-item-tbl))
+
+(defun ajc-create-two-char-item (two-char-prefix
+                                 class-buffer-name
+                                 start-search-postion
+                                 index)
   "Return a list of form (two-char-prefix start end): start is
-the position where a classname which begins with two-char-prefix
-is first found, and end is the position those classnames are no
-longer found. Suppose two-char-prefix is 'Ab' and
+the position where a classname which begins with TWO-CHAR-PREFIX
+is first found, and end is the position where classnames are no
+longer found. Suppose TWO-CHAR-PREFIX is 'Ab' and
 `ajc-tmp-sorted-class-buffer-name' is the buffer. All lines in
 this buffer are alphabetically-sorted classnames. These are cut
 from tag file between `ajc-class-first-ln' and
@@ -787,11 +854,12 @@ list. When searching for a classname which begin with
 two-char-prefix, we just need to do search from the start
 position to the end position. This is faster than directly
 searching in the unsorted tag buffer file."
-  (with-current-buffer ajc-tmp-sorted-class-buffer-name
+  (with-current-buffer class-buffer-name
     (goto-char start-search-postion)
     (let ((char1 (string-to-char (substring-no-properties two-char-prefix 0 1)))
           (char2 (string-to-char (substring-no-properties two-char-prefix 1 2)))
-          start end has-found-first return-item end-position end-prefix-regexp case-fold-search)
+          (case-fold-search nil)
+          start end has-found-first return-item end-position end-prefix-regexp)
       (when (or (= char1 ?Z) (= char2 ?z) (= char2 ?Z))
         (setq end-position (line-number-at-pos (point-max)))
         (if (< char2 ?a)
@@ -813,7 +881,7 @@ searching in the unsorted tag buffer file."
           (setq start (line-beginning-position)))
         (setq end (line-end-position)))
       (when (numberp start)
-        (setq return-item (list two-char-prefix start end)))
+        (setq return-item (list index start end)))
       return-item)))
 
 (defun ajc-import-package-candidates ()
