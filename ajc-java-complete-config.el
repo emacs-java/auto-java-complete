@@ -69,7 +69,7 @@
 
 (ac-define-source ajc-fqn
   '((candidates . (ajc-fqn-candidates))
-    (prefix . "\\b\\([a-zA-Z][a-zA-Z0-9_.]+\\)")
+    (prefix . ajc-fqn-prefix)
     (cache)))
 
 ;; end of sources
