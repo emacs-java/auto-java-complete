@@ -590,3 +590,9 @@
        (mapcar (lambda (e)
                  (test-ajc-unpropertize-text e '(view templete-type templete)))
                (ajc-complete-constructor "JUnitMatchers" "org.junit.matchers")))))))
+
+(ert-deftest test-ajc-line-has-typeinfo-p ()
+  (should
+   (ajc-line-has-typeinfo-p
+    "_jars"
+    "private ArrayList<File> _jars = new ArrayList<>(); // absolute paths of jar files")))
