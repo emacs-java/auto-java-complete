@@ -40,21 +40,40 @@
 
 (defun ajc-fqn-prefix ()
   (save-excursion
-    (when (re-search-backward "\\([[:space:]]\\|^\\)"
+    (when (re-search-backward "\\([[:space:](]\\|^\\)"
                               (save-excursion (beginning-of-line) (point))
                               t)
-      (match-end 0))))
+      (match-end 1))))
 
+;; todo
+;; Whey did i use ajc-fqn-prefix as prefix of ac-source-ajc-class????
+;; Check older version!!
 (ac-define-source ajc-class
   '((candidates . (ajc-complete-class-candidates ))
    (prefix . ajc-fqn-prefix)
    (cache)))
 
+(defun ajc-constructor-prefix ()
+  (let ((case-fold-search nil))
+    (save-excursion
+      (when (re-search-backward (concat
+                                 "new[ \t]+"
+                                 "\\("
+                                 "[a-zA-Z0-9_.]*[ \t]*("
+                                 "\\)"
+                                 ")?"
+                                 )
+                                (save-excursion
+                                  (beginning-of-line) (point))
+                                t
+                                1)
+        (match-beginning 1)))))
+
 (ac-define-source ajc-constructor
   '((candidates . (ajc-complete-constructor-candidates ))
    (cache)
    (requires . 3)
-   (prefix . "\\bnew[ \t]+\\([A-Z][a-zA-Z0-9_]*[ \t]*(?\\)")
+   (prefix . ajc-constructor-prefix)
    (action . ajc-expand-yasnippet-templete-with-ac)))
 
 (ac-define-source ajc-method
