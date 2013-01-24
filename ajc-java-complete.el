@@ -706,9 +706,11 @@ tag file."
 The next completion is done with the current tag files and
 FILENAME."
   (interactive "fTag file: ")
-  (when (file-exists-p (file-truename (expand-file-name filename)))
-    (push (file-truename (expand-file-name filename)) ajc-tag-file-list)
-    (ajc-init t)))
+  (let ((file (file-truename (expand-file-name filename))))
+    (when (and (file-exists-p file)
+               (not (member file ajc-tag-file-list)))
+      (push file ajc-tag-file-list)
+      (ajc-init t))))
 
 (defun ajc-unload-tag-file (filename)
   "Unload tag file FILENAME.
@@ -1671,7 +1673,7 @@ in a source file, String will be returned."
                                  "[=;[:space:]]")
                          line)
          (not (string-match-p exclude-regexp line))
-         (not (string-match-p "[[:space:]]*//" line)))))
+         (not (string-match-p "^[[:space:]]*//" line)))))
 
 
 ;;TODO: add cache support for method candidates
