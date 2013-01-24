@@ -1,4 +1,4 @@
-;;; ajc-java-complete-config.el --- Auto Java Completion  for GNU Emacs
+;;; ajc-java-complete-config.el --- Auto Java Completion for GNU Emacs
 
 ;;;  Install
 
@@ -8,20 +8,19 @@
 (require 'yasnippet)
 (require 'ajc-java-complete)
 
-
 (defun ajc-expand-yasnippet-templete-with-ac ()
   (let* ((last-complete-string (cdr ac-last-completion))
          (yasnippet-templete (get-text-property 0 'templete last-complete-string))
          templete-type)
-    (when  yasnippet-templete
-      (setq templete-type  (get-text-property 0 'templete-type last-complete-string))
+    (when yasnippet-templete
+      (setq templete-type (get-text-property 0 'templete-type last-complete-string))
       (delete-char (- 0 (length last-complete-string)))
       (cond
-       ((equal templete-type  'method)
+       ((equal templete-type 'method)
         ;;yas0.8  yas/expand-snippet renamed to yas-expand-snippet
-        (yas-expand-snippet (ajc-method-to-yasnippet-templete yasnippet-templete) )
+        (yas-expand-snippet (ajc-method-to-yasnippet-templete yasnippet-templete))
         )
-       ((equal templete-type  'constructor)
+       ((equal templete-type 'constructor)
         (yas-expand-snippet (ajc-constructor-to-yasnippet-templete yasnippet-templete))
         )))))
 
@@ -30,9 +29,11 @@
 ;;for example (define-key ac-mode-map (kbd "M-1") 'auto-complete)
 ;;<%@ page language="java" import="java.io.File,java.util.Map,javax.sw-|-"%>
 (defun prefix-support-jsp-importing ()
-  (when   (re-search-backward "\\(import=\"\\(.*[ \t\n]*,[ \t\n]*\\)*\\)\\|\\(import[ \t]+\\)"  nil t)
-    (match-end 0))
-  )
+  (when (re-search-backward "\\(import=\"\\(.*[ \t\n]*,[ \t\n]*\\)*\\)\\|\\(import[ \t]+\\)"
+                            nil
+                            t)
+    (match-end 0)))
+
 ;; sources for auto complete
 (ac-define-source ajc-import
   '((candidates . (ajc-import-package-candidates))
@@ -49,7 +50,7 @@
 ;; Whey did i use ajc-fqn-prefix as prefix of ac-source-ajc-class????
 ;; Check older version!!
 (ac-define-source ajc-class
-  '((candidates . (ajc-complete-class-candidates ))
+  '((candidates . (ajc-complete-class-candidates))
    (prefix . ajc-fqn-prefix)
    (cache)))
 
@@ -70,7 +71,7 @@
         (match-beginning 1)))))
 
 (ac-define-source ajc-constructor
-  '((candidates . (ajc-complete-constructor-candidates ))
+  '((candidates . (ajc-complete-constructor-candidates))
    (cache)
    (requires . 3)
    (prefix . ajc-constructor-prefix)
@@ -81,7 +82,7 @@
   (cache)
   (requires . 0)
   (prefix . "\\.\\(.*\\)")
-  (action .  ajc-expand-yasnippet-templete-with-ac)))
+  (action . ajc-expand-yasnippet-templete-with-ac)))
 
 (ac-define-source ajc-keywords
   '((candidates . (ajc-java-keywords-candidates))))
@@ -136,9 +137,10 @@
 ;; (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
 ;;;###autoload
 (defun ajc-4-jsp-find-file-hook ()
-  (let ((file-name-ext (file-name-extension (buffer-file-name)) ))
+  (let ((file-name-ext (file-name-extension (buffer-file-name))))
     (when (and file-name-ext (string-match "jsp" file-name-ext))
     (ajc-java-complete-mode))
   ))
 
 (provide 'ajc-java-complete-config)
+;; ajc-java-complete-config.el ends here
