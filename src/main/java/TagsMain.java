@@ -20,16 +20,23 @@ public class TagsMain {
       Thread.sleep(SLEEP_TIME);
     } catch (Exception ex) {}
 
-    if (args.length > 0) {
-      String[] regexs = args[0].split(",");
-      _tags.setClassExcludeRegexPatternArray(new Pattern[regexs.length]);
-      for (int m = 0; m < _tags.getClassExcludeRegexPatternArray().length; m++) {
-        _tags.setClassExcludeRegexPatternArray(
-          m, Pattern.compile(regexs[m].replaceAll("\"", "").replaceAll("'", "")));
+    // Now do the job
+    try {
+      if (args.length > 0) {
+        String[] regexs = args[0].split(",");
+        _tags.setClassExcludeRegexPatternArray(new Pattern[regexs.length]);
+        for (int m = 0; m < _tags.getClassExcludeRegexPatternArray().length; m++) {
+          _tags.setClassExcludeRegexPatternArray(
+            m, Pattern.compile(regexs[m].replaceAll("\"", "").replaceAll("'", "")));
+        }
       }
+      _tags.process();
+      printEndMessage();
+    } catch (Exception e) {
+      // We have to delete unzipped class files if exist.
+      // Shouldn't we use _tags object at this point?
+      _tags.clear();
     }
-    _tags.process();
-    printEndMessage();
   }
 
   private void printStartMessage() {
@@ -81,7 +88,7 @@ public class TagsMain {
       "***  The size of the generated ~/.java_base.tag is             ***\n" +
       "***  about 2M or bigger, so if your .java_base.tag is          ***\n" +
       "***  too small, that mabey means your CLASSPATH isn't          ***\n" +
-      "***  configureed properly.                                     ***\n" +
+      "***  configured properly.                                      ***\n" +
       "******************************************************************\n"
       );
     System.out.println(new File(_tags.getHomePath(), ".java_base.tag").getAbsolutePath());
