@@ -1283,8 +1283,8 @@ using `y-or-n-p' to ask user to confirm."
         (java-buffer (current-buffer))
         (java-window)
         (use-dialog-box nil)
-        (last-nonmenu-event nil))
-    (setq case-fold-search nil)
+        (last-nonmenu-event nil)
+        (case-fold-search nil))
     (cond ((and import-class-items-list (> (length import-class-items-list) 0))
            (setq import-class-buffer (switch-to-buffer-other-window import-class-buffer t))
            (setq java-window (get-buffer-window java-buffer))
@@ -1293,7 +1293,8 @@ using `y-or-n-p' to ask user to confirm."
              (delete-region (point-min) (point-max))
              (dolist (ele import-class-items-list)
                (insert (concat "[ ]  "
-                               (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele)))
+                               (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele)
+                                                                  (nth 2 ele)))
                                "."
                                (car ele)
                                "\n")))
@@ -1340,7 +1341,8 @@ using `y-or-n-p' to ask user to confirm."
                 (dolist (class-item class-items)
                   (setq all-class-strings
                         (concat all-class-strings
-                                (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item)))
+                                (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item)
+                                                                   (nth 2 class-item)))
                                 "."
                                 (car class-item)
                                 ",")))
@@ -1358,7 +1360,8 @@ using `y-or-n-p' to ask user to confirm."
                        (dolist (ele class-items)
                          (insert
                           (concat "import "
-                                  (car (ajc-split-pkg-item-by-pkg-ln (nth 2 ele)))
+                                  (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele)
+                                                                     (nth 2 ele)))
                                   "." (car ele) ";\n"))))
               ;; if hasn't found 'import; then insert after 'package ' statement
               (progn (goto-char (point-min))
@@ -1368,13 +1371,15 @@ using `y-or-n-p' to ask user to confirm."
                                 (newline)
                                 (dolist (ele class-items)
                                   (insert (concat "import "
-                                                  (car (ajc-split-pkg-item-by-pkg-ln (nth 2 ele)))
+                                                  (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele)
+                                                                                     (nth 2 ele)))
                                                   "." (car ele) ";\n"))))
                        (progn ;;if hasn't found 'import' and 'package' then insert at head of buffer
                          (goto-char (point-min))
                          (dolist (ele class-items)
                            (insert (concat "import "
-                                           (car (ajc-split-pkg-item-by-pkg-ln (nth 2 ele)))
+                                           (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele)
+                                                                              (nth 2 ele)))
                                            "." (car ele) ";\n")))))))))))))
 
 (defun ajc-find-out-import-line ()
