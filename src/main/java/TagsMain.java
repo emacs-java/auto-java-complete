@@ -16,7 +16,7 @@ public class TagsMain {
   public void run(String[] args) throws Exception {
     printStartMessage();
     try {
-      System.out.println(String.format("sleep %s seconds...", SLEEP_TIME));
+      System.out.println(String.format("sleep %s millseconds...", SLEEP_TIME));
       Thread.sleep(SLEEP_TIME);
     } catch (Exception ex) {}
 
