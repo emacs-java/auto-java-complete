@@ -595,4 +595,8 @@
   (should
    (ajc-line-has-typeinfo-p
     "_jars"
-    "private ArrayList<File> _jars = new ArrayList<>(); // absolute paths of jar files")))
+    "private ArrayList<File> _jars = new ArrayList<>(); // absolute paths of jar files"))
+  (should
+   (ajc-line-has-typeinfo-p
+    "cls"
+    "  public ClassItem(Class cls) {")))
