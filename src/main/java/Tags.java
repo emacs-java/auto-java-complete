@@ -144,7 +144,7 @@ public class Tags {
   }
 
   //clean _randomTmpPath directory
-  private void clear() {
+  protected void clear() {
     if (_randomTmpPath != null && _randomTmpPath.isDirectory()) {
       IOUtils.del(_randomTmpPath);
       _randomTmpPath.delete();
