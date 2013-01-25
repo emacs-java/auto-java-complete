@@ -186,6 +186,7 @@ public class Tags {
       return clazzFiles;
     }
     System.out.println("tmp classpath :" + _randomTmpPath.getAbsolutePath());
+    logInfo("tmp classpath :" + _randomTmpPath.getAbsolutePath());
     clazzFiles = IOUtils.getAllFilesUnderDir(_randomTmpPath,
                                              new FileFilter() {
                                                public boolean accept(File f) {
@@ -209,19 +210,8 @@ public class Tags {
 
   private void processJarFile(File f) {
     Unzip.unzip(f, _randomTmpPath);
-    System.out.println("adding " + f.getAbsolutePath() + "  to classpath...");
-    // JarFile jar=null;
-    // try { jar = new JarFile(f); } catch (IOException e) {log(e);}
-    // Enumeration en = jar.entries();
-    // int i = 0;
-    // while (en.hasMoreElements()){
-    //     ZipEntry z = (ZipEntry) en.nextElement();
-    //     String name = z.getName();
-    //     if (name.indexOf(".class") < 0) continue;
-    //     name= name.substring(0, name.lastIndexOf(".class"));
-    //     String className= name.replace("/", ".");
-    //     processClass(className);
-    // }
+    System.out.println("adding " + f.getAbsolutePath() + " to classpath...");
+    logInfo("adding " + f.getAbsolutePath() + " to classpath...");
   }
 
   /**
@@ -298,6 +288,7 @@ public class Tags {
   // Process each class in _clss
   private void tagAll() {
     System.out.println("found " + _clss.size() + "  classes.");
+    logInfo("found " + _clss.size() + "  classes.");
     try {
       for (Class c : _clss) {
         try {
@@ -313,6 +304,7 @@ public class Tags {
       Collections.sort(_packages);
       Collections.sort(_classes);
       System.out.println("tagged " + _classes.size() + "  classes.");
+      logInfo("tagged " + _classes.size() + "  classes.");
 
       for (ClassItem cItem : _classes) {
         try {
@@ -814,7 +806,7 @@ class MemberItem implements Comparable<MemberItem> {
     StringBuffer returnStr = new StringBuffer();
     if (_constructor != null) {
       returnStr.append("  " + _name + "`");
-      //append params
+      // append params
       if (_params != null) {
         for (ClassItemWrapper param: _params) {
           if (param.getAlternativeString() != null) {
@@ -839,8 +831,8 @@ class MemberItem implements Comparable<MemberItem> {
       }
     } else if (_field != null) {
       returnStr.append(" " + _name + "`");
-      //    returnStr.append(cItem.lineNum+"`");
-      //apend the field type
+      //returnStr.append(cItem.lineNum+"`");
+      // apend the field type
       if (_returnType.getAlternativeString() != null) {
         returnStr.append("~" + _returnType.getAlternativeString());
       } else {
@@ -848,7 +840,7 @@ class MemberItem implements Comparable<MemberItem> {
       }
     } else if (_method != null) {
       returnStr.append(_name + "`");
-      //append returnType
+      // append returnType
       if (_returnType.getAlternativeString() != null) {
         returnStr.append("~" + _returnType.getAlternativeString());
       } else {
@@ -859,7 +851,7 @@ class MemberItem implements Comparable<MemberItem> {
         returnStr.append(_returnType.getClassItem().getLineNum());
       }
       returnStr.append("`");
-      //append params
+      // append params
       if (_params != null) {
         for (ClassItemWrapper param : _params) {
           if (param.getAlternativeString() != null) {
@@ -871,7 +863,7 @@ class MemberItem implements Comparable<MemberItem> {
         if (_params.size() > 0) { returnStr.deleteCharAt(returnStr.length() - 1); }
       }
       returnStr.append("`");
-      //append exceptions
+      // append exceptions
       if (_exceptions != null) {
         for (ClassItemWrapper exp : _exceptions) {
           if (exp.getAlternativeString() != null) {
@@ -968,11 +960,6 @@ class Unzip {
       System.err.println("Extract error(maybe bad zip(jar) file.):" + e.getMessage());
     }
   }
-  // public static void main(String[] args) {
-  //     // TODO Auto-generated method stub
-  //     Unzip z = new Unzip();
-  //     z.unzip("/tmp/a.zip", "/tmp/d/");
-  // }
 }
 
 class CL extends ClassLoader {
