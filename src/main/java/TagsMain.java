@@ -56,9 +56,9 @@ public class TagsMain {
       "***           java Tags                                        ***\n" +
       "***    all classes in classpath will be tagged.                ***\n" +
       "***                                                            ***\n" +
-      "***           java Tags \"org\\.hello,org\\.world\"            ***\n" +
+      "***           java Tags \"org\\.hello,org\\.world\"                ***\n" +
       "***    This would NOT tag those classes that match             ***\n" +
-      "***    \"org.hello\" or \"org.world\".                         ***\n" +
+      "***    \"org.hello\" or \"org.world\".                             ***\n" +
       "***                                                            ***\n" +
       "***           java -cp yourclasspath Tags                      ***\n" +
       "***  If you see java.lang.OutOfMemoryError: PermGen space,     ***\n" +
@@ -73,7 +73,8 @@ public class TagsMain {
 
   private void printEndMessage() {
     System.out.println(
-      "\n****************************************************************\n" +
+      "\n" +
+      "******************************************************************\n" +
       "***                  Exit successful!!!                        ***\n" +
       "***  You will see a file named '.java_base.tag'                ***\n" +
       "***  in your home directory.                                   ***\n" +
