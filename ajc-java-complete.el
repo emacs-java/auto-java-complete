@@ -1603,7 +1603,7 @@ in a source file, String will be returned."
         (index-of-var-in-line)
         (var-stack)
         (origin-pos (point))
-        (needle (concat "[[:space:]]+" variable-name "[;=[:space:]]"))
+        (needle (concat "[[:space:]]+" variable-name "[;=)[:space:]]"))
         (case-fold-search nil))
     (save-excursion
       (catch 'found
@@ -1670,7 +1670,7 @@ in a source file, String will be returned."
         (exclude-regexp "return"))
     (and (string-match-p (concat type-regexp
                                  varname
-                                 "[=;[:space:]]")
+                                 "[=;)[:space:]]")
                          line)
          (not (string-match-p exclude-regexp line))
          (not (string-match-p "^[[:space:]]*//" line)))))
