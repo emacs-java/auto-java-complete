@@ -287,7 +287,7 @@ public class Tags {
 
   // Process each class in _clss
   private void tagAll() {
-    System.out.println("found " + _clss.size() + "  classes.");
+    System.out.println("found " + _clss.size() + " classes.");
     logInfo("found " + _clss.size() + "  classes.");
     try {
       for (Class c : _clss) {
@@ -303,8 +303,8 @@ public class Tags {
 
       Collections.sort(_packages);
       Collections.sort(_classes);
-      System.out.println("tagged " + _classes.size() + "  classes.");
-      logInfo("tagged " + _classes.size() + "  classes.");
+      System.out.println("tagged " + _classes.size() + " classes.");
+      logInfo("tagged " + _classes.size() + " classes.");
 
       for (ClassItem cItem : _classes) {
         try {
@@ -397,19 +397,19 @@ public class Tags {
       throw new ApplicationException("sorry, you are an AnnonymousClass:" + c.getName());
     }
     if (c.isArray()) {
-      throw new ApplicationException("sorry, you are Array:" + c.getName());
+      throw new ApplicationException("sorry, you are an Array:" + c.getName());
     }
     if (c.isPrimitive()) {
-      throw new ApplicationException("sorry you are a Primitive type:" + c.getName());
+      throw new ApplicationException("sorry, you are a Primitive type:" + c.getName());
     }
     if (c.getSimpleName().equals("")) {
-      throw new ApplicationException("why don't you have a name ,I don't know how to handle you:" +
+      throw new ApplicationException("why don't you have a name. I don't know how to handle you:" +
                                      c.getName());
     }
     if ((!Modifier.isPublic(c.getModifiers())) &&
         (!c.isInterface()) &&
         (!Modifier.isAbstract(c.getModifiers()))) {
-      throw new ApplicationException("sorry ,you are not a public class:" + c.getName());
+      throw new ApplicationException("sorry, you are not a public class:" + c.getName());
     }
     if (c.getPackage() == null) {
       throw new ApplicationException("why don't you hava a package name?:" + c.getName());
