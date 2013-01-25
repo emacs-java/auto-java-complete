@@ -1124,10 +1124,11 @@ they haven't been imported."
   (save-excursion
     (save-match-data
       (let ((matched-class-strings)
+            (case-fold-search nil)
             (return-type-regexp "\\(\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\| *\t*\\[ *\t*]\\)+\\)")
-            (split-char-regexp "\\(,\\|<\\|>\\|]\\|\\[\\| \\|\t\\|\n\\)"));;a list of split char like ", \t<>[]"
+            ;; a list of split char like ", \t<>[]"
+            (split-char-regexp "\\(,\\|<\\|>\\|]\\|\\[\\| \\|\t\\|\n\\)"))
         (goto-char (point-min))
-        (setq case-fold-search nil)
         ;; search for `new' statements
         (while (search-forward-regexp (concat "\\bnew[ \t]+" return-type-regexp) (point-max) 't)
           (setq matched-class-strings
@@ -1146,7 +1147,7 @@ they haven't been imported."
         (while (search-forward-regexp "\\([a-zA-Z0-9_]+\\)\\.getInstance[ \t]*(" (point-max) 't)
           (add-to-list 'matched-class-strings (match-string-no-properties 1)))
         (goto-char (point-min))
-        ;;find out all statement of variable ,for example
+        ;; find out all statements of variable, for example
         ;; String name;      Map<String,<String,Ojbect>>[] map=
         (while (search-forward-regexp "^[ \t]*\\(public\\|private\\|static\\|final\\|native\\|synchronized\\|transient\\|volatile\\|strictfp\\| \\|\t\\)*\\([A-Z]\\([a-zA-Z0-9_]\\| *\t*< *\t*\\| *\t*>\\| *\t*, *\t*\\| *\t*\\[ *\t*]\\)+\\)[ \t]+[a-zA-Z0-9_]+[ \t]*[;=]"
                                       (point-max)
@@ -1159,18 +1160,32 @@ they haven't been imported."
         (while (search-forward-regexp "catch[ \t]*(\\([a-zA-Z0-9_]+\\)[ \t]+" (point-max) 't)
           (add-to-list 'matched-class-strings (match-string-no-properties 1)))
         (goto-char (point-min))
-        ;;find method statement
-        (while (search-forward-regexp "^[ \t]*\\(public\\|private\\|static\\|final\\|native\\|synchronized\\|transient\\|volatile\\|strictfp\\| \\|\t\\)*[ \t]+\\(\\([a-zA-Z0-9_]\\|\\( *\t*< *\t*\\)\\|\\( *\t*> *\t*\\)\\|\\( *\t*, *\t*\\)\\|\\( *\t*\\[ *\t*\\)\\|\\(]\\)\\)+\\)[ \t]+[a-zA-Z0-9_]+[ \t]*(\\(.*\\))[ \t]*\\(throws[ \t]+\\([a-zA-Z0-9_, \t\n]*\\)\\)?[ \t\n]*[{;]"
-                                      (point-max)
-                                      't)
+        ;; find method statement
+        (while (search-forward-regexp
+                (concat "^[ \t]*"
+                        "\\(public\\|protected\\|private\\|static\\|final"
+                        "\\|native\\|synchronized\\|transient\\|volatile"
+                        "\\|strictfp\\| \\|\t\\)*"
+                        "[ \t]+"
+                        "\\(\\([a-zA-Z0-9_]\\|\\( *\t*< *\t*\\)"
+                        "\\|\\( *\t*> *\t*\\)\\|\\( *\t*, *\t*\\)"
+                        "\\|\\( *\t*\\[ *\t*\\)\\|\\(]\\)\\)+\\)"
+                        "[ \t]+[a-zA-Z0-9_]+[ \t]*(\\(.*\\))"
+                        "[ \t]*"
+                        "\\(throws[ \t]+\\([a-zA-Z0-9_, \t\n]*\\)\\)?"
+                        "[ \t\n]*[{;]"
+                        )
+                        (point-max)
+                        't)
           (let ((exception (match-string-no-properties 11))
                 (returns (match-string-no-properties 2))
                 (params (match-string-no-properties 9)))
-            ;;handle return type
+            ;; handle return type
             (setq matched-class-strings
                   (append matched-class-strings
                           (split-string returns "\\(,\\|<\\|>\\|]\\|\\[\\| \\|\t\\)" t)))
-;;;;handle methods parameters  ;;find out 'Map String Ojbect User' from "Map<String,Object> map,User user"
+            ;; handle methods parameters
+            ;; find out 'Map String Ojbect User' from "Map<String,Object> map,User user"
             (while (and params (> (length params) 0))
               (if (string-match "\\([a-zA-Z0-9_]\\|\\( *\t*< *\t*\\)\\|\\( *\t*>\\)\\|\\( *\t*, *\t*\\)\\|\\( *\t*\\[ *\t*\\)\\|\\(]\\)\\)+" params)
                   (progn (setq matched-class-strings
@@ -1181,7 +1196,7 @@ they haven't been imported."
                          (string-match "[ \t]*[a-zA-Z0-9_]+[ \t,]?" params (match-end 0))
                          (setq params (substring-no-properties params (match-end 0))))
                 (setq params nil)))
-            ;;handle throws Exception1,Exception2,
+            ;; handle throws Exception1,Exception2,
             ;;we will exatract Exception1 Exception2 from throws sentence
             (when exception
               (setq matched-class-strings
@@ -1199,7 +1214,7 @@ they haven't been imported."
         (setq matched-class-strings
               (append matched-class-strings
                       (ajc-find-out-class-by-extends-notation)))
-        ;;remove primitive type and remove duplicate item
+        ;; remove primitive type and remove duplicate item
         (delete-dups matched-class-strings) (delete "" matched-class-strings)
         (dolist (ele matched-class-strings)
           (if (string-match "\\(int\\|float\\|double\\|long\\|short\\|char\\|byte\\|void\\|boolean\\|return\\|public\\|static\\|private\\|protected\\|abstract\\|final\\|native\\|package\\|new\\)" ele)
