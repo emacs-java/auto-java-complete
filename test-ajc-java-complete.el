@@ -103,7 +103,23 @@
     (ajc-split-line-4-complete-method "System.getProperty(str.substring(3)).to")))
   (should
    (equal '("Obj" "(" ")" "." "r")
-          (ajc-split-line-4-complete-method "new Obj().r"))))
+          (ajc-split-line-4-complete-method "new Obj().r")))
+  (should
+   (equal '("answer" ".")
+          (ajc-split-line-4-complete-method "if (answer.equals(\"Y\") || answer.")))
+  (should
+   (equal '("(" "answer" ".")
+          (ajc-split-line-4-complete-method
+           "if (answer.euqals(\"Y\")) && (answer.equals(\"N\")) || (answer.")))
+  )
+
+(ert-deftest test-ajc-remove-heading-part ()
+  (should
+   (equal '("(" "answer" ".")
+          (ajc-remove-unnecessary-heading-part
+           '("if" "(" "answer" "." "euqals" "(" "String" ")" ")" "&&"
+             "(" "answer" "." "equals" "(" "String" ")" ")" "||"
+             "(" "answer" ".")))))
 
 (ert-deftest test-ajc-split-string-with-separator ()
   (should
