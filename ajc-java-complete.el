@@ -1625,7 +1625,7 @@ in a source file, String will be returned."
         (origin-pos (point))
         (needle (concat "[[:space:]]+" variable-name "[,;=)[:space:]]"))
         (case-fold-search nil))
-    (message "DEBUG: ajc-calculate-class-name-by-variable, variable-name=%s" variable-name)
+    ;;(message "DEBUG: ajc-calculate-class-name-by-variable, variable-name=%s" variable-name)
     (save-excursion
       (catch 'found
         ;; Searching in the former part
@@ -1719,8 +1719,8 @@ get any candidates too, we needn't try to complete it."
     ;; stack-list is, for example, '("System" "." "out" "." "p"),
     ;; and ajc-complete-method-candidates-cache-stack-list is
     ;; '("System" "." "out" ".")
-    (message "DEBUG: ajc-complete-method-is-available, line-string=%s" line-string)
-    (message "DEBUG: ajc-complete-method-is-available, stack-list=%s" stack-list)
+    ;;(message "DEBUG: ajc-complete-method-is-available, line-string=%s" line-string)
+    ;(message "DEBUG: ajc-complete-method-is-available, stack-list=%s" stack-list)
     (when (and ajc-complete-method-candidates-cache-stack-list
                (string-match (concat "^"
                                      (regexp-quote
@@ -1733,7 +1733,7 @@ get any candidates too, we needn't try to complete it."
       ;; next completion is also not possible.
       (setq is-available nil))
     (setq ajc-complete-method-candidates-cache-stack-list stack-list)
-    (message "DEBUG: is-available=%s" is-available)
+    ;;(message "DEBUG: is-available=%s" is-available)
     is-available))
 
 (defun ajc-complete-method-candidates ()
@@ -1779,8 +1779,8 @@ stack-list is, check out
 
 (defun ajc-get-validated-stack-list-or-nil-4-method-complete (stack-list)
   "If stack-list is validated, return itself, else return nil."
-  (message "DEBUG: ajc-get-validated-stack-list-or-nil-4-method-complete, stack-list=%s"
-           stack-list)
+  ;; (message "DEBUG: ajc-get-validated-stack-list-or-nil-4-method-complete, stack-list=%s"
+  ;;          stack-list)
   (cond ((or (< (length stack-list) 2)
              (not (string-match "^[a-zA-Z0-9_]+$" (car stack-list))))
          nil)
@@ -1855,7 +1855,8 @@ this function will remove anything between ( and )  ,so only
 'to'."
   (save-excursion
     (let* ((stack-list nil)
-           (case-fold-search nil))
+           (case-fold-search nil)
+           (ix nil))
       ;; \" => '
       (setq line-string (replace-regexp-in-string "\\\\\"" "'" line-string))
       ;; "foo" => String
@@ -1916,7 +1917,17 @@ this function will remove anything between ( and )  ,so only
         (dolist (ele stack-list)
           (setq tmp-list (append tmp-list (split-string ele "[ \t]+" t))))
         (setq stack-list tmp-list))
-      (setq stack-list stack-list))))
+      (ajc-remove-unnecessary-heading-part stack-list))))
+
+(defun ajc-remove-unnecessary-heading-part (lst)
+  (loop for i from (1- (length lst)) downto 0
+        for elt in (reverse lst)
+        when (or (string= elt "&")
+                 (string= elt "&&")
+                 (string= elt "|")
+                 (string= elt "||"))
+        return (nthcdr (1+ i) lst)
+        finally (return lst)))
 
 (defun ajc-java-keywords-candidates ()
   (let ((keywords))
