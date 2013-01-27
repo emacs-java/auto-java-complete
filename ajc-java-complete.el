@@ -821,11 +821,12 @@ CLASS-NAME in tag file, import one of them first."
       (let ((matched-class-items
              (ajc-find-out-matched-class-item-without-package-prefix class-name t)))
         ;;(message "Debug: class-name=%s, matched-class-items=%s" class-name matched-class-items)
-        (when matched-class-item
+        (when matched-class-items
           (if (= (length matched-class-items) 1)
               (setq matched-class-item (car matched-class-items))
             (setq matched-class-item
                   (car (ajc-insert-import-at-head-of-source-file matched-class-items)))))))
+    ;;(message "Debug: class-name=%s, matched-class-item=%s" class-name matched-class-item)
     matched-class-item))
 
 ;; (ajc-find-out-matched-class-item "java.io" "Fil")
@@ -1720,7 +1721,7 @@ get any candidates too, we needn't try to complete it."
     ;; and ajc-complete-method-candidates-cache-stack-list is
     ;; '("System" "." "out" ".")
     ;;(message "DEBUG: ajc-complete-method-is-available, line-string=%s" line-string)
-    ;(message "DEBUG: ajc-complete-method-is-available, stack-list=%s" stack-list)
+    ;;(message "DEBUG: ajc-complete-method-is-available, stack-list=%s" stack-list)
     (when (and ajc-complete-method-candidates-cache-stack-list
                (string-match (concat "^"
                                      (regexp-quote
@@ -1775,6 +1776,8 @@ stack-list is, check out
                     (setq class-item (nth 1 (car (ajc-find-members class-item member-string t)))))
                 (setq return-list (ajc-find-members class-item)))
             (setq return-list (ajc-find-members class-item (pop stack-list))))))
+      ;; (message "DEBUG: ajc-complete-method-candidates-1, return-list=%s"
+      ;;          return-list)
       (mapcar 'ajc-method-item-to-candidate return-list))))
 
 (defun ajc-get-validated-stack-list-or-nil-4-method-complete (stack-list)
@@ -1800,11 +1803,11 @@ stack-list is, check out
 (defun ajc-parse-splited-line-4-complete-method (line-string)
   "Parse current line for complete method.
 Suppose current line is System.getProperty(str.substring(3)).to.
-First ajc-split-line-4-complete-method will split this line to
-'System' '.' 'getProperty' '(' 'str' '.' 'substring' '(' '3' ')' ')'
-'.' 'to'.  ajc-remove-unnecessary-items-4-complete-method will remove
-anything between ( and ), so only 'System' '.' 'getProperty' '.' 'to'
-are left."
+First `ajc-split-line-4-complete-method' will split this line to
+'System' '.' 'getProperty' '(' 'str' '.' 'substring' '(' '3' ')'
+')' '.' 'to'.  `ajc-remove-unnecessary-items-4-complete-method'
+will remove anything between ( and ), so only 'System' '.'
+'getProperty' '.' 'to' are left."
   (ajc-remove-unnecessary-items-4-complete-method
    (ajc-split-line-4-complete-method line-string)))
 
@@ -1867,6 +1870,10 @@ this function will remove anything between ( and )  ,so only
       (setq line-string (replace-regexp-in-string "\\breturn\\b" "" line-string))
       ;; remove this keyword
       (setq line-string (replace-regexp-in-string "\\this\\b" "" line-string))
+      ;; remove unary operators
+      (setq line-string (replace-regexp-in-string "\\(\\+\\+\\|--\\)"
+                                                  " "
+                                                  line-string))
       (while (string-match "=\\(.*\\)" line-string)
         (setq line-string (match-string-no-properties 1 line-string)))
       ;; split line-string by ".", but add "." as an element at its position in list
@@ -1917,17 +1924,45 @@ this function will remove anything between ( and )  ,so only
         (dolist (ele stack-list)
           (setq tmp-list (append tmp-list (split-string ele "[ \t]+" t))))
         (setq stack-list tmp-list))
+      (setq stack-list (ajc-extract-parenthesized-part-maybe stack-list))
       (ajc-remove-unnecessary-heading-part stack-list))))
 
+(defun ajc-extract-parenthesized-part-maybe (lst)
+  "Return a parenthesized expression if the last part of LST
+is \"\).\"."
+  (if (and (> (length lst) 2)
+             (string= "." (car (last lst)))
+             (string= ")" (cadr (reverse lst)))
+             (not (= (count ")" lst :test #'string=)
+                     (count "(" lst :test #'string=))))
+      (loop with ret = nil
+            with close-paren-cnt = 1
+            for elt in (cddr (reverse lst))
+            for cnt from 2
+            if (zerop close-paren-cnt)
+            do (return (nthcdr (- (length lst) cnt)
+                               (nbutlast lst 1)))
+            else if (string= ")" elt)
+            do (incf close-paren-cnt)
+            else if (string= "(" elt)
+            do (decf close-paren-cnt))
+    lst))
+
 (defun ajc-remove-unnecessary-heading-part (lst)
-  (loop for i from (1- (length lst)) downto 0
-        for elt in (reverse lst)
-        when (or (string= elt "&")
-                 (string= elt "&&")
-                 (string= elt "|")
-                 (string= elt "||"))
-        return (nthcdr (1+ i) lst)
-        finally (return lst)))
+  ;; If lst is like "(expression).", we return lst as is
+  (if (and (cadr (reverse lst))
+           (string= ")" (cadr (reverse lst))))
+      lst
+    (loop for i from (1- (length lst)) downto 0
+          for elt in (reverse lst)
+          with operators = '("&" "&&" "|" "^" "||"
+                             "+" "-" "*" "/" "%"
+                             "<" ">" "<<" ">>" ">>>" "==" "!="
+                             "+=" "-=" "*=" "/=" "%=" "&=" "^=" "|=" "<<=" ">>="
+                             ":")
+          when (member elt operators)
+          return (nthcdr (1+ i) lst)
+          finally (return lst))))
 
 (defun ajc-java-keywords-candidates ()
   (let ((keywords))
