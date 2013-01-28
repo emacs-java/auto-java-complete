@@ -119,27 +119,75 @@
    (equal
     ;; '("ByteArrayInputStream" "(" "(" "String" "+" "System" "."
     ;;   "getProperty" "(" "String" ")" ")" ".")
-    '("(" "String" "+" "System" "." "getProperty" "(" "String" ")" ")")
+    '("(" "String" "+" "System" "." "getProperty" "(" "String" ")" ")" ".")
     (ajc-split-line-4-complete-method
      "new ByteArrayInputStream((\"y\" + System.getProperty(\"line.separator\")).")))
   (should
    (equal '("StringBuffer" "(" ")" ".")
           (ajc-split-line-4-complete-method "new StringBuffer().")))
+  (should
+   (equal '("Obj" "(" "String" ")" ".")
+          (ajc-split-line-4-complete-method "new Obj(\"arg\").")))
+  (should
+   (equal '("(" "a" "+" "b" ")" ".")
+          (ajc-split-line-4-complete-method "new Obj((a + b).")))
+  (should (equal
+           '("Obj" "(" "(" "a" "+" "b" ")" "." "method" "(" ")" ")" ".")
+           (ajc-split-line-4-complete-method "new Obj((a + b).method()).")))
+  (should
+   (equal '("File" "(" "String" ")" ".")
+          (ajc-split-line-4-complete-method
+           "new FileInputStream(new File(\"file\").")))
+  (should
+   (equal '("ObjC" "(" ")" ".")
+          (ajc-split-line-4-complete-method
+           "new ObjA(new ObjB(new ObjC().")))
   )
+
+(ert-deftest test-ajc-parse-splited-line-4-complete-method ()
+  (should
+   (equal '("System" "." "getProperty")
+          (ajc-parse-splited-line-4-complete-method
+           "System.getProperty(str.substring(3))")))
+  (should
+   (equal '("(" "a" "+" "b" ")" ".")
+          (ajc-parse-splited-line-4-complete-method
+           "new Obj((a + b).")))
+  (should
+   (equal '("File" ".")
+          (ajc-parse-splited-line-4-complete-method
+           "new File(\"file\").")))
+  (should
+   (equal '("File" ".")
+          (ajc-parse-splited-line-4-complete-method
+           "new FileInputStream(new File(\"file\").")))
+  (should
+   (equal '("ObjC" ".")
+          (ajc-parse-splited-line-4-complete-method
+           "new ObjA(new ObjB(new ObjC()."))))
 
 (ert-deftest test-ajc-extract-parenthesized-part-maybe ()
   (should
    (equal '("a" "+" "b")
           (ajc-extract-parenthesized-part-maybe '("a" "+" "b"))))
   (should
-   (equal '("(" "a" "+" "b" ")")
+   (equal '("(" "a" "+" "b" ")" ".")
           (ajc-extract-parenthesized-part-maybe
            '("new" "Obj" "(" "(" "a" "+" "b" ")" "."))))
   (should
    (equal '("StringBuffer" "(" ")" ".")
-          (ajc-extract-parenthesized-part-maybe '("StringBuffer" "(" ")" ".")))))
+          (ajc-extract-parenthesized-part-maybe '("StringBuffer" "(" ")" "."))))
+  (should
+   (equal '("File" "(" "String" ")" ".")
+          (ajc-extract-parenthesized-part-maybe
+           '("FileInputStream" "(" "File" "(" "String" ")" "."))))
+  (should
+   (equal '("ObjC" "(" ")" ".")
+          (ajc-extract-parenthesized-part-maybe
+           '("ObjA" "(" "ObjB" "(" "ObjC" "(" ")" "."))))
+  )
 
-(ert-deftest test-ajc-remove-heading-part ()
+(ert-deftest test-ajc-remove-unnecessary-heading-part ()
   (should
    (equal '("(" "answer" ".")
           (ajc-remove-unnecessary-heading-part
@@ -150,6 +198,10 @@
    (equal '("obj" ".")
           (ajc-remove-unnecessary-heading-part
            '("+" "obj" "."))))
+  (should
+   (equal '("(" "a" "+" "b" ")" ".")
+          (ajc-remove-unnecessary-heading-part
+           '("(" "a" "+" "b" ")" "."))))
   )
 
 (ert-deftest test-ajc-split-string-with-separator ()
