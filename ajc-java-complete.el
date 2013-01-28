@@ -1305,7 +1305,8 @@ using `y-or-n-p' to ask user to confirm."
            (setq import-class-buffer (switch-to-buffer-other-window import-class-buffer t))
            (setq java-window (get-buffer-window java-buffer))
            (setq import-class-window (get-buffer-window import-class-buffer))
-           (with-current-buffer import-class-buffer  ;;show maybe imported Class in a new buffer
+           ;; show maybe imported Class in a new buffer
+           (with-current-buffer import-class-buffer
              (delete-region (point-min) (point-max))
              (dolist (ele import-class-items-list)
                (insert (concat "[ ]  "
@@ -1314,9 +1315,10 @@ using `y-or-n-p' to ask user to confirm."
                                "."
                                (car ele)
                                "\n")))
-             (insert "  ");;insert empty line at end of buffer
+             (insert "  ")         ; insert empty line at end of buffer
              (goto-char (1+ (point-min)))
-             (dolist (ele import-class-items-list) ;;ask user whether to import the Class
+             (dolist (ele import-class-items-list)
+               ;; ask user whether to import the Class
                (beginning-of-line)
                (forward-char 1)
                (when (y-or-n-p (concat "import " (car ele) "? "))
@@ -1325,12 +1327,14 @@ using `y-or-n-p' to ask user to confirm."
                  (insert "*"))
                (forward-line 1)
                (forward-char 1)))
-           ;;delete *import-java-class* buffer and window
+           ;; delete *import-java-class* buffer and window
            (delete-window import-class-window)
            (kill-buffer import-class-buffer)
-           (with-current-buffer java-buffer
-             (ajc-insert-import-at-head-of-source-file-without-confirm user-confirmed-class-items-list))
-           (message "Finished importing.")
+           (when user-confirmed-class-items-list
+             (with-current-buffer java-buffer
+               (ajc-insert-import-at-head-of-source-file-without-confirm
+                user-confirmed-class-items-list))
+             (message "Finished importing."))
            user-confirmed-class-items-list)
           ((null import-class-items-list)
            ;; do nothing
@@ -1341,7 +1345,8 @@ using `y-or-n-p' to ask user to confirm."
 
 (defun ajc-insert-import-at-head-of-source-file-without-confirm (class-items)
   (let ((case-fold-search nil))
-    (save-match-data  ;;insert  at head of java source
+    ;; insert at head of java source
+    (save-match-data
       (save-excursion
         (goto-char (point-min))
         (let* ((class-start
@@ -1363,13 +1368,13 @@ using `y-or-n-p' to ask user to confirm."
                                 (car class-item)
                                 ",")))
                 (unless (string-equal "" all-class-strings)
-                  ;;delete last char ","
+                  ;; delete last char ","
                   (setq all-class-strings
                         (substring all-class-strings 0 (1- (string-width all-class-strings)))))
                 (goto-char (point-min))
                 (insert (concat "<%@ page import=\"" all-class-strings "\" %>\n")))
             (if (re-search-forward "^[ \t]*import[ \t]+[a-zA-Z0-9_\\.\\*]+[ \t]*;" class-start 't)
-                ;;if find 'import' insert before it
+                ;; if find 'import', insert before it
                 (progn (beginning-of-line)
                        (insert "\n")
                        (forward-line -1)
@@ -1390,7 +1395,8 @@ using `y-or-n-p' to ask user to confirm."
                                                   (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele)
                                                                                      (nth 2 ele)))
                                                   "." (car ele) ";\n"))))
-                       (progn ;;if hasn't found 'import' and 'package' then insert at head of buffer
+                       ;; if hasn't found 'import' and 'package' then insert at head of buffer
+                       (progn
                          (goto-char (point-min))
                          (dolist (ele class-items)
                            (insert (concat "import "
