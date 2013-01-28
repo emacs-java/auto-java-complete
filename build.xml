@@ -100,6 +100,7 @@
            includeantruntime="false" fork="true">
       <compilerarg value="-J-Duser.language=en"/>
       <compilerarg value="-Xlint:unchecked"/>
+      <compilerarg value="-Xlint:deprecation"/>
       <include name="TestTags.java"/>
       <include name="TestTagsMain.java"/>
       <include name="TestTagsJar.java"/>
@@ -116,6 +117,7 @@
       <formatter type="plain" usefile="false"/>
       <test name="TestTags"/>
       <test name="TestTagsJar"/>
+      <test name="TestTagsMain"/>
       <classpath>
         <pathelement location="${target.classes.java.dir}"/>
         <pathelement location="${target.classes.test.dir}"/>
