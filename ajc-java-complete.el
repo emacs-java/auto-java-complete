@@ -1823,30 +1823,36 @@ first ajc-split-line-4-complete-method will split this line to
 'System' '.' 'getProperty' '(' 'str' '.' 'substring' '(' '3' ')' ')' '.' 'to'
 this function will remove anything between ( and )  ,so only
 'System'  '.' 'getProperty'  '.'  'to'  is left "
-  (let* ((stack-list)
-         (ele)
-         (reverse-current-line-split-list (reverse splited-line-items))
-         (parse-finished))
-    (setq ele (pop reverse-current-line-split-list))
-    (while (and ele (not parse-finished))
-      (if (or (string-equal ";" ele) (string-equal "(" ele))
-          ;; parse finished ,exit the  loop
-          (setq parse-finished t)
-        (if (string-equal ")" ele)
-            (let ((e) (right-stack))
-              (push ele right-stack)
-              (setq e (pop reverse-current-line-split-list))
-              (while (and e (> (length right-stack) 0))
-                (if (string-equal "(" e)
-                    (pop right-stack))
-                (if (string-equal ")" e)
-                    (push e right-stack))
-                (setq e (pop reverse-current-line-split-list)))
-              (if e
-                  (push e reverse-current-line-split-list)))
-          (push ele stack-list)))
-      (setq ele (pop reverse-current-line-split-list)))
-    (setq stack-list stack-list)))
+  (if (and (> (length splited-line-items) 2)
+           (string= "." (car (last splited-line-items)))
+           (string= "(" (car splited-line-items))
+           (string= ")" (cadr (reverse splited-line-items))))
+      ;; then no need to remove
+      splited-line-items
+    (let* ((stack-list)
+           (ele)
+           (reverse-current-line-split-list (reverse splited-line-items))
+           (parse-finished))
+      (setq ele (pop reverse-current-line-split-list))
+      (while (and ele (not parse-finished))
+        (if (or (string-equal ";" ele) (string-equal "(" ele))
+            ;; parse finished ,exit the  loop
+            (setq parse-finished t)
+          (if (string-equal ")" ele)
+              (let ((e) (right-stack))
+                (push ele right-stack)
+                (setq e (pop reverse-current-line-split-list))
+                (while (and e (> (length right-stack) 0))
+                  (if (string-equal "(" e)
+                      (pop right-stack))
+                  (if (string-equal ")" e)
+                      (push e right-stack))
+                  (setq e (pop reverse-current-line-split-list)))
+                (if e
+                    (push e reverse-current-line-split-list)))
+            (push ele stack-list)))
+        (setq ele (pop reverse-current-line-split-list)))
+      (setq stack-list stack-list))))
 
 ;; (defun ajc-replace-keyword-with-its-class-name()
 ;;   (save-excursion
@@ -1946,8 +1952,18 @@ is \"\).\"."
             for elt in (cddr (reverse lst))
             for cnt from 2
             if (zerop close-paren-cnt)
-            do (return (nthcdr (- (length lst) cnt)
-                               (nbutlast lst 1)))
+            do (return
+                ;; If the item before this open paren is like classname,
+                ;; then we assume this parenthesized part is part of constructor.
+                ;; so we return the classname + parenthesized part.
+                ;; Otherwise just return parenthesized part.
+                (nthcdr (- (length lst)
+                           (if (string-match "^[A-Z][a-zA-Z0-9_]+"
+                                             (car (nreverse
+                                                   (butlast lst cnt))))
+                               (1+ cnt)
+                             cnt))
+                        lst))
             else if (string= ")" elt)
             do (incf close-paren-cnt)
             else if (string= "(" elt)
