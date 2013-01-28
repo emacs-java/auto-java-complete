@@ -111,7 +111,33 @@
    (equal '("(" "answer" ".")
           (ajc-split-line-4-complete-method
            "if (answer.euqals(\"Y\")) && (answer.equals(\"N\")) || (answer.")))
+  (should
+   (equal '("obj" ".")
+          (ajc-split-line-4-complete-method
+           "++obj.")))
+  (should
+   (equal
+    ;; '("ByteArrayInputStream" "(" "(" "String" "+" "System" "."
+    ;;   "getProperty" "(" "String" ")" ")" ".")
+    '("(" "String" "+" "System" "." "getProperty" "(" "String" ")" ")")
+    (ajc-split-line-4-complete-method
+     "new ByteArrayInputStream((\"y\" + System.getProperty(\"line.separator\")).")))
+  (should
+   (equal '("StringBuffer" "(" ")" ".")
+          (ajc-split-line-4-complete-method "new StringBuffer().")))
   )
+
+(ert-deftest test-ajc-extract-parenthesized-part-maybe ()
+  (should
+   (equal '("a" "+" "b")
+          (ajc-extract-parenthesized-part-maybe '("a" "+" "b"))))
+  (should
+   (equal '("(" "a" "+" "b" ")")
+          (ajc-extract-parenthesized-part-maybe
+           '("new" "Obj" "(" "(" "a" "+" "b" ")" "."))))
+  (should
+   (equal '("StringBuffer" "(" ")" ".")
+          (ajc-extract-parenthesized-part-maybe '("StringBuffer" "(" ")" ".")))))
 
 (ert-deftest test-ajc-remove-heading-part ()
   (should
@@ -119,7 +145,12 @@
           (ajc-remove-unnecessary-heading-part
            '("if" "(" "answer" "." "euqals" "(" "String" ")" ")" "&&"
              "(" "answer" "." "equals" "(" "String" ")" ")" "||"
-             "(" "answer" ".")))))
+             "(" "answer" "."))))
+  (should
+   (equal '("obj" ".")
+          (ajc-remove-unnecessary-heading-part
+           '("+" "obj" "."))))
+  )
 
 (ert-deftest test-ajc-split-string-with-separator ()
   (should
