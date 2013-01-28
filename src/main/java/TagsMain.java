@@ -1,5 +1,12 @@
 // -*- coding: utf-8-unix; -*-
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.Reader;
 import java.util.regex.Pattern;
 
 public class TagsMain {
@@ -15,11 +22,9 @@ public class TagsMain {
 
   public void run(String[] args) throws Exception {
     printStartMessage();
-    try {
-      System.out.println(String.format("sleep %s millseconds...", SLEEP_TIME));
-      Thread.sleep(SLEEP_TIME);
-    } catch (Exception ex) {}
-
+    if (!readYesOrNo(System.out, System.in)) {
+      return;
+    }
     // Now do the job
     try {
       if (args.length > 0) {
@@ -74,7 +79,7 @@ public class TagsMain {
       "***                                                            ***\n" +
       "***  Before that, you'd better backup the file                 ***\n" +
       "***   ~/.java_base.tag if exists                               ***\n" +
-      "******************************************************************\n\n"
+      "******************************************************************"
       );
   }
 
@@ -92,5 +97,27 @@ public class TagsMain {
       "******************************************************************\n"
       );
     System.out.println(new File(_tags.getHomePath(), ".java_base.tag").getAbsolutePath());
+  }
+
+  protected boolean readYesOrNo(OutputStream out, InputStream in) {
+    try {
+      PrintStream ps = new PrintStream(out);
+      ps.print("Ready? [y/n]: ");
+      InputStreamReader isr = new InputStreamReader(in);
+      BufferedReader br = new BufferedReader(isr);
+      String line = null;
+      while ((line = br.readLine()) != null) {
+        if (line.equals("y")) {
+          return true;
+        } else if (line.equals("n")) {
+          return false;
+        } else {
+          ps.print("Please answer with y or n [y/n]: ");
+        }
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return false;
   }
 }
