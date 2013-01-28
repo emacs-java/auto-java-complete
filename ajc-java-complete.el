@@ -376,8 +376,6 @@ This function translates it to a list."
                                    32)))
       (setq str (concat str "     ")))))
 
-;; (ajc-field-to-string (ajc-split-field " out`654 ") )
-;; (ajc-field-to-string (ajc-split-field " out`654 ") t)
 (defun ajc-field-to-string (field-item &optional with-return-type)
   (when field-item
     (if with-return-type
@@ -391,9 +389,6 @@ This function translates it to a list."
             (setq field-string (concat field-string (car return-type))))
           field-string)
       (car field-item))))
-
-;; (ajc-method-to-string (ajc-split-method "skippedEntity`~void`784`4012"))
-;; (ajc-method-to-string (ajc-split-method "skippedEntity`~void`784`4012") t)
 
 (defun ajc-method-to-string (method-item &optional with-return-type-and-throws)
   "This is a toString() like function.
@@ -431,8 +426,6 @@ name and params."
           (setq method-string (replace-regexp-in-string ", $" "" method-string))))
       method-string)))
 
-;; (ajc-class-to-string (ajc-split-class-item  "RasterOp`18`15551`15556"))
-;; (ajc-class-to-string (ajc-split-class-item  "RasterOp`18`15551`15556") t)
 (defun ajc-class-to-string (class-item &optional with-package-name-append)
   (when class-item
     (let* ((class-string (car class-item)))
@@ -444,12 +437,6 @@ name and params."
                                                          (nth 2 class-item))))))
       class-string)))
 
-;; (yas/expand-snippet(ajc-method-to-yasnippet-templete    (car
-;; (ajc-find-members (car  (ajc-find-out-matched-class-item-without-package-prefix "FileWriter" t)) "write" ))))
-;; (ajc-method-to-string    (car
-;; (ajc-find-members (car  (ajc-find-out-matched-class-item-without-package-prefix "String" t )) "split" )))
-;; "split(String , int)"
-                                        ;(yas/expand-snippet "split(${1:String} , ${2:int})"
 (defun ajc-method-to-yasnippet-templete (method-item)
   (when method-item
     (let ((method-string (car method-item))
@@ -829,12 +816,6 @@ CLASS-NAME in tag file, import one of them first."
     ;;(message "Debug: class-name=%s, matched-class-item=%s" class-name matched-class-item)
     matched-class-item))
 
-;; (ajc-find-out-matched-class-item "java.io" "Fil")
-;; (ajc-find-out-matched-class-item "java.io" "")
-;; (ajc-find-out-matched-class-item "java.io" nil)
-;; (ajc-find-out-matched-class-item "java.io" "File" t)
-;; (ajc-find-out-matched-class-item nil "File")
-;; (print (length (ajc-find-out-matched-class-item nil nil)))
 (defun ajc-find-out-matched-class-item
   (package-name class-prefix &optional exactly_match)
   "Return a list of class-items whose class belongs to
@@ -1854,15 +1835,6 @@ this function will remove anything between ( and )  ,so only
         (setq ele (pop reverse-current-line-split-list)))
       (setq stack-list stack-list))))
 
-;; (defun ajc-replace-keyword-with-its-class-name()
-;;   (save-excursion
-;;     (let ((class-name)))
-;;     (setq case-fold-search nil)
-;;     (if (search-backward-regexp  "\\bclass[ \t]+\\([A-Z][a-zA-Z0-9_]*\\)\\b"   (point-min) t )
-;;         (setq class-name (match-string-no-properties 1 ))
-;;       ))
-;;   )
-
 (defun ajc-split-line-4-complete-method (line-string)
   "Split line-string to small items, for example,
 'System.getProperty(str.substring(3)).to' to 'System' '.'
@@ -1985,6 +1957,10 @@ is \"\).\"."
           when (member elt operators)
           return (nthcdr (1+ i) lst)
           finally (return lst))))
+
+(defun ajc-guess-type-of-expression (lst)
+  ""
+  "String")
 
 (defun ajc-java-keywords-candidates ()
   (let ((keywords))
