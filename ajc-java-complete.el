@@ -1755,6 +1755,7 @@ stack-list is, check out
         ;; following while sexp maybe has bug
         ;; because ajc-find-members doesnt return class-item.
         (while (and class-item (> (length stack-list) 1))
+          ;; (nth 1 member-item) is type-name
           (setq class-item (nth 1 (car (ajc-find-members class-item (pop stack-list) t)))))
         (when class-item
           (if is-dot-last
@@ -1795,8 +1796,17 @@ First `ajc-split-line-4-complete-method' will split this line to
 ')' '.' 'to'.  `ajc-remove-unnecessary-items-4-complete-method'
 will remove anything between ( and ), so only 'System' '.'
 'getProperty' '.' 'to' are left."
-  (ajc-remove-unnecessary-items-4-complete-method
-   (ajc-split-line-4-complete-method line-string)))
+  (let ((ret (ajc-remove-unnecessary-items-4-complete-method
+              (ajc-split-line-4-complete-method line-string))))
+    (if (and (> (length ret) 3)
+             (string= "(" (car ret))
+             (equal '(")" ".")
+                    (nthcdr (- (length ret) 2) ret)))
+        ;; If the ret is like '("a" + "b").', then we guess the type
+        ;; of this parenthesized expression.
+        (let ((type (ajc-guess-type-of-factor ret)))
+          (and type (list type ".")))
+      ret)))
 
 (defun ajc-remove-unnecessary-items-4-complete-method (splited-line-items)
   " System.getProperty(str.substring(3)).to
@@ -1836,7 +1846,7 @@ this function will remove anything between ( and )  ,so only
       (setq stack-list stack-list))))
 
 (defun ajc-split-line-4-complete-method (line-string)
-  "Split line-string to small items, for example,
+  "Split LINE-STRING to small items. For example,
 'System.getProperty(str.substring(3)).to' to 'System' '.'
 'getProperty' '(' 'str' '.' 'substring' '(' '3' ')' ')' '.'
 'to'."
@@ -1849,7 +1859,7 @@ this function will remove anything between ( and )  ,so only
       ;; "foo" => String
       (setq line-string (replace-regexp-in-string "\".*?\"" "String" line-string))
       ;; remove new keyword
-      (setq line-string (replace-regexp-in-string "\\bnew\\b"    "" line-string))
+      (setq line-string (replace-regexp-in-string "\\bnew\\b" "" line-string))
       ;; remove return keyword
       (setq line-string (replace-regexp-in-string "\\breturn\\b" "" line-string))
       ;; remove this keyword
@@ -1958,9 +1968,59 @@ is \"\).\"."
           return (nthcdr (1+ i) lst)
           finally (return lst))))
 
-(defun ajc-guess-type-of-expression (lst)
+(defun ajc-guess-type-of-factor (lst)
   ""
-  "String")
+  (ajc-find-out-type-of-factors
+   (ajc-split-and-concat-list-by-operators lst)))
+
+(defun ajc-find-out-type-of-factors (lst)
+  (let ((l (remove nil
+                   (mapcar #'ajc-find-out-type-of-factor
+                           lst))))
+    (if (every (lambda (e)
+                 (string= e (car l)))
+               l)
+        (car l)
+      nil)))
+
+(defun ajc-find-out-type-of-factor (factor)
+  ""
+  (cond
+   ((string-match "^[A-Z][A-Za-z0-9_]+$" factor)
+    factor)
+   ((string-match "[.()]" factor)
+    (loop with splitted-line = (remove "." (ajc-parse-splited-line-4-complete-method factor))
+          for current in splitted-line
+          for class-item = (car (ajc-find-out-matched-class-item-without-package-prefix
+                                 current
+                                 t))
+          then (and class-item
+                    (nth 1 (car (ajc-find-members class-item current t))))
+          finally (return (car class-item))))
+   (t
+    nil)))
+
+(defun ajc-split-and-concat-list-by-operators (lst)
+  "Split LST by java binary operators."
+  (when (string= "." (car (last lst)))
+    (ajc-split-and-concat-list-by-operators-1 (butlast lst 1)
+                                              nil)))
+
+(defun ajc-split-and-concat-list-by-operators-1 (lst factor-acc)
+  (cond
+   ((null lst)
+    nil)
+   ((string-match "^[A-Za-z0-9_]+$" (car lst))
+    (ajc-split-and-concat-list-by-operators-1
+     (cdr lst) (concat factor-acc (car lst))))
+   ((string-match "^[+()]$" (car lst))
+    (if factor-acc
+        (cons factor-acc (ajc-split-and-concat-list-by-operators-1 (cdr lst)
+                                                                   nil))
+      (ajc-split-and-concat-list-by-operators-1 (cdr lst) nil)))
+   ((string-match "^[.]$" (car lst))
+    (ajc-split-and-concat-list-by-operators-1 (cdr lst)
+                                              (concat factor-acc ".")))))
 
 (defun ajc-java-keywords-candidates ()
   (let ((keywords))

@@ -25,9 +25,13 @@
         (ajc-two-char-tbl nil)
         (ajc-previous-class-prefix nil)
         (ajc-matched-class-items-cache nil)
-        (ajc-sorted-class-buffer-name-list nil))
-    (ajc-init t)
-    (funcall body)))
+        (ajc-sorted-class-buffer-name-list nil)
+        (ajc-complete-method-candidates-cache-stack-list nil))
+    (unwind-protect
+        (progn
+          (ajc-init t)
+          (funcall body))
+      (mapcar #'kill-buffer ajc-tag-buffer-list))))
 
 (ert-deftest test-ajc-split-pkg-item ()
   (should (equal '("java.lang" 222 333) (ajc-split-pkg-item "java.lang`222`333"))))
@@ -83,7 +87,7 @@
   (should (equal nil
                  (ajc-get-validated-stack-list-or-nil-4-method-complete '())))
   (should (equal nil
-                 (ajc-get-validated-stack-list-or-nil-4-method-complete '("a" "." "-"))))))
+                 (ajc-get-validated-stack-list-or-nil-4-method-complete '("a" "." "-")))))
 
 (ert-deftest test-ajc-complete-method-candidates-1 ()
   (should
@@ -142,6 +146,10 @@
    (equal '("ObjC" "(" ")" ".")
           (ajc-split-line-4-complete-method
            "new ObjA(new ObjB(new ObjC().")))
+  (should
+   (equal '("(" "String" "+" "String" ")" ".")
+          (ajc-split-line-4-complete-method
+           "(\"a\" + \"b\").")))
   )
 
 (ert-deftest test-ajc-parse-splited-line-4-complete-method ()
@@ -150,7 +158,7 @@
           (ajc-parse-splited-line-4-complete-method
            "System.getProperty(str.substring(3))")))
   (should
-   (equal '("(" "a" "+" "b" ")" ".")
+   (equal nil
           (ajc-parse-splited-line-4-complete-method
            "new Obj((a + b).")))
   (should
@@ -164,7 +172,15 @@
   (should
    (equal '("ObjC" ".")
           (ajc-parse-splited-line-4-complete-method
-           "new ObjA(new ObjB(new ObjC()."))))
+           "new ObjA(new ObjB(new ObjC().")))
+  (should
+   (equal '("String" ".")
+          (ajc-parse-splited-line-4-complete-method
+           "(\"a\" + \"b\").")))
+  (should
+   (equal '("String" ".")
+          (ajc-parse-splited-line-4-complete-method
+           "(\"a\" + (\"b\" + \"c\")."))))
 
 (ert-deftest test-ajc-extract-parenthesized-part-maybe ()
   (should
@@ -202,6 +218,79 @@
    (equal '("(" "a" "+" "b" ")" ".")
           (ajc-remove-unnecessary-heading-part
            '("(" "a" "+" "b" ")" "."))))
+  )
+
+(ert-deftest test-ajc-guess-type-of-factor ()
+  ;; (should
+  ;;  (equal "String"
+  ;;         (ajc-guess-type-of-factor
+  ;;          '("(" "String" "+" "String" ")" "."))))
+  (should
+   (equal "String"
+          (ajc-guess-type-of-factor
+           '("(" "String" "+" "(" "String" "+" "String" ")" ")" "."))))
+  ;; (should
+  ;;  (equal nil
+  ;;         (ajc-guess-type-of-factor
+  ;;          '("(" "a" "+" "b" ")" "."))))
+  )
+
+(ert-deftest test-ajc-find-out-type-of-factors ()
+  (should
+   (equal "String"
+          (ajc-find-out-type-of-factors
+           '("String" "String"))))
+  (should
+   (equal "String"
+          (ajc-find-out-type-of-factors
+           '("String" "System.getProperty(String)"))))
+  (should
+   (equal "String"
+          (ajc-find-out-type-of-factors
+           '("System.getProperty(String)" "String")))))
+
+(ert-deftest test-ajc-find-out-type-of-factor ()
+  (should
+   (equal "String"
+          (ajc-find-out-type-of-factors-1 "System.getProperty(String)"))))
+
+(ert-deftest test-ajc-split-and-concat-list-by-operators ()
+  (should
+   (equal '("String" "String")
+          (ajc-split-and-concat-list-by-operators
+           '("(" "String" "+" "String" ")" "."))))
+  (should
+   ;; "(String + System.getProperty(String))."
+   (equal '("String" "System.getProperty")
+          (ajc-split-and-concat-list-by-operators
+           '("(" "String" "+" "System" "." "getProperty" ")" "."))))
+  (should
+   (equal '("String" "String" "String")
+          (ajc-split-and-concat-list-by-operators
+           '("(" "String" "+" "(" "String" "+" "String" ")" ")" "."))))
+  )
+
+(ert-deftest test-ajc-split-and-concat-list-by-operators-1 ()
+  (should
+   (equal '("String" "String")
+          (ajc-split-and-concat-list-by-operators-1
+           '("(" "String" "+" "String" ")")
+           nil)))
+  (should
+   (equal '("String" "System.getProperty")
+          (ajc-split-and-concat-list-by-operators-1
+           '("(" "String" "+" "System" "." "getProperty" ")")
+           nil)))
+  (should
+   (equal '("String" "String" "String")
+          (ajc-split-and-concat-list-by-operators-1
+           '("(" "String" "+" "(" "String" "+" "String" ")" ")")
+           nil)))
+  (should
+   (equal '("String" "String" "String")
+          (ajc-split-and-concat-list-by-operators-1
+           '("(" "(" "String" "+" "String" ")" "+" "String" ")")
+           nil)))
   )
 
 (ert-deftest test-ajc-split-string-with-separator ()
