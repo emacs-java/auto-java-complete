@@ -127,4 +127,10 @@
     </junit>
   </target>
 
+  <target name="make.jar" depends="compile.java">
+    <jar destfile="Tags.jar"
+         basedir="${target.classes.java.dir}"
+         includes="*.class"/>
+  </target>
+
 </project>
