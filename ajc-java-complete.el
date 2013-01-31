@@ -1118,7 +1118,7 @@ they haven't been imported."
                         (split-string (match-string-no-properties 1) split-char-regexp t))))
         (goto-char (point-min))
         ;; search for static members
-        (while (search-forward-regexp "\\b\\([A-Z][a-zA-Z0-9_]*\\)\\.[a-zA-Z0-9_]+[ \t]*("
+        (while (search-forward-regexp "\\b\\([A-Z][a-zA-Z0-9_]*\\)\\.[a-zA-Z0-9_]+[ \t]*(?"
                                       (point-max)
                                       't)
           (setq matched-class-strings
