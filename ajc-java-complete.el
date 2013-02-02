@@ -569,16 +569,16 @@ INDEX is the index in `ajc-tag-buffer-list'."
           (when (stringp param)
             (setq constructor-string
                   (concat constructor-string "${" (number-to-string (+ index 1)) ":"
-                          param "} , ")))
+                          param "}, ")))
           (when (listp param)
             (setq constructor-string (concat constructor-string
                                              "${"
                                              (number-to-string (+ 1 index))
                                              ":"
                                              (car param)
-                                             "} , ")))
+                                             "}, ")))
           (setq index (+ 1 index)))
-        (setq constructor-string (replace-regexp-in-string " , $" ")$0" constructor-string)))
+        (setq constructor-string (replace-regexp-in-string ", $" ")$0" constructor-string)))
       (setq constructor-string constructor-string))))
 
 (defun ajc-get-lines-and-positions (tag-buffer)
