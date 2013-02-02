@@ -61,7 +61,7 @@
 ;;   about how to use it ,see the Install section.
 
 ;;3. it depends on yasnippet . when completing method and
-;;   constructor it would generate a templete dynamically
+;;   constructor it would generate a template dynamically
 ;;   so that you can jump from a paramter to another one .
 
 ;;; Features
@@ -437,7 +437,7 @@ name and params."
                                                          (nth 2 class-item))))))
       class-string)))
 
-(defun ajc-method-to-yasnippet-templete (method-item)
+(defun ajc-method-to-yasnippet-template (method-item)
   (when method-item
     (let ((method-string (car method-item))
           (params (nth 2 method-item))
@@ -474,8 +474,8 @@ item."
         (setq candidate
               (propertize method-short-string
                           'view method-full-string
-                          'templete field-or-method-item
-                          'templete-type 'method))))
+                          'template field-or-method-item
+                          'template-type 'method))))
     candidate))
 
 (defun ajc-split-method (method-line-string index)
@@ -556,7 +556,7 @@ INDEX is the index in `ajc-tag-buffer-list'."
           (setq constructor-string (replace-regexp-in-string ", $" "" constructor-string))))
       constructor-string)))
 
-(defun ajc-constructor-to-yasnippet-templete (constructor-item)
+(defun ajc-constructor-to-yasnippet-template (constructor-item)
   (when constructor-item
     (let ((constructor-string (car constructor-item))
           (params (nth 1 constructor-item))
@@ -1522,8 +1522,8 @@ find out the type name."
             (add-to-list 'return-complete-list
                          (propertize constructor-short-string
                                      'view constructor-full-string
-                                     'templete-type 'constructor
-                                     'templete constructor))))))
+                                     'template-type 'constructor
+                                     'template constructor))))))
     ;; (message "Debug: ajc-complete-constructor, return-complete-list=%s"
     ;;          return-complete-list)
     return-complete-list))

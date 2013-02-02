@@ -557,14 +557,14 @@
       (equal
        '("SomeClass()" "SomeClass(double)" "SomeClass(int)" "SomeClass(java.lang.String)")
        (mapcar (lambda (e)
-                 (test-ajc-unpropertize-text e '(view templete-type templete)))
+                 (test-ajc-unpropertize-text e '(view template-type template)))
                (ajc-complete-constructor "SomeClass"))))
      (should
       (equal
        '("ajc.somepackage.SomeClass()" "ajc.somepackage.SomeClass(double)"
          "ajc.somepackage.SomeClass(int)" "ajc.somepackage.SomeClass(java.lang.String)")
        (mapcar (lambda (e)
-                 (test-ajc-unpropertize-text e '(view templete-type templete)))
+                 (test-ajc-unpropertize-text e '(view template-type template)))
                (ajc-complete-constructor "SomeClass" "ajc.somepackage"))))
      )))
 
@@ -712,20 +712,20 @@
       (equal
        '("SomeClass()" "SomeClass(double)" "SomeClass(int)" "SomeClass(java.lang.String)")
        (mapcar (lambda (e)
-                 (test-ajc-unpropertize-text e '(view templete-type templete)))
+                 (test-ajc-unpropertize-text e '(view template-type template)))
                (ajc-complete-constructor "SomeClass"))))
      (should
       (equal
        '("ajc.somepackage.SomeClass()" "ajc.somepackage.SomeClass(double)"
          "ajc.somepackage.SomeClass(int)" "ajc.somepackage.SomeClass(java.lang.String)")
        (mapcar (lambda (e)
-                 (test-ajc-unpropertize-text e '(view templete-type templete)))
+                 (test-ajc-unpropertize-text e '(view template-type template)))
                (ajc-complete-constructor "SomeClass" "ajc.somepackage"))))
      (should
       (equal
        '("org.junit.matchers.JUnitMatchers()")
        (mapcar (lambda (e)
-                 (test-ajc-unpropertize-text e '(view templete-type templete)))
+                 (test-ajc-unpropertize-text e '(view template-type template)))
                (ajc-complete-constructor "JUnitMatchers" "org.junit.matchers"))))
      )))
 
@@ -755,7 +755,7 @@
       (equal
        '("org.junit.matchers.JUnitMatchers()")
        (mapcar (lambda (e)
-                 (test-ajc-unpropertize-text e '(view templete-type templete)))
+                 (test-ajc-unpropertize-text e '(view template-type template)))
                (ajc-complete-constructor "JUnitMatchers" "org.junit.matchers")))))))
 
 (ert-deftest test-ajc-unload-tag-file ()
@@ -768,7 +768,7 @@
       (equal
        '("org.junit.matchers.JUnitMatchers()")
        (mapcar (lambda (e)
-                 (test-ajc-unpropertize-text e '(view templete-type templete)))
+                 (test-ajc-unpropertize-text e '(view template-type template)))
                (ajc-complete-constructor "JUnitMatchers" "org.junit.matchers"))))
      (ajc-unload-tag-file (file-truename
                            (expand-file-name test-ajc-junit-tagfile)))
@@ -776,7 +776,7 @@
      (should
       (null
        (mapcar (lambda (e)
-                 (test-ajc-unpropertize-text e '(view templete-type templete)))
+                 (test-ajc-unpropertize-text e '(view template-type template)))
                (ajc-complete-constructor "JUnitMatchers" "org.junit.matchers")))))))
 
 (ert-deftest test-ajc-line-has-typeinfo-p ()
