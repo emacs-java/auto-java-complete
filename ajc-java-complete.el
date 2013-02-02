@@ -638,6 +638,7 @@ variables."
     (setq ajc-current-class-prefix-4-complete-class nil)
     (setq ajc-matched-class-items-cache nil)
     (setq ajc-previous-class-prefix nil)
+    (setq ajc-package-in-tags-cache-tbl nil)
     ;; extract info from each tag file in ajc-tag-file-list
     (mapcar (lambda (filename)
               (ajc-init-1 filename))
@@ -677,7 +678,7 @@ tag file."
              (forward-line (1- (ajc-get-package-first-line i ajc-lines-and-positions-list)))
              (beginning-of-line)
              (while (re-search-forward
-                     "^\\([[:alpha:].]+\\)`"
+                     "^\\([A-Za-z0-9_.]+\\)`"
                      (save-excursion
                        (ajc-goto-line
                         (ajc-get-class-first-line i
@@ -1184,6 +1185,10 @@ they haven't been imported."
               (setq matched-class-strings
                     (append matched-class-strings
                             (split-string exception split-char-regexp t))))))
+        ;; search for interfaces
+        (setq matched-class-strings
+              (append matched-class-strings
+                      (ajc-find-out-implemented-interfaces)))
         ;; search for annotation like @Test
         (setq matched-class-strings
               (append matched-class-strings
@@ -1202,6 +1207,26 @@ they haven't been imported."
           (if (string-match "\\(int\\|float\\|double\\|long\\|short\\|char\\|byte\\|void\\|boolean\\|return\\|public\\|static\\|private\\|protected\\|abstract\\|final\\|native\\|package\\|new\\)" ele)
               (delete ele matched-class-strings)))
         matched-class-strings))))
+
+(defun ajc-find-out-implemented-interfaces ()
+  (let ((case-fold-search nil)
+        (intf-regexp (concat "\\b[A-Z][A-Za-z0-9_]+" ; class name
+                             "[ \t\n\r]+"
+                             "implements"
+                             "[ \t\n\r]+"
+                             "\\([A-Z][A-Za-z0-9_, \t\n\r]+\\)" ; interface name
+                             "{"
+                             ))
+        (ret nil))
+    (save-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (while (re-search-forward intf-regexp nil t)
+          (setq ret
+                (append (split-string (match-string-no-properties 1)
+                                      "[, \t\n\r]+" t)
+                        ret)))))
+    ret))
 
 (defun ajc-find-out-class-by-extends-notation ()
   (let ((extends-class-regexp "extends[[:space:][:punct:]]\\([[:upper:]][[:alpha:]]+\\)\\b")
@@ -1315,14 +1340,14 @@ using `y-or-n-p' to ask user to confirm."
              (with-current-buffer java-buffer
                (ajc-insert-import-at-head-of-source-file-without-confirm
                 user-confirmed-class-items-list))
-             (message "Finished importing."))
+             (message "Finished importing.")
+             (ajc-sort-import-lines))
            user-confirmed-class-items-list)
           ((null import-class-items-list)
            ;; do nothing
           )
           (t
            (message "No class need import.")))))
-
 
 (defun ajc-insert-import-at-head-of-source-file-without-confirm (class-items)
   (let ((case-fold-search nil))
@@ -1357,7 +1382,7 @@ using `y-or-n-p' to ask user to confirm."
             (if (re-search-forward "^[ \t]*import[ \t]+[a-zA-Z0-9_\\.\\*]+[ \t]*;" class-start 't)
                 ;; if find 'import', insert before it
                 (progn (beginning-of-line)
-                       (insert "\n")
+                       ;(insert "\n")
                        (forward-line -1)
                        (dolist (ele class-items)
                          (insert
@@ -1384,6 +1409,18 @@ using `y-or-n-p' to ask user to confirm."
                                            (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele)
                                                                               (nth 2 ele)))
                                            "." (car ele) ";\n")))))))))))))
+
+(defun ajc-sort-import-lines ()
+  "Sort import statements alphabetically."
+  (let ((beg-pos nil)
+        (end-pos nil)
+        (sort-fold-case nil))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "^import.*" nil t)
+        (or beg-pos (setq beg-pos (line-beginning-position)))
+        (setq end-pos (line-end-position))))
+    (sort-lines nil beg-pos end-pos)))
 
 (defun ajc-find-out-import-line ()
   "Return a list of import statement lines.
@@ -1430,22 +1467,26 @@ By default it includes classes in java.lang.*."
         (case-fold-search nil))
     (dolist (element import-lines)
       (setq index (string-match "\\.\\*$" element))
-      (if index
-          ;; this is like 'import org.junit.*;' statement
-          (setq return-class-items
-                (append return-class-items
-                        (ajc-find-out-matched-class-item
-                         (substring-no-properties element 0 index)
-                         nil)))
-        (progn
-          ;; This is a FQN
-          (string-match "^\\(.+\\)\\.\\([a-zA-Z0-9_]+\\)$" element)
-          (setq return-class-items
-                (append return-class-items
-                        (ajc-find-out-matched-class-item
-                         (match-string-no-properties 1 element)
-                         (match-string-no-properties 2 element)
-                         t))))))
+      (cond
+       (index
+        ;; this is like 'import org.junit.*;' statement
+        (setq return-class-items
+              (append return-class-items
+                      (ajc-find-out-matched-class-item
+                       (substring-no-properties element 0 index)
+                       nil))))
+        ((string-match "^\\(.+\\)\\.\\([A-Z][a-zA-Z0-9_]+\\)\\(\\.[a-z].+\\)?$" element)
+         ;; This is a FQN classname
+         ;; The last parenthesized part is method name,
+         ;; i.e., static import.
+         (setq return-class-items
+               (append return-class-items
+                       (ajc-find-out-matched-class-item
+                        (match-string-no-properties 1 element)
+                        (match-string-no-properties 2 element)
+                        t))))
+         (t
+          )))
     (if exclude_java_lang
         return-class-items
       (append return-class-items
