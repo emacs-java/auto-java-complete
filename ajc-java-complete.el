@@ -450,13 +450,13 @@ name and params."
           (when (stringp param)
             (setq method-string
                   (concat method-string "${" (number-to-string (+ index 1)) ":"
-                          param "} , ")))
+                          param "}, ")))
           (when (listp param)
             (setq method-string
                   (concat method-string "${" (number-to-string (+ 1 index)) ":"
-                          (car param) "} , ")))
+                          (car param) "}, ")))
           (setq index (1+ index)))
-        (setq method-string (replace-regexp-in-string " , $" ")$0" method-string)))
+        (setq method-string (replace-regexp-in-string ", $" ")$0" method-string)))
       method-string)))
 
 (defun ajc-method-item-to-candidate (field-or-method-item)
