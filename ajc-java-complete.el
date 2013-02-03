@@ -492,7 +492,9 @@ INDEX is the index in `ajc-tag-buffer-list'."
       ;; handle return-type
       (setq return-type (nth 1 split-list))
       (push (if (string-match "^~" return-type)
-                (substring-no-properties return-type 1)
+                (or (ajc-get-class-item-by-fqn
+                     (substring-no-properties return-type 1))
+                    (substring-no-properties return-type 1))
               ;; return-type is referred by line number
               (ajc-split-class-item-by-class-ln
                                    (string-to-number return-type) index))
@@ -502,6 +504,22 @@ INDEX is the index in `ajc-tag-buffer-list'."
               (ajc-split-items (nth 2 split-list) index)
               ;; handle exceptions
               (ajc-split-items (nth 3 split-list) index)))))
+
+(defun ajc-get-class-item-by-fqn (fqn)
+  "Return class-item that matches FQN or nil."
+  (when (string-match "\\." fqn)
+    (car (ajc-find-out-matched-class-item
+          (substring-no-properties fqn 0 (ajc-rindex fqn ?.))
+          (substring-no-properties fqn (1+ (ajc-rindex fqn ?.)))
+          t))))
+
+(defun ajc-rindex (string char)
+  "Return the last index of CHAR in STRING."
+  (loop for ch in (nreverse (coerce string 'list))
+        for i from (1- (length string)) downto 0
+        when (char-equal ch char)
+        return i
+        finally (return nil)))
 
 (defun ajc-split-constructor (constructor-line-string index)
   (when constructor-line-string
@@ -1636,10 +1654,12 @@ pkg-line start-line end-line)."
     (with-current-buffer (nth index ajc-tag-buffer-list)
       (while (< line-num end-line)
         (setq current-line-string (ajc-read-line line-num))
-        (if (string-match regexp-method-prefix current-line-string)
-            (push (ajc-split-method current-line-string index) return-member-items)
-          (when (string-match regexp-field-prefix current-line-string)
-            (push (ajc-split-field current-line-string index) return-member-items)))
+        (cond
+         ((string-match regexp-method-prefix current-line-string)
+          (push (ajc-split-method current-line-string index)
+                return-member-items))
+         ((string-match regexp-field-prefix current-line-string)
+          (push (ajc-split-field current-line-string index) return-member-items)))
         (incf line-num)))
     (nreverse return-member-items)))
 
@@ -1777,6 +1797,7 @@ get any candidates too, we needn't try to complete it."
   "Get method candidates depending on stack-list. To see what
 stack-list is, check out
 `ajc-parse-splited-line-4-complete-method'"
+  ;;(message "DEBUG: ajc-complete-method-candidates-1, stack-list=%s" stack-list)
   (when stack-list
     (let ((is-dot-last (string= "." (car (last stack-list))))
           top
@@ -1909,6 +1930,13 @@ this function will remove anything between ( and )  ,so only
       (setq line-string (replace-regexp-in-string "\\(\\+\\+\\|--\\)"
                                                   " "
                                                   line-string))
+      ;; remove the part before ':'
+      ;; we consider the following situations.
+      ;; "for (String s : str.time().)" or
+      ;; "ret = cond ? a : b."
+      (when (string-match ":" line-string)
+        (setq line-string (substring-no-properties line-string
+                                                   (1+ (match-beginning 0)))))
       (while (string-match "=\\(.*\\)" line-string)
         (setq line-string (match-string-no-properties 1 line-string)))
       ;; split line-string by ".", but add "." as an element at its position in list

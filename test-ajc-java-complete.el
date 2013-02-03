@@ -150,6 +150,14 @@
    (equal '("(" "String" "+" "String" ")" ".")
           (ajc-split-line-4-complete-method
            "(\"a\" + \"b\").")))
+  (should
+   (equal '("String" "." "trim" "(" ")" ".")
+          (ajc-split-line-4-complete-method
+           "\"foo\".trim().")))
+  (should
+   (equal '("message" "." "getBody" "(" ")" ".")
+          (ajc-split-line-4-complete-method
+           "    for (String element : message.getBody().")))
   )
 
 (ert-deftest test-ajc-parse-splited-line-4-complete-method ()
@@ -180,7 +188,11 @@
   (should
    (equal '("String" ".")
           (ajc-parse-splited-line-4-complete-method
-           "(\"a\" + (\"b\" + \"c\")."))))
+           "(\"a\" + (\"b\" + \"c\").")))
+  (should
+   (equal '("String" "." "trim" ".")
+          (ajc-parse-splited-line-4-complete-method
+           "\"foo\".trim()."))))
 
 (ert-deftest test-ajc-extract-parenthesized-part-maybe ()
   (should
@@ -201,6 +213,10 @@
    (equal '("ObjC" "(" ")" ".")
           (ajc-extract-parenthesized-part-maybe
            '("ObjA" "(" "ObjB" "(" "ObjC" "(" ")" "."))))
+  (should
+   (equal '("String" "." "trim" "(" ")" ".")
+          (ajc-extract-parenthesized-part-maybe
+           '("String" "." "trim" "(" ")" "."))))
   )
 
 (ert-deftest test-ajc-remove-unnecessary-heading-part ()
@@ -788,3 +804,21 @@
    (ajc-line-has-typeinfo-p
     "cls"
     "  public ClassItem(Class cls) {")))
+
+(ert-deftest test-ajc-rindex ()
+  (should (= 5 (ajc-rindex "abcdef" ?f)))
+  (should (= 1 (ajc-rindex "abcdef" ?b)))
+  (should (null (ajc-rindex "abcdef" ?g))))
+
+(ert-deftest test-ajc-get-class-item-by-fqn ()
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
+   (lambda ()
+     (should
+      (equal '("Test" 1 14 1199 1205)
+             (ajc-get-class-item-by-fqn "org.junit.Test")))
+     (should
+      (null (ajc-get-class-item-by-fqn "foo.bar.buzz")))
+     (should
+      (null (ajc-get-class-item-by-fqn "foo"))))))
