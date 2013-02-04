@@ -803,7 +803,11 @@
   (should
    (ajc-line-has-typeinfo-p
     "cls"
-    "  public ClassItem(Class cls) {")))
+    "  public ClassItem(Class cls) {"))
+  (should
+   (ajc-line-has-typeinfo-p
+    "pair"
+    "  String[] pair = elements.split(\";\");")))
 
 (ert-deftest test-ajc-rindex ()
   (should (= 5 (ajc-rindex "abcdef" ?f)))
@@ -822,3 +826,30 @@
       (null (ajc-get-class-item-by-fqn "foo.bar.buzz")))
      (should
       (null (ajc-get-class-item-by-fqn "foo"))))))
+
+(ert-deftest test-ajc-parse-variable-line-string ()
+  (should
+   (string= "HashMap"
+            (ajc-parse-variable-line-string
+             "event"
+             "    HashMap<String, String> event = new HashMap<String, String>();")))
+  (should
+   (string= "AuctionEventListener"
+            (ajc-parse-variable-line-string
+             "_listener"
+             "  private AuctionEventListener _listener;")))
+  (should
+   (string= "Chat"
+            (ajc-parse-variable-line-string
+             "_notToBeGCd"
+             "  @SuppressWarnings(\"unused\") private Chat _notToBeGCd;")))
+  (should
+   (string= "int"
+            (ajc-parse-variable-line-string
+             "i"
+             "int i")))
+  (should
+   (string= "String"
+            (ajc-parse-variable-line-string
+             "pair"
+             "String[] pair = element.split(\":\");"))))

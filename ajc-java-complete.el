@@ -262,6 +262,9 @@ it will save current class-prefix in this variable, so
   "Hash table to be used as cache of package names in a tags
 file.")
 
+(defvar ajc-thing-after-varname-regexp "[,=;)[:space:]]"
+  "Regular expression that matches the thing after variable name.")
+
 (defun ajc-get-package-first-line (ix lst)
   (car (nth 0 (nth ix lst))))
 (defun ajc-get-package-first-line-position (ix lst)
@@ -816,24 +819,29 @@ instead of 'java.lang java.lang.rel javax.xml javax.xml.ws'."
 If it cannot find it from imported classes, then find from the
 tag file. If there are more than one class item matching
 CLASS-NAME in tag file, import one of them first."
-  (let* ((imported-classes (ajc-calculate-all-imported-class-items))
-         (matched-class-item
-          (catch 'found
-            (dolist (item imported-classes)
-              (when (string-equal class-name (car item))
-                (throw 'found item))))))
-    (unless matched-class-item
-      ;; if not found from imported section
-      (let ((matched-class-items
-             (ajc-find-out-matched-class-item-without-package-prefix class-name t)))
-        ;;(message "Debug: class-name=%s, matched-class-items=%s" class-name matched-class-items)
-        (when matched-class-items
-          (if (= (length matched-class-items) 1)
-              (setq matched-class-item (car matched-class-items))
-            (setq matched-class-item
-                  (car (ajc-insert-import-at-head-of-source-file matched-class-items)))))))
-    ;;(message "Debug: class-name=%s, matched-class-item=%s" class-name matched-class-item)
-    matched-class-item))
+  (cond
+   ((string-match ".*\\[\\]$" class-name)
+    ;; TODO how to deal with arrays?
+    nil)
+   (t
+    (let* ((imported-classes (ajc-calculate-all-imported-class-items))
+           (matched-class-item
+            (catch 'found
+              (dolist (item imported-classes)
+                (when (string-equal class-name (car item))
+                  (throw 'found item))))))
+      (unless matched-class-item
+        ;; if not found from imported section
+        (let ((matched-class-items
+               (ajc-find-out-matched-class-item-without-package-prefix class-name t)))
+          ;;(message "Debug: class-name=%s, matched-class-items=%s" class-name matched-class-items)
+          (when matched-class-items
+            (if (= (length matched-class-items) 1)
+                (setq matched-class-item (car matched-class-items))
+              (setq matched-class-item
+                    (car (ajc-insert-import-at-head-of-source-file matched-class-items)))))))
+      ;;(message "Debug: class-name=%s, matched-class-item=%s" class-name matched-class-item)
+      matched-class-item))))
 
 (defun ajc-find-out-matched-class-item
   (package-name class-prefix &optional exactly_match)
@@ -1667,12 +1675,13 @@ pkg-line start-line end-line)."
   "Find class name of VARIBALE-NAME.
 Suppose that VARIABLE-NAME is str. If a statement 'String str' exists
 in a source file, String will be returned."
-  (let ((matched-class-name)
-        (variable-line-string)
+  (let ((variable-line-string)
         (index-of-var-in-line)
         (var-stack)
         (origin-pos (point))
-        (needle (concat "[[:space:]]+" variable-name "[,;=)[:space:]]"))
+        (needle (concat "[[:space:]]+"
+                        variable-name
+                        ajc-thing-after-varname-regexp))
         (case-fold-search nil))
     ;;(message "DEBUG: ajc-calculate-class-name-by-variable, variable-name=%s" variable-name)
     (save-excursion
@@ -1699,52 +1708,69 @@ in a source file, String will be returned."
                                                   (line-end-position)))))
             (throw 'found t)))
     ;;(message "DEBUG: variable-line-string=%s" variable-line-string)
-    (when variable-line-string
-      (setq index-of-var-in-line
-            (string-match (concat "[ \t]+" variable-name "\\b") variable-line-string))
-      (setq variable-line-string
-            (substring-no-properties variable-line-string 0 index-of-var-in-line))
-      (setq var-stack (split-string variable-line-string "[( \t.]" t))
-      ;;(message "DEBUG: var-stack=%s" var-stack)
-      (let ((tmp-list))
-        (dolist (ele var-stack)
-          (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele "<" "<" t))))
-        (setq var-stack tmp-list))
-      (let ((tmp-list))
-        (dolist (ele var-stack)
-          (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele ">" ">" t))))
-        (setq var-stack tmp-list))
-      (setq var-stack (nreverse var-stack))
-      (let ((top (pop var-stack))
-            (parse-finished))
-        (while (and top (not parse-finished))
-          (when (string-match "[A-Z][a-zA-Z0-9_]*" top)
-            (setq matched-class-name top)
-            (setq parse-finished t));; parse finished ,exit the  loop
-          (when (string-equal ">" top)
-            (let ((e)
-                  (right-stack))
-              (push top right-stack)
-              (setq e (pop var-stack))
-              (while (and e (> (length right-stack) 0))
-                (if (string-equal "<" e) (pop right-stack))
-                (if (string-equal ">" e) (push e right-stack))
-                (setq e (pop var-stack)))
-              (if e (push e var-stack))))
-          (setq top (pop var-stack)))))
+    (ajc-parse-variable-line-string variable-name variable-line-string)))
+
+(defun ajc-parse-variable-line-string (variable-name variable-line-string)
+  "Return type-name of VARIABLE-NAME by parsing VARIABLE-LINE-STRING."
+  (let ((index-of-var-in-line nil)
+        (var-stack nil)
+        (matched-class-name nil))
+    (setq index-of-var-in-line
+          (string-match (concat "[ \t]+" variable-name "\\b") variable-line-string))
+    ;; extract the string before variable name
+    (setq variable-line-string
+          (substring-no-properties variable-line-string 0 index-of-var-in-line))
+    (setq var-stack (split-string variable-line-string "[( \t.]" t))
+    ;;(message "DEBUG: ajc-parse-variable-line-string, var-stack=%s" var-stack)
+    (let ((tmp-list))
+      (dolist (ele var-stack)
+        (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele "<" "<" t))))
+      (setq var-stack tmp-list))
+    (let ((tmp-list))
+      (dolist (ele var-stack)
+        (setq tmp-list (append tmp-list (ajc-split-string-with-separator ele ">" ">" t))))
+      (setq var-stack tmp-list))
+    (setq var-stack (nreverse var-stack))
+    (let ((top (pop var-stack))
+          (parse-finished nil))
+      (while (and top (not parse-finished))
+        (when (string-match "[A-Z][a-zA-Z0-9_]*" top)
+          (setq matched-class-name top)
+          ;; parse finished, exit the loop
+          (setq parse-finished t))
+        (when (string-equal ">" top)
+          ;; loop until the matchging "<" is popped from var-stack.
+          (let ((e)
+                (right-stack))
+            (push top right-stack)
+            (setq e (pop var-stack))
+            (while (and e (> (length right-stack) 0))
+              (cond
+               ((string-equal "<" e)
+                (pop right-stack))
+               ((string-equal ">" e)
+                (push e right-stack)))
+              (setq e (pop var-stack)))
+            (when e (push e var-stack))))
+        (setq top (pop var-stack))))
     matched-class-name))
 
 (defun ajc-line-has-typeinfo-p (varname line)
   "Return t if this LINE contains type name, or nil."
-  (let ((type-regexp "\\([[:alpha:]][[:alnum:]]+[.]?\\)+\\(<[^=]*>\\)*[[:space:]]+")
+  (let ((type-regexp (concat
+                      "\\([[:alpha:]][[:alnum:]]+[.]?\\)+"
+                      "\\(<[^=]*>\\)*"
+                      "\\(\\[\\]\\)*"
+                      "[[:space:]]+"
+                      ))
         (exclude-regexp "return"))
     (and (string-match-p (concat type-regexp
                                  varname
-                                 "[,=;)[:space:]]")
+                                 ajc-thing-after-varname-regexp
+                                 )
                          line)
          (not (string-match-p exclude-regexp line))
          (not (string-match-p "^[[:space:]]*//" line)))))
-
 
 ;;TODO: add cache support for method candidates
 ;; if it failed ,then don't try, to waste time.
@@ -1828,7 +1854,8 @@ stack-list is, check out
             (setq return-list (ajc-find-members class-item (pop stack-list))))))
       ;; (message "DEBUG: ajc-complete-method-candidates-1, return-list=%s"
       ;;          return-list)
-      (mapcar 'ajc-method-item-to-candidate return-list))))
+      (and return-list
+           (mapcar 'ajc-method-item-to-candidate return-list)))))
 
 (defun ajc-get-validated-stack-list-or-nil-4-method-complete (stack-list)
   "If stack-list is validated, return itself, else return nil."
