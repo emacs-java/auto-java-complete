@@ -870,7 +870,7 @@ returned."
           (if exactly_match
               (concat "^" (regexp-quote class-prefix) "`")
             (concat "^" (regexp-quote class-prefix))))
-         (matched-pkg-item (when package-name (ajc-find-out-matched-pkg-item package-name t)))
+         (matched-pkg-item (and package-name (ajc-find-out-matched-pkg-item package-name t)))
          (line-num (ajc-get-class-first-line index ajc-lines-and-positions-list))
          (end-line (ajc-get-member-first-line index ajc-lines-and-positions-list))
          return-list current-line-string)
@@ -878,18 +878,19 @@ returned."
     ;;          package-name
     ;;          matched-pkg-item
     ;;          class-prefix)
-    (with-current-buffer (nth index ajc-tag-buffer-list)
-      (when matched-pkg-item
+    (when matched-pkg-item
+      (with-current-buffer (nth (nth 1 matched-pkg-item) ajc-tag-buffer-list)
         ;; package-item is of form (pkgname index start-line end-line)
         (setq line-num (nth 2 matched-pkg-item)
-              end-line (nth 3 matched-pkg-item)))
-      ;; We only need to search for classes whose package name is in tags file.
-      (when (gethash package-name ajc-package-in-tags-cache-tbl)
-        (while (< line-num end-line)
-          (setq current-line-string (ajc-read-line line-num))
-          (when (string-match regexp-class-prefix current-line-string)
-            (push (ajc-make-class-item current-line-string index) return-list))
-          (incf line-num)))
+              end-line (nth 3 matched-pkg-item))
+        ;; We only need to search for classes whose package name is in tags file.
+        (when (gethash package-name ajc-package-in-tags-cache-tbl)
+          (while (< line-num end-line)
+            (setq current-line-string (ajc-read-line line-num))
+            (when (string-match regexp-class-prefix current-line-string)
+              (push (ajc-make-class-item current-line-string (nth 1 matched-pkg-item))
+                    return-list))
+            (incf line-num))))
       (nreverse return-list))))
 
 (defun ajc-make-class-item (line-string index)
