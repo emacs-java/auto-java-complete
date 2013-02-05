@@ -41,27 +41,31 @@
 
 (ert-deftest test-ajc-split-constructor ()
   (should (equal '("SomeClass" "" "")
-                 (ajc-split-constructor "  SomeClass``")))
+                 (ajc-split-constructor "  SomeClass``" 0)))
   (should (equal '("SomeClass" ("int") "")
-                 (ajc-split-constructor "  SomeClass`~int`")))
+                 (ajc-split-constructor "  SomeClass`~int`" 0)))
   (should (equal '("SomeClass" ("java.lang.String") "")
-                 (ajc-split-constructor "  SomeClass`~java.lang.String`")))
+                 (ajc-split-constructor "  SomeClass`~java.lang.String`" 0)))
   (should (equal '("SomeClass" ("int" "int" "int") "")
-                 (ajc-split-constructor "  SomeClass`~int,~int,~int`")))
+                 (ajc-split-constructor "  SomeClass`~int,~int,~int`" 0)))
   (should (equal '("SomeClass" ("double") ("java.lang.Exception"))
-                 (ajc-split-constructor "  SomeClass`~double`~java.lang.Exception"))))
+                 (ajc-split-constructor "  SomeClass`~double`~java.lang.Exception" 0)))
+    ;; TODO add some tests which use INDEX argment.
+  )
 
 (ert-deftest test-ajc-split-items ()
   (should (equal '("")
-                 (ajc-split-items "")))
+                 (ajc-split-items "" 0)))
   (should (equal '(("int"))
-                 (ajc-split-items "~int")))
+                 (ajc-split-items "~int" 0)))
   (should (equal '(("int" "int" "int"))
-                 (ajc-split-items "~int,~int,~int"))))
+                 (ajc-split-items "~int,~int,~int" 0)))
+  ;; TODO add some tests which use INDEX argment.
+  )
 
 (ert-deftest test-ajc-split-field ()
   (should (equal '("CONSTANT" "int")
-                 (ajc-split-field " CONSTANT`~int"))))
+                 (ajc-split-field " CONSTANT`~int" 0))))
 
 (ert-deftest test-ajc-split-method ()
   (test-ajc-fixture
@@ -95,9 +99,13 @@
           (ajc-complete-method-candidates-1 '("System" "." "e")))))
 
 (ert-deftest test-ajc-find-class-first-check-imported ()
-  (should
-   (equal '("System" 0 28 24120 24159)
-          (ajc-find-class-first-check-imported "System"))))
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
+   (lambda ()
+     (should
+      (equal '("SomeClass" 0 7 21 39)
+             (ajc-find-class-first-check-imported "SomeClass"))))))
 
 (ert-deftest test-ajc-split-line-4-complete-method ()
   (should
@@ -265,10 +273,10 @@
           (ajc-find-out-type-of-factors
            '("System.getProperty(String)" "String")))))
 
-(ert-deftest test-ajc-find-out-type-of-factor ()
-  (should
-   (equal "String"
-          (ajc-find-out-type-of-factors-1 "System.getProperty(String)"))))
+;; (ert-deftest test-ajc-find-out-type-of-factor ()
+;;   (should
+;;    (equal "String"
+;;           (ajc-find-out-type-of-factors-1 "System.getProperty(String)"))))
 
 (ert-deftest test-ajc-split-and-concat-list-by-operators ()
   (should
@@ -315,15 +323,17 @@
           (ajc-split-string-with-separator "abc.def.g" "\\." "."))))
 
 (ert-deftest test-ajc-complete-method-is-available ()
-  (should
-   (equal t
-          (ajc-complete-method-is-available "System.getProperty(str.substring(3)).to")))
-  (should
-   (equal nil
-          (let ((ajc-complete-method-candidates-cache-stack-list
-                 '("System" "." "getProperty" "." "t"))
-                (ajc-complete-method-candidates-cache nil))
-            (ajc-complete-method-is-available "System.getProperty(str.substring(3)).to")))))
+  (let ((ajc-complete-method-candidates-cache nil)
+        (ajc-complete-method-candidates-cache-stack-list nil))
+    (should
+     (equal t
+            (ajc-complete-method-is-available "System.getProperty(str.substring(3)).to")))
+    (should
+     (equal nil
+            (let ((ajc-complete-method-candidates-cache-stack-list
+                   '("System" "." "getProperty" "." "t"))
+                  (ajc-complete-method-candidates-cache nil))
+              (ajc-complete-method-is-available "System.getProperty(str.substring(3)).to"))))))
 
 (ert-deftest test-ajc-calculate-all-imported-class-items ()
   (should
@@ -397,16 +407,21 @@
               (ajc-create-two-char-item "An" (buffer-name b) 1 0))))))
 
 (ert-deftest test-ajc-sort-class ()
-  (let ((lst (list (get-buffer "someclass.tag")))
+  (let* ((bname " *someclass.tag*")
+         (lst (list (with-current-buffer
+                       (find-file-noselect test-ajc-someclass-tagfile)
+                     (rename-buffer bname)
+                     (current-buffer))))
         (ajc-lines-and-positions-list
-         (list (ajc-get-lines-and-positions (get-buffer "someclass.tag"))))
+         (list (ajc-get-lines-and-positions (get-buffer bname))))
         (tbl nil)
         (ajc-sorted-class-buffer-name-list nil))
     (setq tbl (ajc-sort-class lst))
     (should (not (null (gethash "So" tbl))))
     (should (member " *sorted-class-someclass.tag*"
                     ajc-sorted-class-buffer-name-list))
-    (mapcar #'kill-buffer ajc-sorted-class-buffer-name-list)))
+    (mapcar #'kill-buffer ajc-sorted-class-buffer-name-list)
+    (kill-buffer bname)))
 
 (ert-deftest test-ajc-sort-class-1 ()
   (let* ((class-buffer-name "*test-ajc-build-map-4-search-class*")
@@ -479,7 +494,7 @@
 
 (ert-deftest test-ajc-build-package-in-tags-cache-tbl ()
   (let* ((tbl nil)
-         (buf (find-file-noselect someclass-tagfile))
+         (buf (find-file-noselect test-ajc-someclass-tagfile))
          (ajc-lines-and-positions-list
           (list (ajc-get-lines-and-positions buf))))
     (setq tbl (ajc-build-package-in-tags-cache-tbl (list buf)))
@@ -522,7 +537,8 @@
 
 (ert-deftest test-ajc-find-out-matched-class-item ()
   (test-ajc-fixture
-   `(,test-ajc-someclass-tagfile)
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
    (lambda ()
      (should
       (equal
@@ -545,25 +561,27 @@
 
 (ert-deftest test-ajc-find-out-matched-class-item-1 ()
   (test-ajc-fixture
-   `(,test-ajc-someclass-tagfile)
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
    (lambda ()
      (should
       (equal
        '(("SomeClass" 0 7 21 39))
        (ajc-find-out-matched-class-item-1 "ajc.somepackage"
                                           "So"
-                                          0)))
+                                          )))
      (should
       (equal
        '(("AnotherClass" 0 7 10 21) ("SomeClass" 0 7 21 39))
        (ajc-find-out-matched-class-item-1 "ajc.somepackage"
                                           nil
-                                          0))))))
-
-(ert-deftest test-ajc-find-out-matched-class-item-1 ()
-  (should
-   (equal '("SomeClass" 0 7 21 39)
-          (ajc-make-class-item "SomeClass`7`21`39" 0))))
+                                          )))
+     (should
+      (equal
+       '(("Test" 1 14 1199 1205))
+       (ajc-find-out-matched-class-item-1 "org.junit"
+                                          "Test"
+                                          t))))))
 
 (ert-deftest test-ajc-complete-constructor ()
   (test-ajc-fixture
@@ -849,7 +867,7 @@
              "i"
              "int i")))
   (should
-   (string= "String"
+   (string= "String[]"
             (ajc-parse-variable-line-string
              "pair"
              "String[] pair = element.split(\":\");"))))
