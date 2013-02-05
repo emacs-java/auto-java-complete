@@ -845,18 +845,6 @@ CLASS-NAME in tag file, import one of them first."
 
 (defun ajc-find-out-matched-class-item
   (package-name class-prefix &optional exactly_match)
-  "Return a list of class-items whose class belongs to
-PACKAGE-NAME and whose classname begins with CLASS-PREFIX. If
-PACKAGE-NAME is nil, return all class-items whose name begin with
-CLASS-PREFIX. If CLASS-PREIX is nil, return all class-items whose
-class belongs to PACKAGE-NAME. If these two arguments are nil,
-return nil."
-  (loop for i from 0 below (length ajc-tag-buffer-list)
-        append (ajc-find-out-matched-class-item-1
-                package-name class-prefix i exactly_match)))
-
-(defun ajc-find-out-matched-class-item-1
-  (package-name class-prefix index &optional exactly_match)
   "Find out all classes which start with CLASS-PREFIX, and whose
 package name is PACKAGE-NAME. If PACKAGE-NAME is nil, then try to
 find out all classes whose classnames start with CLASS-PREFIX. If
@@ -871,8 +859,10 @@ returned."
               (concat "^" (regexp-quote class-prefix) "`")
             (concat "^" (regexp-quote class-prefix))))
          (matched-pkg-item (and package-name (ajc-find-out-matched-pkg-item package-name t)))
-         (line-num (ajc-get-class-first-line index ajc-lines-and-positions-list))
-         (end-line (ajc-get-member-first-line index ajc-lines-and-positions-list))
+         (index (and matched-pkg-item
+                     (nth 1 matched-pkg-item)))
+         (line-num (and index (ajc-get-class-first-line index ajc-lines-and-positions-list)))
+         (end-line (and index (ajc-get-member-first-line index ajc-lines-and-positions-list)))
          return-list current-line-string)
     ;; (message "Debug: package-name=%s, matched-pkg-item=%s, class-prefix=%s"
     ;;          package-name
