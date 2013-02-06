@@ -2056,7 +2056,7 @@ is \"\).\"."
           finally (return lst))))
 
 (defun ajc-guess-type-of-factor (lst)
-  ""
+  "LST must be of form '(expression)'."
   (ajc-find-out-type-of-factors
    (ajc-split-and-concat-list-by-operators lst)))
 
@@ -2074,16 +2074,26 @@ is \"\).\"."
   ""
   (cond
    ((string-match "^[A-Z][A-Za-z0-9_]+$" factor)
+    ;; this is presumable a type name
     factor)
    ((string-match "[.()]" factor)
+    ;; We assume this is a method invocation or field access.
+    ;; Find out the type of return value or that field, which means
+    ;; If factor is "System.getProperty", then return "String".
     (loop with splitted-line = (remove "." (ajc-parse-splited-line-4-complete-method factor))
           for current in splitted-line
+          ;; TODO What if exactly-matched class items is NOT one?
+          ;; TODO What if class-item is primitive type, i.e., double, int, etc.
           for class-item = (car (ajc-find-out-matched-class-item-without-package-prefix
                                  current
                                  t))
           then (and class-item
                     (nth 1 (car (ajc-find-members class-item current t))))
           finally (return (car class-item))))
+   ((string-match "^[A-Za-z0-9_]+$" factor)
+    ;; We assume this is a variable name.
+    ;; For now just return it.
+    factor)
    (t
     nil)))
 
