@@ -8,20 +8,20 @@
 (require 'yasnippet)
 (require 'ajc-java-complete)
 
-(defun ajc-expand-yasnippet-templete-with-ac ()
+(defun ajc-expand-yasnippet-template-with-ac ()
   (let* ((last-complete-string (cdr ac-last-completion))
-         (yasnippet-templete (get-text-property 0 'templete last-complete-string))
-         templete-type)
-    (when yasnippet-templete
-      (setq templete-type (get-text-property 0 'templete-type last-complete-string))
+         (yasnippet-template (get-text-property 0 'template last-complete-string))
+         template-type)
+    (when yasnippet-template
+      (setq template-type (get-text-property 0 'template-type last-complete-string))
       (delete-char (- 0 (length last-complete-string)))
       (cond
-       ((equal templete-type 'method)
+       ((equal template-type 'method)
         ;;yas0.8  yas/expand-snippet renamed to yas-expand-snippet
-        (yas-expand-snippet (ajc-method-to-yasnippet-templete yasnippet-templete))
+        (yas-expand-snippet (ajc-method-to-yasnippet-template yasnippet-template))
         )
-       ((equal templete-type 'constructor)
-        (yas-expand-snippet (ajc-constructor-to-yasnippet-templete yasnippet-templete))
+       ((equal template-type 'constructor)
+        (yas-expand-snippet (ajc-constructor-to-yasnippet-template yasnippet-template))
         )))))
 
 
@@ -75,14 +75,14 @@
    (cache)
    (requires . 3)
    (prefix . ajc-constructor-prefix)
-   (action . ajc-expand-yasnippet-templete-with-ac)))
+   (action . ajc-expand-yasnippet-template-with-ac)))
 
 (ac-define-source ajc-method
   '((candidates . (ajc-complete-method-candidates))
   (cache)
   (requires . 0)
   (prefix . "\\.\\(.*\\)")
-  (action . ajc-expand-yasnippet-templete-with-ac)))
+  (action . ajc-expand-yasnippet-template-with-ac)))
 
 (ac-define-source ajc-keywords
   '((candidates . (ajc-java-keywords-candidates))))
