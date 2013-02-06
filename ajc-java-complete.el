@@ -1829,8 +1829,10 @@ stack-list is, check out
             ;; classes.
             (setq class-item (ajc-find-class-first-check-imported top))
           ;; Else find out classname before doing search.
-          (setq class-item (ajc-find-class-first-check-imported
-                            (ajc-calculate-class-name-by-variable top))))
+          (let ((typename (ajc-calculate-class-name-by-variable top)))
+            (setq class-item (and typename
+                                  (ajc-find-class-first-check-imported
+                                   typename)))))
         ;; following while sexp maybe has bug
         ;; because ajc-find-members doesnt return class-item.
         (while (and class-item (> (length stack-list) 1))
@@ -2083,15 +2085,18 @@ is \"\).\"."
     (loop with splitted-line = (remove "." (ajc-parse-splited-line-4-complete-method factor))
           for current in splitted-line
           ;; TODO What if exactly-matched class items is NOT one?
-          ;; TODO What if class-item is primitive type, i.e., double, int, etc.
           for class-item = (car (ajc-find-out-matched-class-item-without-package-prefix
                                  current
                                  t))
           then (and class-item
                     (nth 1 (car (ajc-find-members class-item current t))))
-          finally (return (car class-item))))
+          finally (return (cond
+                           ((stringp class-item)
+                            class-item)
+                           ((listp class-item)
+                            (car class-item))))))
    ((string-match "^[A-Za-z0-9_]+$" factor)
-    ;; We assume this is a variable name.
+    ;; We assume this is a variable name or a primitive type.
     ;; For now just return it.
     factor)
    (t
