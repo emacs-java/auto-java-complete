@@ -94,9 +94,13 @@
                  (ajc-get-validated-stack-list-or-nil-4-method-complete '("a" "." "-")))))
 
 (ert-deftest test-ajc-complete-method-candidates-1 ()
-  (should
-   (equal '("equals(Object)" "exit(int)" "err")
-          (ajc-complete-method-candidates-1 '("System" "." "e")))))
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
+   (lambda ()
+     (should
+      (equal '("getStrField()" "getStringArray(java.util.ArrayList)")
+             (ajc-complete-method-candidates-1 '("SomeClass" "." "getStr")))))))
 
 (ert-deftest test-ajc-find-class-first-check-imported ()
   (test-ajc-fixture
@@ -200,7 +204,11 @@
   (should
    (equal '("String" "." "trim" ".")
           (ajc-parse-splited-line-4-complete-method
-           "\"foo\".trim()."))))
+           "\"foo\".trim().")))
+  (should
+   (equal '("String" ".")
+          (ajc-parse-splited-line-4-complete-method
+           "(\"str\")."))))
 
 (ert-deftest test-ajc-extract-parenthesized-part-maybe ()
   (should
@@ -245,18 +253,27 @@
   )
 
 (ert-deftest test-ajc-guess-type-of-factor ()
-  ;; (should
-  ;;  (equal "String"
-  ;;         (ajc-guess-type-of-factor
-  ;;          '("(" "String" "+" "String" ")" "."))))
+  (should
+   (equal "String"
+          (ajc-guess-type-of-factor
+           '("(" "String" "+" "String" ")" "."))))
   (should
    (equal "String"
           (ajc-guess-type-of-factor
            '("(" "String" "+" "(" "String" "+" "String" ")" ")" "."))))
-  ;; (should
-  ;;  (equal nil
-  ;;         (ajc-guess-type-of-factor
-  ;;          '("(" "a" "+" "b" ")" "."))))
+  ;; (variable + variable).
+  (should
+   (equal nil
+          (ajc-guess-type-of-factor
+           '("(" "var1" "+" "var2" ")" "."))))
+  (should
+   (equal "String"
+          (ajc-guess-type-of-factor
+           '("(" "String" ")" "."))))
+  (should
+   (equal "varname"
+          (ajc-guess-type-of-factor
+           '("(" "varname" ")" "."))))
   )
 
 (ert-deftest test-ajc-find-out-type-of-factors ()
@@ -271,14 +288,44 @@
   (should
    (equal "String"
           (ajc-find-out-type-of-factors
-           '("System.getProperty(String)" "String")))))
+           '("System.getProperty(String)" "String"))))
+  (should
+   (equal "String"
+          (ajc-find-out-type-of-factors
+           '("(" "String" ")")))))
 
-;; (ert-deftest test-ajc-find-out-type-of-factor ()
-;;   (should
-;;    (equal "String"
-;;           (ajc-find-out-type-of-factors-1 "System.getProperty(String)"))))
+(ert-deftest test-ajc-find-out-type-of-factor ()
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
+   (lambda ()
+     (should
+      (equal "String"
+             (ajc-find-out-type-of-factor
+              "String")))
+     (should
+      (equal "java.lang.String"
+             (ajc-find-out-type-of-factor
+              "SomeClass.getStrField")))
+     (should
+      (equal "varname"
+             (ajc-find-out-type-of-factor
+              "varname")))
+     (should
+      (equal "int"
+             (ajc-find-out-type-of-factor
+              "SomeClass.CONSTANT")))
+     )))
 
 (ert-deftest test-ajc-split-and-concat-list-by-operators ()
+  (should
+   (equal '("String")
+          (ajc-split-and-concat-list-by-operators
+           '("(" "String" ")" "."))))
+  (should
+   (equal '("varname")
+          (ajc-split-and-concat-list-by-operators
+           '("(" "varname" ")" "."))))
   (should
    (equal '("String" "String")
           (ajc-split-and-concat-list-by-operators
@@ -315,6 +362,11 @@
           (ajc-split-and-concat-list-by-operators-1
            '("(" "(" "String" "+" "String" ")" "+" "String" ")")
            nil)))
+  (should
+   (equal '("String")
+          (ajc-split-and-concat-list-by-operators-1
+           '("(" "String" ")")
+           nil))))
   )
 
 (ert-deftest test-ajc-split-string-with-separator ()
@@ -642,7 +694,8 @@
 
 (ert-deftest test-ajc-find-members ()
   (test-ajc-fixture
-   `(,test-ajc-someclass-tagfile)
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
    (lambda ()
      (should
       (equal '(("toString" "java.lang.String" "" ""))
@@ -650,6 +703,18 @@
      (should
       (equal '(("getSomeClassObj" ("SomeClass" 0 7 21 39) "" ""))
              (ajc-find-members '("AnotherClass" 0 7 10 21) "getSomeClassO")))
+     (should
+      (equal '(("toString" "java.lang.String" "" ""))
+             (ajc-find-members
+              (car (ajc-find-out-matched-class-item-without-package-prefix
+                    "JUnit4" t))
+              "toString"
+              t)))
+     (should
+      (equal nil
+             (ajc-find-members
+              "double"
+              nil)))
      )))
 
 (ert-deftest test-ajc-complete-class-candidates ()
