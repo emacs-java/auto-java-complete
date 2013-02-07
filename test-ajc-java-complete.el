@@ -78,7 +78,11 @@
       (equal
        '("getStringArray" "java.lang.String[]" ("java.util.ArrayList") ("java.lang.Exception"))
        (ajc-split-method
-        "getStringArray`~java.lang.String[]`~java.util.ArrayList`~java.lang.Exception" 0))))))
+        "getStringArray`~java.lang.String[]`~java.util.ArrayList`~java.lang.Exception" 0)))
+     (should
+      (equal
+       '("getSomeClassObj" ("SomeClass" 0 7 21 39) "" "")
+       (ajc-split-method "getSomeClassObj`9``" 0))))))
 
 (ert-deftest test-ajc-get-validated-stack-list-or-nil-4-method-complete ()
   (should (equal
@@ -944,3 +948,43 @@
             (ajc-parse-variable-line-string
              "pair"
              "String[] pair = element.split(\":\");"))))
+
+
+(ert-deftest test-ajc-build-plain-method-table-1 ()
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
+   (lambda ()
+     (let ((table (make-hash-table :test #'equal)))
+       (ajc-build-plain-method-table-1 table (car ajc-tag-buffer-list) 0)
+       (should
+        (not (null (gethash "eq" table))))
+       (should
+        (equal '("equals" "boolean" ("java.lang.Object") "")
+               (car (gethash "eq" table))))
+       (should
+        (= 3 (length (gethash "wa" table))))
+       ))))
+
+(ert-deftest test-ajc-build-plain-method-table ()
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
+   (lambda ()
+     (let ((tbl (ajc-build-plain-method-table ajc-tag-buffer-list)))
+       (should
+        (not (null (gethash "eq" tbl))))
+       (should
+        (not (null (all-completions
+                    "wai"
+                    (gethash "wa" tbl)))))))))
+
+(ert-deftest ajc-plain-method-candidates-1 ()
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
+   (lambda ()
+     (let ((tbl (ajc-build-plain-method-table ajc-tag-buffer-list)))
+       (should
+        (not (null (ajc-plain-method-candidates-1 "wai" tbl))))
+       ))))

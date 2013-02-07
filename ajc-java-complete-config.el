@@ -79,10 +79,10 @@
 
 (ac-define-source ajc-method
   '((candidates . (ajc-complete-method-candidates))
-  (cache)
-  (requires . 0)
-  (prefix . "\\.\\(.*\\)")
-  (action . ajc-expand-yasnippet-template-with-ac)))
+    (cache)
+    (requires . 0)
+    (prefix . "\\.\\(.*\\)")
+    (action . ajc-expand-yasnippet-template-with-ac)))
 
 (ac-define-source ajc-keywords
   '((candidates . (ajc-java-keywords-candidates))))
@@ -92,12 +92,20 @@
     (prefix . ajc-fqn-prefix)
     (cache)))
 
+(ac-define-source ajc-plain-method
+  '((candidates . (ajc-plain-method-candidates))
+    (cache)
+    (requires . 2)
+    (prefix . ajc-fqn)
+    (action . ajc-expand-yasnippet-template-with-ac)))
+
 ;; end of sources
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;hooks
-(defun ajc-java-complete-init()
+(defun ajc-java-complete-init ()
+  (interactive)
   (ajc-init)
 ;;  (add-to-list 'ac-sources 'ac-source-ajc-keywords)
   (add-to-list 'ac-sources 'ac-source-ajc-method)
@@ -105,17 +113,23 @@
   (add-to-list 'ac-sources 'ac-source-ajc-constructor)
   (add-to-list 'ac-sources 'ac-source-ajc-import)
   (add-to-list 'ac-sources 'ac-source-ajc-fqn)
+  ;(add-to-list 'ac-sources 'ac-source-ajc-plain-method)
+  )
+
 ;; auto import all Class in source file
 (local-set-key (kbd "C-c i") 'ajc-import-all-unimported-class)
 ;; import Class where under point
 (local-set-key (kbd "C-c m") 'ajc-import-class-under-point))
 
-(defun ajc-java-complete-exit()
+(defun ajc-java-complete-exit ()
+  (interactive)
   (setq ac-sources (delete 'ac-source-ajc-constructor ac-sources))
   (setq ac-sources (delete 'ac-source-ajc-class ac-sources))
   (setq ac-sources (delete 'ac-source-ajc-method ac-sources))
   (setq ac-sources (delete 'ac-source-ajc-keywords ac-sources))
-  (setq ac-sources (delete 'ac-source-ajc-import ac-sources)))
+  (setq ac-sources (delete 'ac-source-ajc-import ac-sources))
+  ;(setq ac-soruces (delete 'ac-source-ajc-plain-method ac-sources))
+  )
 
 
 (defvar ajc-java-complete-mode-hook nil)

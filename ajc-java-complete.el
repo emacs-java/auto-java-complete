@@ -265,6 +265,9 @@ file.")
 (defvar ajc-thing-after-varname-regexp "[,=;)[:space:]]"
   "Regular expression that matches the thing after variable name.")
 
+(defvar ajc-plain-method-table nil
+  "")
+
 (defun ajc-get-package-first-line (ix lst)
   (car (nth 0 (nth ix lst))))
 (defun ajc-get-package-first-line-position (ix lst)
@@ -500,7 +503,7 @@ INDEX is the index in `ajc-tag-buffer-list'."
                     (substring-no-properties return-type 1))
               ;; return-type is referred by line number
               (ajc-split-class-item-by-class-ln
-                                   (string-to-number return-type) index))
+               (string-to-number return-type) index))
             method-item)
       (append (nreverse method-item)
               ;; handle params if exists
@@ -667,6 +670,8 @@ variables."
     (setq ajc-two-char-tbl (ajc-sort-class ajc-tag-buffer-list))
     (setq ajc-package-in-tags-cache-tbl
           (ajc-build-package-in-tags-cache-tbl ajc-tag-buffer-list))
+    (setq ajc-plain-method-table
+          (ajc-build-plain-method-table ajc-tag-buffer-list))
     (setq ajc-is-running t)))
 
 (defun ajc-init-1 (filename)
@@ -736,6 +741,33 @@ The next completion is done without tag file FILENAME."
          (setq ajc-tag-file-list
                (delete filename ajc-tag-file-list))
          (ajc-init t))))
+
+(defun ajc-build-plain-method-table (tag-buffer-list)
+  (loop for tag-buffer in tag-buffer-list
+        for ix from 0
+        with table = (make-hash-table :test #'equal)
+        do (ajc-build-plain-method-table-1 table tag-buffer ix)
+        ;; Do we have to sort values?
+        finally (return table)))
+
+(defun ajc-build-plain-method-table-1 (table tag-buffer index)
+  "Insert method-items in TAG-BUFFER into TABLE."
+  (let ((case-fold-search nil))
+    (with-current-buffer tag-buffer
+      (setq buffer-read-only t)
+      (goto-char (point-min))
+      ;; Move to the first line of members
+      (forward-line (string-to-number
+                     (save-excursion
+                       (ajc-read-line 5 tag-buffer))))
+      (while (re-search-forward "^[a-z].*$" nil t)
+        (let* ((val (match-string-no-properties 0))
+               (key (substring val 0 2))
+               (hashvalue (gethash key table)))
+          (add-to-list 'hashvalue (save-excursion
+                                    (ajc-split-method val index)))
+          (puthash key hashvalue table))))
+    table))
 
 ;;;###autoload
 (defun ajc-reload ()
@@ -1762,6 +1794,17 @@ in a source file, String will be returned."
                          line)
          (not (string-match-p exclude-regexp line))
          (not (string-match-p "^[[:space:]]*//" line)))))
+
+(defun ajc-plain-method-candidates ()
+  (when (string-match "^[a-z][a-z].*$" ac-prefix)
+    (ajc-plain-method-candidates-1 ac-prefix ajc-plain-method-table)))
+
+(defun ajc-plain-method-candidates-1 (prefix table)
+  (mapcar #'ajc-method-item-to-candidate
+          (remove-if-not
+           (lambda (elt)
+             (string-match prefix (car elt)))
+           (gethash (substring-no-properties prefix 0 2) table))))
 
 ;;TODO: add cache support for method candidates
 ;; if it failed ,then don't try, to waste time.
