@@ -208,7 +208,15 @@
   (should
    (equal '("String" ".")
           (ajc-parse-splited-line-4-complete-method
-           "(\"str\")."))))
+           "(\"str\").")))
+  )
+
+(ert-deftest test-ajc-bug-in-ajc-parse-splited-line-4-complete-method ()
+  :expected-result :failed
+  (should
+   (equal '("_sniperState" ".")
+          (ajc-parse-splited-line-4-complete-method
+           "      then (_sniperState)."))))
 
 (ert-deftest test-ajc-extract-parenthesized-part-maybe ()
   (should
