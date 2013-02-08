@@ -26,7 +26,8 @@
         (ajc-previous-class-prefix nil)
         (ajc-matched-class-items-cache nil)
         (ajc-sorted-class-buffer-name-list nil)
-        (ajc-complete-method-candidates-cache-stack-list nil))
+        (ajc-complete-method-candidates-cache-stack-list nil)
+        (ajc-plain-method-tables nil))
     (unwind-protect
         (progn
           (ajc-init t)
@@ -857,17 +858,30 @@
   (test-ajc-fixture
    `(,test-ajc-someclass-tagfile)
    (lambda ()
+     ;; Before loading
+     (should
+      (= 1 (length ajc-plain-method-tables)))
+     (should
+      (null (let ((ac-prefix "assertT"))
+              (ajc-plain-method-candidates))))
+     ;; After loading
      (ajc-load-tag-file test-ajc-junit-tagfile)
      (should
       (= 2 (length ajc-tag-buffer-list)))
      (should
       (= 2 (length ajc-tag-file-list)))
      (should
+      (= 2 (length ajc-plain-method-tables)))
+     (should
       (equal
        '("org.junit.matchers.JUnitMatchers()")
        (mapcar (lambda (e)
                  (test-ajc-unpropertize-text e '(view template-type template)))
-               (ajc-complete-constructor "JUnitMatchers" "org.junit.matchers")))))))
+               (ajc-complete-constructor "JUnitMatchers" "org.junit.matchers"))))
+     (should
+      (not (null (let ((ac-prefix "assertT"))
+                   (ajc-plain-method-candidates)))))
+     )))
 
 (ert-deftest test-ajc-unload-tag-file ()
   (test-ajc-fixture
@@ -884,6 +898,9 @@
      (ajc-unload-tag-file (file-truename
                            (expand-file-name test-ajc-junit-tagfile)))
      ;; After unloading it, shoud not be completed
+     (should (= 1 (length ajc-tag-buffer-list)))
+     (should (= 1 (length ajc-tag-file-list)))
+     (should (= 1 (length ajc-plain-method-tables)))
      (should
       (null
        (mapcar (lambda (e)
@@ -958,33 +975,44 @@
      (let ((table (make-hash-table :test #'equal)))
        (ajc-build-plain-method-table-1 table (car ajc-tag-buffer-list) 0)
        (should
-        (not (null (gethash "eq" table))))
+        (not (null (gethash "equ" table))))
        (should
-        (equal '("equals" "boolean" ("java.lang.Object") "")
-               (car (gethash "eq" table))))
-       (should
-        (= 3 (length (gethash "wa" table))))
+        (string= "equals(java.lang.Object)"
+                 (car (mapcar (lambda (e)
+                                (substring-no-properties e 0))
+                              (gethash "equ" table)))))
+       ;; (should
+       ;;  (= 3 (length (gethash "wa" table))))
        ))))
+
+(defvar test-ajc-plain-method-tables nil)
 
 (ert-deftest test-ajc-build-plain-method-table ()
   (test-ajc-fixture
    `(,test-ajc-someclass-tagfile
      ,test-ajc-junit-tagfile)
    (lambda ()
-     (let ((tbl (ajc-build-plain-method-table ajc-tag-buffer-list)))
+     (let ((tables (ajc-build-plain-method-table ajc-tag-buffer-list)))
        (should
-        (not (null (gethash "eq" tbl))))
+        (= 2 (length tables)))
+       (should
+        (not (null (gethash "equ" (cadr tables)))))
        (should
         (not (null (all-completions
                     "wai"
-                    (gethash "wa" tbl)))))))))
+                    (gethash "wai" (car tables))))))
+       (setq test-ajc-plain-method-tables tables)
+       ))))
+(setq test-ajc-plain-method-tables nil)
 
 (ert-deftest ajc-plain-method-candidates-1 ()
   (test-ajc-fixture
    `(,test-ajc-someclass-tagfile
      ,test-ajc-junit-tagfile)
    (lambda ()
-     (let ((tbl (ajc-build-plain-method-table ajc-tag-buffer-list)))
+     (let ((tables (ajc-build-plain-method-table ajc-tag-buffer-list)))
        (should
-        (not (null (ajc-plain-method-candidates-1 "wai" tbl))))
+        (not (null (ajc-plain-method-candidates-1 "wai" (car tables) 50))))
+       (should
+        (not (null (ajc-plain-method-candidates-1 "assertT" (cadr tables) 50))))
        ))))

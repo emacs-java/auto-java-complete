@@ -265,8 +265,21 @@ file.")
 (defvar ajc-thing-after-varname-regexp "[,=;)[:space:]]"
   "Regular expression that matches the thing after variable name.")
 
-(defvar ajc-plain-method-table nil
-  "")
+(defvar ajc-plain-method-tables nil
+  "A list of hashtables which we use as source of plain method
+completion.")
+
+(defcustom ajc-plain-method-candidates-limit 100
+  "The number of candidates that come from
+ac-source-ajc-plain-method-candidates"
+  :type 'number
+  :group 'auto-java-complete)
+
+(defcustom ajc-use-plain-method-completion nil
+  "Non-nil to use plain method completion. Be warned that
+building plain method completion tables is very time-consuming."
+  :type 'boolen
+  :group 'auto-java-complete)
 
 (defun ajc-get-package-first-line (ix lst)
   (car (nth 0 (nth ix lst))))
@@ -670,8 +683,11 @@ variables."
     (setq ajc-two-char-tbl (ajc-sort-class ajc-tag-buffer-list))
     (setq ajc-package-in-tags-cache-tbl
           (ajc-build-package-in-tags-cache-tbl ajc-tag-buffer-list))
-    (setq ajc-plain-method-table
-          (ajc-build-plain-method-table ajc-tag-buffer-list))
+    (when (and ajc-use-plain-method-completion
+               (null ajc-plain-method-tables))
+      (setq ajc-plain-method-tables
+            (ajc-build-plain-method-table ajc-tag-buffer-list))
+      (add-to-list 'ac-sources 'ac-source-ajc-plain-method))
     (setq ajc-is-running t)))
 
 (defun ajc-init-1 (filename)
@@ -724,7 +740,12 @@ FILENAME."
     (when (and (file-exists-p file)
                (not (member file ajc-tag-file-list)))
       (push file ajc-tag-file-list)
-      (ajc-init t))))
+      (ajc-init t)
+      (push (ajc-build-plain-method-table-1
+             (make-hash-table :test #'equal)
+             (car ajc-tag-buffer-list)
+             0)
+            ajc-plain-method-tables))))
 
 (defun ajc-unload-tag-file (filename)
   "Unload tag file FILENAME.
@@ -738,6 +759,10 @@ The next completion is done without tag file FILENAME."
   (when (> (length ajc-tag-file-list) 1)
     ;; let a user choose which tag file to unload
     (and filename
+         (setq ajc-plain-method-tables
+               (delete (nth (position filename ajc-tag-file-list :test #'string=)
+                            ajc-plain-method-tables)
+                       ajc-plain-method-tables))
          (setq ajc-tag-file-list
                (delete filename ajc-tag-file-list))
          (ajc-init t))))
@@ -745,28 +770,44 @@ The next completion is done without tag file FILENAME."
 (defun ajc-build-plain-method-table (tag-buffer-list)
   (loop for tag-buffer in tag-buffer-list
         for ix from 0
-        with table = (make-hash-table :test #'equal)
-        do (ajc-build-plain-method-table-1 table tag-buffer ix)
-        ;; Do we have to sort values?
-        finally (return table)))
+        for table = (make-hash-table :test #'equal)
+        collect (progn
+                  (ajc-build-plain-method-table-1 table tag-buffer ix)
+                  (loop for k being the hash-keys in table
+                       for val = (gethash k table)
+                       do (puthash k
+                                   (sort val
+                                         #'string<)
+                                   table)
+                       finally (return table)))))
 
 (defun ajc-build-plain-method-table-1 (table tag-buffer index)
   "Insert method-items in TAG-BUFFER into TABLE."
   (let ((case-fold-search nil))
     (with-current-buffer tag-buffer
+      (let ((reporter nil))
       (setq buffer-read-only t)
       (goto-char (point-min))
       ;; Move to the first line of members
       (forward-line (string-to-number
                      (save-excursion
                        (ajc-read-line 5 tag-buffer))))
+      (beginning-of-line)
+      (setq reporter (make-progress-reporter
+                      (format "Building table from %s..."
+                              (file-name-nondirectory (nth index ajc-tag-file-list)))
+                      (point)
+                      (point-max)))
       (while (re-search-forward "^[a-z].*$" nil t)
         (let* ((val (match-string-no-properties 0))
-               (key (substring val 0 2))
+               (key (substring val 0 3))
                (hashvalue (gethash key table)))
-          (add-to-list 'hashvalue (save-excursion
-                                    (ajc-split-method val index)))
-          (puthash key hashvalue table))))
+          (add-to-list 'hashvalue
+                       (save-excursion
+                         (ajc-method-item-to-candidate
+                          (ajc-split-method val index))))
+          (puthash key hashvalue table)
+          (progress-reporter-update reporter (point))))))
     table))
 
 ;;;###autoload
@@ -1796,15 +1837,26 @@ in a source file, String will be returned."
          (not (string-match-p "^[[:space:]]*//" line)))))
 
 (defun ajc-plain-method-candidates ()
-  (when (string-match "^[a-z][a-z].*$" ac-prefix)
-    (ajc-plain-method-candidates-1 ac-prefix ajc-plain-method-table)))
+  (when (string-match "^[a-z][a-z]..*$" ac-prefix)
+    (loop for table in ajc-plain-method-tables
+          with each-limits = (/ ajc-plain-method-candidates-limit
+                                (length ajc-plain-method-tables))
+          append (ajc-plain-method-candidates-1 ac-prefix
+                                                table
+                                                each-limits))))
 
-(defun ajc-plain-method-candidates-1 (prefix table)
-  (mapcar #'ajc-method-item-to-candidate
-          (remove-if-not
-           (lambda (elt)
-             (string-match prefix (car elt)))
-           (gethash (substring-no-properties prefix 0 2) table))))
+(defun ajc-plain-method-candidates-1 (prefix table nlimits)
+  (let* ((candidates
+          (all-completions prefix
+                           (gethash (substring-no-properties prefix 0 3) table)))
+         (len (length candidates)))
+    (if (<= len nlimits)
+        candidates
+      ;; We use the first nlimits of candidates as to avoid
+      ;; performance latency
+      (nbutlast
+       candidates
+       (- len nlimits)))))
 
 ;;TODO: add cache support for method candidates
 ;; if it failed ,then don't try, to waste time.

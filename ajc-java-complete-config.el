@@ -95,7 +95,7 @@
 (ac-define-source ajc-plain-method
   '((candidates . (ajc-plain-method-candidates))
     (cache)
-    (requires . 2)
+    (requires . 3)
     (prefix . ajc-fqn)
     (action . ajc-expand-yasnippet-template-with-ac)))
 
@@ -113,7 +113,8 @@
   (add-to-list 'ac-sources 'ac-source-ajc-constructor)
   (add-to-list 'ac-sources 'ac-source-ajc-import)
   (add-to-list 'ac-sources 'ac-source-ajc-fqn)
-  ;(add-to-list 'ac-sources 'ac-source-ajc-plain-method)
+  (when ajc-use-plain-method-completion
+    (add-to-list 'ac-sources 'ac-source-ajc-plain-method))
   )
 
 ;; auto import all Class in source file
@@ -128,7 +129,7 @@
   (setq ac-sources (delete 'ac-source-ajc-method ac-sources))
   (setq ac-sources (delete 'ac-source-ajc-keywords ac-sources))
   (setq ac-sources (delete 'ac-source-ajc-import ac-sources))
-  ;(setq ac-soruces (delete 'ac-source-ajc-plain-method ac-sources))
+  (setq ac-soruces (delete 'ac-source-ajc-plain-method ac-sources))
   )
 
 
