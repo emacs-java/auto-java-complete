@@ -48,7 +48,7 @@ public class TagsMain {
     System.out.println(
       "******************************************************************\n" +
       "***   This program will need about 3 to 15 min,                ***\n" +
-      "***   so you you have to be patient                            ***\n" +
+      "***   so you you have to be patient.                           ***\n" +
       "***   Before exiting, you may see a few exceptions.            ***\n" +
       "***   If it don't kill the program, just ignore it.            ***\n" +
       "***   When you add a jar to classpath, you'd better make sure  ***\n" +
