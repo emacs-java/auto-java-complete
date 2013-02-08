@@ -107,7 +107,7 @@
 (defun ajc-java-complete-init ()
   (interactive)
   (ajc-init)
-;;  (add-to-list 'ac-sources 'ac-source-ajc-keywords)
+  ;;(add-to-list 'ac-sources 'ac-source-ajc-keywords)
   (add-to-list 'ac-sources 'ac-source-ajc-method)
   (add-to-list 'ac-sources 'ac-source-ajc-class)
   (add-to-list 'ac-sources 'ac-source-ajc-constructor)
@@ -132,8 +132,8 @@
   (setq ac-soruces (delete 'ac-source-ajc-plain-method ac-sources))
   )
 
-
 (defvar ajc-java-complete-mode-hook nil)
+
 ;;define minor-mode
 ;;;###autoload
 (define-minor-mode ajc-java-complete-mode
@@ -146,15 +146,15 @@
         (unless auto-complete-mode (auto-complete-mode))
         (ajc-java-complete-init))
     (ajc-java-complete-exit)))
+
 ;;;###autoload
 (defalias 'auto-java-complete-mode 'ajc-java-complete-mode)
 
-;; (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
 ;;;###autoload
 (defun ajc-4-jsp-find-file-hook ()
   (let ((file-name-ext (file-name-extension (buffer-file-name))))
     (when (and file-name-ext (string-match "jsp" file-name-ext))
-    (ajc-java-complete-mode))
+      (ajc-java-complete-mode))
   ))
 
 (provide 'ajc-java-complete-config)
