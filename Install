@@ -1,54 +1,54 @@
 ;; 1. generate the tag file .
 ;;
-;;     Tags.java use JDK reflection to generate a tag file by
-;;     loading all class in classpath ,what you need to do is
-;;     just add your jars to $CLASSPATH.  now it is easy to use 
-;;     Tags.java .
-;;     suppose you put all you jar files in /path/to/jars/
+;;     Tags.java uses JDK reflection to generate a tag file by
+;;     loading all classes in classpath. What you need to do is
+;;     just add your jars to $CLASSPATH. Now it is easy to use 
+;;     Tags.java.
+;;     Suppose you put all you jar files in /path/to/jars/
 ;;     even in subdirectory of this directory
-;;     and you put  all class files are in /project/WEB-INF/classes/
+;;     and you put all class files in /project/WEB-INF/classes/
 ;;     then you can
 ;;     export CLASSPATH=$CLASSPATH:/path/to/jars/:/project/WEB-INF/classes/
 ;;     or 
 ;;     export CLASSPATH=$JAVA_HOME:/path/to/jars/:/project/WEB-INF/classes/
-;;     this even  will tag all jars in $JAVA_HOME.
-;;     it need about 3~10 min depending on the count of jars.
-;;     during it ,you may see some exceptions ,if it don't kill
-;;     the program ,just ignore it .
-;;     run 
+;;     This even will tag all jars in $JAVA_HOME.
+;;     It needs about 3~10 mins depending on the number of jars.
+;;     During this process, you may see some exceptions. If it doesn't kill
+;;     the program, just ignore them.
+;;     Run 
 ;;                 javac Tags.java 
-;;                 java  Tags
-;;     maybe you need :
-;;                 java  -XX:MaxPermSize=512m  Tags
+;;                 java Tags
+;;     Maybe you need to do:
+;;                 java -XX:MaxPermSize=512m Tags
 ;;
-;;     to generate the tag file ~/.java_base.tag 
-;;     or
-;;                 java  Tags "org\.hello,org\.world"
+;;     to generate the tag file ~/.java_base.tag.
+;;     Or
+;;                 java Tags "org\.hello,org\.world"
 ;;
-;;     it would not tag those class name match "org.hello" or "org.world"
+;;     This would not tag those class names that match
+;;     "org.hello" or "org.world"
 ;;
-;;     if it can't work on you computer ,use my tag file
-;;     java_base.tag.bz2, just uncompress and rename it to
+;;     If it can't work on your computer, use my tag file
+;;     java_base.tag.bz2. Just uncompress and rename it to
 ;;     .java_base.tag and put it in your home directory.
-;;     of course you can change the name by customing
+;;     Of course you can change the name by customing
 ;;                 `ajc-tag-file'
-;;     sometimes AJC can't find the tag file on
-;;     windows for its ugly path like
-;;     'C:\Documents and Settings\Administrator'
-;;     you'd bettte custom 'ajc-tag-file'  on windows
+;;     Sometimes AJC can't find the tag file on
+;;     Windows for its ugly path like
+;;     'C:\Documents and Settings\Administrator'.
+;;     You'd better customize 'ajc-tag-file' on Windows.
 
 
-;;  2. you should have installed  auto-complete and yasnippet.
-;;     about how to install and config them ,you should find
-;;     it on the net.
+;;  2. You should have installed auto-complete and yasnippet.
+;;     About how to install and config them, you should find
+;;     those on the net.
 
-;;  3. then  add this lines  in .emacs
+;;  3. Then add this lines in .emacs or youre emacs setting file.
 
 ;;       (add-to-list 'load-path "~/.emacs.d/ajc-java-complete/")
 ;;       (require 'ajc-java-complete-config)
 ;;       (add-hook 'java-mode-hook 'ajc-java-complete-mode)
 ;;       (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
-;;       read ajc-java-complete-config.el  for more info .
+;;       read ajc-java-complete-config.el for more info.
 
-
-;;     restart your emacs ,and enjoy.
+;;     Restart your emacs, and enjoy.
