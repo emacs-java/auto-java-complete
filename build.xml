@@ -1,4 +1,4 @@
-<project name="ajc-java-complete" default="compile.java"
+<project name="ajc-java-complete" default="make.jar"
          xmlns:ivy="antlib:org.apache.ivy.ant">
   <property file="build.properties"/>
   <property name="src.dir" location="src"/>
@@ -79,7 +79,7 @@
     </java>
   </target>
 
-  <target name="compile.java" depends="resolve">
+  <target name="compile.java">
     <mkdir dir="${target.classes.java.dir}"/>
     <javac encoding="utf-8" srcdir="${src.java.dir}" destdir="${target.classes.java.dir}"
            includeantruntime="false" fork="true">
@@ -94,7 +94,7 @@
     </javac>
   </target>
 
-  <target name="compile.test" depends="compile.java">
+  <target name="compile.test" depends="resolve, compile.java">
     <mkdir dir="${target.classes.test.dir}"/>
     <javac encoding="utf-8" srcdir="${src.test.dir}" destdir="${target.classes.test.dir}"
            includeantruntime="false" fork="true">
