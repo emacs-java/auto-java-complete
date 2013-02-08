@@ -96,7 +96,7 @@
   '((candidates . (ajc-plain-method-candidates))
     (cache)
     (requires . 3)
-    (prefix . ajc-fqn)
+    (prefix . ajc-fqn-prefix)
     (action . ajc-expand-yasnippet-template-with-ac)))
 
 ;; end of sources
