@@ -624,30 +624,6 @@
      (should
       (null (ajc-find-out-matched-class-item nil nil))))))
 
-(ert-deftest test-ajc-find-out-matched-class-item-1 ()
-  (test-ajc-fixture
-   `(,test-ajc-someclass-tagfile
-     ,test-ajc-junit-tagfile)
-   (lambda ()
-     (should
-      (equal
-       '(("SomeClass" 0 7 21 39))
-       (ajc-find-out-matched-class-item-1 "ajc.somepackage"
-                                          "So"
-                                          )))
-     (should
-      (equal
-       '(("AnotherClass" 0 7 10 21) ("SomeClass" 0 7 21 39))
-       (ajc-find-out-matched-class-item-1 "ajc.somepackage"
-                                          nil
-                                          )))
-     (should
-      (equal
-       '(("Test" 1 14 1199 1205))
-       (ajc-find-out-matched-class-item-1 "org.junit"
-                                          "Test"
-                                          t))))))
-
 (ert-deftest test-ajc-complete-constructor ()
   (test-ajc-fixture
    `(,test-ajc-someclass-tagfile)
