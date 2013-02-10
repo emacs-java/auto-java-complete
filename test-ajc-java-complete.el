@@ -379,7 +379,7 @@
    (equal '("String")
           (ajc-split-and-concat-list-by-operators-1
            '("(" "String" ")")
-           nil))))
+           nil)))
   )
 
 (ert-deftest test-ajc-split-string-with-separator ()
@@ -401,20 +401,22 @@
               (ajc-complete-method-is-available "System.getProperty(str.substring(3)).to"))))))
 
 (ert-deftest test-ajc-calculate-all-imported-class-items ()
-  (should
-   (equal '("File" "Test" "Vector")
-          (sort (mapcar #'car (with-temp-buffer
-                                (insert "import java.io.File;")
-                                (newline)
-                                (insert "import java.util.Vector;")
-                                (newline)
-                                (insert "import org.junit.Test;")
-                                (insert "class ClassName {")
-                                (newline)
-                                (ajc-calculate-all-imported-class-items t)))
-                #'string<)))
-  ;; todo add testcase for import java.util.*; statement.
-  )
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
+   (lambda ()
+     (should
+      (equal '("Parameterized" "Test")
+             (sort (mapcar #'car (with-temp-buffer
+                                   (insert "import org.junit.runners.Parameterized;")
+                                   (newline)
+                                   (insert "import org.junit.Test;")
+                                   (insert "class ClassName {")
+                                   (newline)
+                                   (ajc-calculate-all-imported-class-items t)))
+                   #'string<)))
+     ;; todo add testcase for import java.util.*; statement.
+  )))
 
 (ert-deftest test-ajc-find-out-matched-class-item-without-package-prefix ()
   (should
@@ -576,13 +578,13 @@
    (lambda ()
      (should (equal '(("ajc.somepackage" 0 8 10))
                     (ajc-find-out-matched-pkg-item "ajc")))
-     (should (equal '("ajc.somepackage" 0 8 10)
+     (should (equal '(("ajc.somepackage" 0 8 10))
                     (ajc-find-out-matched-pkg-item "ajc.somepackage" t)))))
   (test-ajc-fixture
    `(,test-ajc-junit-tagfile)
    (lambda ()
      (should
-      (equal '("org.junit" 0 82 93)
+      (equal '(("org.junit" 0 82 93))
              (ajc-find-out-matched-pkg-item "org.junit" t)))))
   )
 
@@ -620,6 +622,12 @@
        '(("SomeClass" 0 7 21 39))
        (ajc-find-out-matched-class-item "ajc.somepackage"
                                         "SomeClass"
+                                        t)))
+     (should
+      (equal
+       '(("Test" 1 14 1199 1205))
+       (ajc-find-out-matched-class-item "org.junit"
+                                        "Test"
                                         t)))
      (should
       (null (ajc-find-out-matched-class-item nil nil))))))
@@ -981,7 +989,7 @@
        ))))
 (setq test-ajc-plain-method-tables nil)
 
-(ert-deftest ajc-plain-method-candidates-1 ()
+(ert-deftest test-ajc-plain-method-candidates-1 ()
   (test-ajc-fixture
    `(,test-ajc-someclass-tagfile
      ,test-ajc-junit-tagfile)

@@ -482,20 +482,21 @@ name and params."
   "Translate FIELD-OR-METHOD-ITEM to
 candidate. FIELD-OR-METHOD-ITEM can be a method item, or a field
 item."
-  (let ((candidate))
-    (if (= 2 (length field-or-method-item))
-        ;; lenth of field is 2 (only field and returntype)
-        (let ((field-full-string (ajc-field-to-string field-or-method-item t))
-              (field-short-string (ajc-field-to-string field-or-method-item nil)))
-          (setq candidate (propertize field-short-string 'view field-full-string)))
-      (let ((method-full-string (ajc-method-to-string field-or-method-item t))
-            (method-short-string (ajc-method-to-string field-or-method-item nil)))
-        (setq candidate
-              (propertize method-short-string
-                          'view method-full-string
-                          'template field-or-method-item
-                          'template-type 'method))))
-    candidate))
+  (when field-or-method-item
+    (let ((candidate))
+      (if (= 2 (length field-or-method-item))
+          ;; lenth of field is 2 (only field and returntype)
+          (let ((field-full-string (ajc-field-to-string field-or-method-item t))
+                (field-short-string (ajc-field-to-string field-or-method-item nil)))
+            (setq candidate (propertize field-short-string 'view field-full-string)))
+        (let ((method-full-string (ajc-method-to-string field-or-method-item t))
+              (method-short-string (ajc-method-to-string field-or-method-item nil)))
+          (setq candidate
+                (propertize method-short-string
+                            'view method-full-string
+                            'template field-or-method-item
+                            'template-type 'method))))
+      candidate)))
 
 (defun ajc-split-method (method-line-string index)
   "METHOD-LINE-STRING is as follows:
@@ -826,8 +827,6 @@ you can use this function to restart AutoJavaComplete."
     (ajc-init))
   (or buffer ajc-tag-buffer-name))
 
-;; (ajc-find-out-matched-pkg-item "java.awt")
-;; (ajc-find-out-matched-pkg-item "java.awt" t)
 (defun ajc-find-out-matched-pkg-item (pkg-prefix &optional exactly_match buffer)
   "Find out all matched packages whose prefix is `pkg-prefix'.
 For example, (ajc-find-out-matched-pkg-item \"javax.xm\") should
@@ -841,29 +840,25 @@ will be returned. So we will try to convert '((packageName 12 33 )) to
         for i from 0
         with ret = nil
         with l = nil
-        do (setq ret
-                 (append
-                  (with-current-buffer buf
-                    (let ((regexp-pkg-prefix (concat "^" (regexp-quote pkg-prefix)))
-                          (matched-packages nil))
-                      (when exactly_match ;; I use ` char as the separator in tag file
-                        (setq regexp-pkg-prefix (concat "^" (regexp-quote pkg-prefix) "`")))
-                      (goto-char (ajc-get-package-first-line-position
-                                  i ajc-lines-and-positions-list))
-                      (while (re-search-forward
-                              regexp-pkg-prefix
-                              (ajc-get-class-first-line-position i ajc-lines-and-positions-list)
-                              t)
-                        (add-to-list 'matched-packages
-                                     (ajc-make-package-item
-                                      (buffer-substring-no-properties (line-beginning-position)
-                                                                      (line-end-position))
-                                      i)))
-                      matched-packages))
-                  ret))
-        finally (return (if exactly_match
-                            (car ret)
-                          ret))))
+        ;; TODO we have to deal with the case where the number of
+        ;; exactly-matched package items is more than 1.
+        append (with-current-buffer buf
+                 (let ((regexp-pkg-prefix (concat "^" (regexp-quote pkg-prefix)))
+                       (matched-packages nil))
+                   (when exactly_match ;; I use ` char as the separator in tag file
+                     (setq regexp-pkg-prefix (concat "^" (regexp-quote pkg-prefix) "`")))
+                   (goto-char (ajc-get-package-first-line-position
+                               i ajc-lines-and-positions-list))
+                   (while (re-search-forward
+                           regexp-pkg-prefix
+                           (ajc-get-class-first-line-position i ajc-lines-and-positions-list)
+                           t)
+                     (add-to-list 'matched-packages
+                                  (ajc-make-package-item
+                                   (buffer-substring-no-properties (line-beginning-position)
+                                                                   (line-end-position))
+                                   i)))
+                   matched-packages))))
 
 (defun ajc-make-package-item (line index)
   (let ((l (ajc-split-pkg-item line)))
@@ -931,30 +926,29 @@ returned."
           (if exactly_match
               (concat "^" (regexp-quote class-prefix) "`")
             (concat "^" (regexp-quote class-prefix))))
-         (matched-pkg-item (and package-name (ajc-find-out-matched-pkg-item package-name t)))
-         (index (and matched-pkg-item
-                     (nth 1 matched-pkg-item)))
-         (line-num (and index (ajc-get-class-first-line index ajc-lines-and-positions-list)))
-         (end-line (and index (ajc-get-member-first-line index ajc-lines-and-positions-list)))
-         return-list current-line-string)
-    ;; (message "Debug: package-name=%s, matched-pkg-item=%s, class-prefix=%s"
-    ;;          package-name
-    ;;          matched-pkg-item
-    ;;          class-prefix)
-    (when matched-pkg-item
-      (with-current-buffer (nth (nth 1 matched-pkg-item) ajc-tag-buffer-list)
-        ;; package-item is of form (pkgname index start-line end-line)
-        (setq line-num (nth 2 matched-pkg-item)
-              end-line (nth 3 matched-pkg-item))
-        ;; We only need to search for classes whose package name is in tags file.
-        (when (gethash package-name ajc-package-in-tags-cache-tbl)
-          (while (< line-num end-line)
-            (setq current-line-string (ajc-read-line line-num))
-            (when (string-match regexp-class-prefix current-line-string)
-              (push (ajc-make-class-item current-line-string (nth 1 matched-pkg-item))
-                    return-list))
-            (incf line-num))))
-      (nreverse return-list))))
+         (matched-pkg-items (and package-name (ajc-find-out-matched-pkg-item package-name t))))
+    (when matched-pkg-items
+      (loop for matched-pkg-item in matched-pkg-items
+            for index = (nth 1 matched-pkg-item)
+            for line-num = (nth 2 matched-pkg-item)
+            for end-line = (nth 3 matched-pkg-item)
+            with current-line-string = nil
+            with return-list = nil
+            ;; (message "Debug: package-name=%s, matched-pkg-item=%s, class-prefix=%s"
+            ;;          package-name
+            ;;          matched-pkg-item
+            ;;          class-prefix)
+            do (with-current-buffer (nth (nth 1 matched-pkg-item) ajc-tag-buffer-list)
+                 ;; package-item is of form (pkgname index start-line end-line)
+                 ;; We only need to search for classes whose package name is in tags file.
+                 (when (gethash package-name ajc-package-in-tags-cache-tbl)
+                   (while (< line-num end-line)
+                     (setq current-line-string (ajc-read-line line-num))
+                     (when (string-match regexp-class-prefix current-line-string)
+                       (push (ajc-make-class-item current-line-string (nth 1 matched-pkg-item))
+                             return-list))
+                     (incf line-num))))
+            finally (return (nreverse return-list))))))
 
 (defun ajc-make-class-item (line-string index)
   "Return class item of form (classname index start-line end-line) by splitting LINE-STRING."
@@ -1174,11 +1168,14 @@ return \"PI\"."
   ;; We assume the word before the last dot is class name, so we
   ;; search for members of that class.
   (let* ((package-name
-          (and (string-match "\\(.*\\)\\.\\([A-Z][a-zA-Z_0-9]+\\)\\.\\([^.]*\\)$"
+          (and prefix
+               (string-match "\\(.*\\)\\.\\([A-Z][a-zA-Z_0-9]+\\)\\.\\([^.]*\\)$"
                              prefix)
                (match-string-no-properties 1 prefix)))
-         (class-name (match-string-no-properties 2 prefix))
-         (member-prefix (match-string-no-properties 3 prefix))
+         (class-name (and prefix
+                          (match-string-no-properties 2 prefix)))
+         (member-prefix (and prefix
+                             (match-string-no-properties 3 prefix)))
          (class-item (car (and package-name
                                class-name
                                (ajc-find-out-matched-class-item
@@ -1709,31 +1706,32 @@ class."
 If MEMBER-PREFIX is nil or empty string, it will return all
 members under class-item. CLASS-ITEM is of form (classname index
 pkg-line start-line end-line)."
-  (let ((line-num (nth 3 class-item))
-        (end-line (nth 4 class-item))
-        (return-member-items nil)
-        (regexp-method-prefix nil)
-        (regexp-field-prefix nil)
-        (current-line-string nil)
-        (index (nth 1 class-item)))
-    (if exactly_match
-        (setq regexp-method-prefix (concat "^" member-prefix "`")
-              regexp-field-prefix (concat "^ " member-prefix "`"))
-      (if (or (not member-prefix) (string-equal "" member-prefix))
-          (setq regexp-method-prefix "^[a-zA-Z0-9_]" regexp-field-prefix "^ [^ ]")
-        (setq regexp-method-prefix (concat "^" member-prefix)
-              regexp-field-prefix (concat "^ " member-prefix))))
-    (with-current-buffer (nth index ajc-tag-buffer-list)
-      (while (< line-num end-line)
-        (setq current-line-string (ajc-read-line line-num))
-        (cond
-         ((string-match regexp-method-prefix current-line-string)
-          (push (ajc-split-method current-line-string index)
-                return-member-items))
-         ((string-match regexp-field-prefix current-line-string)
-          (push (ajc-split-field current-line-string index) return-member-items)))
-        (incf line-num)))
-    (nreverse return-member-items)))
+  (when (listp class-item)
+    (let ((line-num (nth 3 class-item))
+          (end-line (nth 4 class-item))
+          (return-member-items nil)
+          (regexp-method-prefix nil)
+          (regexp-field-prefix nil)
+          (current-line-string nil)
+          (index (nth 1 class-item)))
+      (if exactly_match
+          (setq regexp-method-prefix (concat "^" member-prefix "`")
+                regexp-field-prefix (concat "^ " member-prefix "`"))
+        (if (or (not member-prefix) (string-equal "" member-prefix))
+            (setq regexp-method-prefix "^[a-zA-Z0-9_]" regexp-field-prefix "^ [^ ]")
+          (setq regexp-method-prefix (concat "^" member-prefix)
+                regexp-field-prefix (concat "^ " member-prefix))))
+      (with-current-buffer (nth index ajc-tag-buffer-list)
+        (while (< line-num end-line)
+          (setq current-line-string (ajc-read-line line-num))
+          (cond
+           ((string-match regexp-method-prefix current-line-string)
+            (push (ajc-split-method current-line-string index)
+                  return-member-items))
+           ((string-match regexp-field-prefix current-line-string)
+            (push (ajc-split-field current-line-string index) return-member-items)))
+          (incf line-num)))
+      (nreverse return-member-items))))
 
 (defun ajc-calculate-class-name-by-variable (variable-name)
   "Find class name of VARIBALE-NAME.
