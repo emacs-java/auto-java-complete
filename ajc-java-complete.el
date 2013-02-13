@@ -787,28 +787,29 @@ The next completion is done without tag file FILENAME."
   (let ((case-fold-search nil))
     (with-current-buffer tag-buffer
       (let ((reporter nil))
-      (setq buffer-read-only t)
-      (goto-char (point-min))
-      ;; Move to the first line of members
-      (forward-line (string-to-number
-                     (save-excursion
-                       (ajc-read-line 5 tag-buffer))))
-      (beginning-of-line)
-      (setq reporter (make-progress-reporter
-                      (format "Building table from %s..."
-                              (file-name-nondirectory (nth index ajc-tag-file-list)))
-                      (point)
-                      (point-max)))
-      (while (re-search-forward "^[a-z].*$" nil t)
-        (let* ((val (match-string-no-properties 0))
-               (key (substring val 0 3))
-               (hashvalue (gethash key table)))
-          (add-to-list 'hashvalue
+        (setq buffer-read-only t)
+        (goto-char (point-min))
+        ;; Move to the first line of members
+        (forward-line (string-to-number
                        (save-excursion
-                         (ajc-method-item-to-candidate
-                          (ajc-split-method val index))))
-          (puthash key hashvalue table)
-          (progress-reporter-update reporter (point))))))
+                         (ajc-read-line 5 tag-buffer))))
+        (beginning-of-line)
+        (setq reporter (make-progress-reporter
+                        (format "Building table from %s..."
+                                (file-name-nondirectory (nth index ajc-tag-file-list)))
+                        (point)
+                        (point-max)))
+        (while (re-search-forward "^[a-z].*$" nil t)
+          (let* ((val (match-string-no-properties 0))
+                 (key (substring val 0 3))
+                 (hashvalue (gethash key table)))
+            (add-to-list 'hashvalue
+                         (save-excursion
+                           (ajc-method-item-to-candidate
+                            (ajc-split-method val index))))
+            (puthash key hashvalue table)
+            (progress-reporter-update reporter (point))))
+        (progress-reporter-done reporter)))
     table))
 
 ;;;###autoload
@@ -1445,7 +1446,7 @@ using `y-or-n-p' to ask user to confirm."
         (let* ((class-start
                 (save-excursion
                   (re-search-forward
-                   (concat "\\(\\b\\(class\\|interface\\)[ \t]+[a-zA-Z0-9_]+[ \t\n]*"
+                   (concat "\\(\\b\\(class\\|interface\\|enum\\)[ \t]+[a-zA-Z0-9_]+[ \t\n]*"
                            "\\({\\|extends\\|implements\\)\\)")
                    nil
                    't))))
