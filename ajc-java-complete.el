@@ -1437,66 +1437,77 @@ using `y-or-n-p' to ask user to confirm."
           (t
            (message "No class need import.")))))
 
+(defun ajc-search-java-source-keyword ()
+  "Return position where java keyword is found, or nil if "
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward
+     (concat "\\(\\b\\(class\\|interface\\|enum\\)[ \t]+[a-zA-Z0-9_]+[ \t\n]*"
+             "\\({\\|extends\\|implements\\)\\)")
+     nil
+     t)))
+
+(defun ajc-insert-import-into-jsp-source (class-items)
+  (let ((all-class-strings ""))
+    (dolist (class-item class-items)
+      (setq all-class-strings
+            (concat all-class-strings
+                    (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item)
+                                                       (nth 2 class-item)))
+                    "."
+                    (car class-item)
+                    ",")))
+    (unless (string-equal "" all-class-strings)
+      ;; delete last char ","
+      (setq all-class-strings
+            (substring all-class-strings 0 (1- (string-width all-class-strings)))))
+    (goto-char (point-min))
+    (insert (concat "<%@ page import=\"" all-class-strings "\" %>\n"))))
+
+(defun ajc-make-import-line (class-item)
+  (concat "import "
+          (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item)
+                                             (nth 2 class-item)))
+          "." (car class-item) ";\n"))
+
 (defun ajc-insert-import-at-head-of-source-file-without-confirm (class-items)
-  (let ((case-fold-search nil))
+  (let ((case-fold-search nil)
+        (class-start (ajc-search-java-source-keyword)))
     ;; insert at head of java source
     (save-match-data
       (save-excursion
-        (goto-char (point-min))
-        (let* ((class-start
-                (save-excursion
-                  (re-search-forward
-                   (concat "\\(\\b\\(class\\|interface\\|enum\\)[ \t]+[a-zA-Z0-9_]+[ \t\n]*"
-                           "\\({\\|extends\\|implements\\)\\)")
-                   nil
-                   't))))
-          (if (not class-start)
-              ;; then this is a jsp file
-              (let ((all-class-strings ""))
-                (dolist (class-item class-items)
-                  (setq all-class-strings
-                        (concat all-class-strings
-                                (car (ajc-split-pkg-item-by-pkg-ln (nth 1 class-item)
-                                                                   (nth 2 class-item)))
-                                "."
-                                (car class-item)
-                                ",")))
-                (unless (string-equal "" all-class-strings)
-                  ;; delete last char ","
-                  (setq all-class-strings
-                        (substring all-class-strings 0 (1- (string-width all-class-strings)))))
-                (goto-char (point-min))
-                (insert (concat "<%@ page import=\"" all-class-strings "\" %>\n")))
-            (if (re-search-forward "^[ \t]*import[ \t]+[a-zA-Z0-9_\\.\\*]+[ \t]*;" class-start 't)
-                ;; if find 'import', insert before it
-                (progn (beginning-of-line)
-                       ;(insert "\n")
-                       (forward-line -1)
-                       (dolist (ele class-items)
-                         (insert
-                          (concat "import "
-                                  (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele)
-                                                                     (nth 2 ele)))
-                                  "." (car ele) ";\n"))))
-              ;; if hasn't found 'import; then insert after 'package ' statement
-              (progn (goto-char (point-min))
-                     (if (re-search-forward "^[ \t]*package[ \t]+[a-z0-9_\\.]+[ \t]*;" class-start 't)
-                         (progn (forward-line 1)
-                                (beginning-of-line)
-                                (newline)
-                                (dolist (ele class-items)
-                                  (insert (concat "import "
-                                                  (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele)
-                                                                                     (nth 2 ele)))
-                                                  "." (car ele) ";\n"))))
-                       ;; if hasn't found 'import' and 'package' then insert at head of buffer
-                       (progn
-                         (goto-char (point-min))
-                         (dolist (ele class-items)
-                           (insert (concat "import "
-                                           (car (ajc-split-pkg-item-by-pkg-ln (nth 1 ele)
-                                                                              (nth 2 ele)))
-                                           "." (car ele) ";\n")))))))))))))
+        (cond
+         ((not class-start)
+          ;; this is a jsp file
+          (ajc-insert-import-into-jsp-source class-items))
+         (t
+          ;; this is a java source file
+          (ajc-insert-import-into-java-source class-items class-start)))))))
+
+(defun ajc-insert-import-into-java-source (class-items class-start)
+  (goto-char (point-min))
+  (cond
+   ((re-search-forward "^[ \t]*import[ \t]+[a-zA-Z0-9_\\.\\*]+[ \t]*;"
+                       class-start
+                       t)
+    ;; If found import line, insert before it
+    (beginning-of-line)
+    (forward-line -1)
+    (dolist (ele class-items)
+      (insert (ajc-make-import-line ele))))
+   (t
+    ;; if hasn't found 'import; then insert after 'package ' statement
+    (goto-char (point-min))
+    (if (re-search-forward "^[ \t]*package[ \t]+[a-z0-9_\\.]+[ \t]*;"
+                           class-start
+                           t)
+        ;; If there is package line, move point to the next line of it.
+        (progn (forward-line 1)
+                     (beginning-of-line)
+                     (newline))
+      (goto-char (point-min)))
+    (dolist (ele class-items)
+      (insert (ajc-make-import-line ele))))))
 
 (defun ajc-sort-import-lines ()
   "Sort import statements alphabetically."
