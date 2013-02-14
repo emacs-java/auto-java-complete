@@ -1034,3 +1034,22 @@
        (should
         (not (null (ajc-plain-method-candidates-1 "assertT" (cadr tables) 50))))
        ))))
+
+(ert-deftest test-ajc-write-meothod-table-cache ()
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile)
+   (lambda ()
+     (let ((table1 (car ajc-plain-method-tables))
+           (table2 nil))
+       (should (hash-table-p table1))
+       (ajc-save-method-table-cache 0)
+       (setq table2 (ajc-load-method-table-cache 0))
+       (should (hash-table-p table2))))))
+
+(ert-deftest test-ajc-get-cache-filename ()
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile)
+   (lambda ()
+     (should
+      (string= "someclass.ajc.cache"
+               (ajc-get-cache-filename 0))))))

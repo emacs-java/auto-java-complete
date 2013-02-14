@@ -171,6 +171,11 @@ return type are at position 37."
   :group 'auto-java-complete
   )
 
+(defcustom ajc-method-table-cache-dir "~/.ajc"
+  "Directory where cache files are stored."
+  :type 'directory
+  :group 'auto-java-complete)
+
 ;; private variables
 (defvar ajc-is-running nil "After calling `ajc-init', this will become true.")
 
@@ -684,12 +689,10 @@ variables."
     (setq ajc-two-char-tbl (ajc-sort-class ajc-tag-buffer-list))
     (setq ajc-package-in-tags-cache-tbl
           (ajc-build-package-in-tags-cache-tbl ajc-tag-buffer-list))
-    (when (and ajc-use-plain-method-completion
-               (null ajc-plain-method-tables))
-      (setq ajc-plain-method-tables
-            (ajc-build-plain-method-table ajc-tag-buffer-list))
-      (add-to-list 'ac-sources 'ac-source-ajc-plain-method))
-    (setq ajc-is-running t)))
+    (ajc-load-or-build-plain-method-tables)
+    (ajc-save-method-tables-cache)
+    (add-to-list 'ac-sources 'ac-source-ajc-plain-method))
+  (setq ajc-is-running t))
 
 (defun ajc-init-1 (filename)
   (let ((fname (file-truename (expand-file-name filename)))
@@ -811,6 +814,68 @@ The next completion is done without tag file FILENAME."
             (progress-reporter-update reporter (point))))
         (progress-reporter-done reporter)))
     table))
+
+(defun ajc-save-method-table-cache (index)
+  (multiple-value-bind (filename pathname)
+      (ajc-construct-cache-filepath index)
+    (let ((table (nth index ajc-plain-method-tables)))
+      (unless (file-directory-p ajc-method-table-cache-dir)
+        (make-directory (expand-file-name ajc-method-table-cache-dir)))
+      (cond
+       ((file-exists-p pathname)
+        ;; we dont overwrite
+        nil)
+       ((file-directory-p ajc-method-table-cache-dir)
+          (with-temp-file pathname
+          (let ((print-circle t))
+            (prin1 table (current-buffer)))))
+       (t
+        (message "ajc-write-method-table-cache, cache dir doesnt exist"))))))
+
+(defun ajc-load-method-table-cache (index)
+  (multiple-value-bind (filename pathname)
+      (ajc-construct-cache-filepath index)
+    (if (file-exists-p pathname)
+        (let* ((table nil))
+          (with-current-buffer (find-file-noselect pathname)
+            (goto-char (point-min))
+            (setq table (read (current-buffer)))
+            (kill-buffer))
+          table)
+      nil)))
+
+(defun ajc-construct-cache-filepath (index)
+  (let* ((filename (ajc-get-cache-filename index))
+         (pathname (expand-file-name
+                    (concat (directory-file-name ajc-method-table-cache-dir)
+                            "/"
+                            filename))))
+    (values filename pathname)))
+
+(defun ajc-get-cache-filename (index)
+  (concat (file-name-sans-extension
+           (file-name-nondirectory
+            (nth index ajc-tag-file-list)))
+          ".ajc.cache"))
+
+(defun ajc-load-or-build-plain-method-tables ()
+  "Load table from cache if exist or build one otherwise."
+  (when (and ajc-use-plain-method-completion
+             (null ajc-plain-method-tables))
+    ;; Iterate from the last so that we don't have to reverse the
+    ;; result.
+    (loop for ix from (1- (length ajc-tag-file-list)) downto 0
+          do (push (or (ajc-load-method-table-cache ix)
+                       (ajc-build-plain-method-table-1
+                        (make-hash-table :test #'equal)
+                        ajc-tag-buffer-list
+                        ix))
+                   ajc-plain-method-tables))))
+
+(defun ajc-save-method-tables-cache ()
+  "Save each hash table in TABLES into cache."
+  (loop for i from 0 below (length ajc-tag-file-list)
+        do (ajc-save-method-table-cache i)))
 
 ;;;###autoload
 (defun ajc-reload ()

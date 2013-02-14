@@ -120,7 +120,7 @@
 ;; auto import all Class in source file
 (local-set-key (kbd "C-c i") 'ajc-import-all-unimported-class)
 ;; import Class where under point
-(local-set-key (kbd "C-c m") 'ajc-import-class-under-point))
+(local-set-key (kbd "C-c m") 'ajc-import-class-under-point)
 
 (defun ajc-java-complete-exit ()
   (interactive)
@@ -129,7 +129,7 @@
   (setq ac-sources (delete 'ac-source-ajc-method ac-sources))
   (setq ac-sources (delete 'ac-source-ajc-keywords ac-sources))
   (setq ac-sources (delete 'ac-source-ajc-import ac-sources))
-  (setq ac-soruces (delete 'ac-source-ajc-plain-method ac-sources))
+  (setq ac-sources (delete 'ac-source-ajc-plain-method ac-sources))
   )
 
 (defvar ajc-java-complete-mode-hook nil)
