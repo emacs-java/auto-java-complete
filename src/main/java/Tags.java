@@ -255,10 +255,6 @@ public class Tags {
       for (File clazz : clazzFiles) {
         String classAbsolutePath = clazz.getAbsolutePath();
         IOUtils.copy(clazz, new File(_randomTmpPath, classAbsolutePath.substring(dirFullPath.length() + 1)));
-        // String classFullName = classAbsolutePath
-        //     .substring(dirFullPath.length()+1 , classAbsolutePath.indexOf(".class"))
-        //     .replace(fileSeparator,".");
-        // processClass(classFullName);
       }
       List<File> jarz = IOUtils.getAllFilesUnderDir(dir,
                                                     new FileFilter() {
@@ -269,14 +265,6 @@ public class Tags {
                                                         return false;
                                                       }
                                                     });
-      // File [] jarz=dir.listFiles(
-      //                            new FileFilter(){
-      //                                public boolean accept(File f){
-      //                                    if (f.getName().endsWith(".jar")) return true;
-      //                                    return false;
-      //                                }
-      //                            }
-      //                            );
       if (jarz != null) {
         for (File jarFile: jarz) {
           processJarFile(jarFile);
