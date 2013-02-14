@@ -4,6 +4,7 @@
 
 (defvar test-ajc-someclass-tagfile "test/someclass.tag")
 (defvar test-ajc-junit-tagfile "test/junit.tag")
+(defvar test-ajc-javart-tagifle "test/javart.tag")
 
 (defun test-ajc-unpropertize-text (text prop-lst)
   "Return unpropertized text."
@@ -965,9 +966,41 @@
                  (car (mapcar (lambda (e)
                                 (substring-no-properties e 0))
                               (gethash "equ" table)))))
-       ;; (should
-       ;;  (= 3 (length (gethash "wa" table))))
        ))))
+
+(ert-deftest test-ajc-build-plain-method-table-1-check-all-methods ()
+  (test-ajc-fixture
+   `(,test-ajc-junit-tagfile)
+   (lambda ()
+     (loop with methods = (test-ajc-collect-all-methods test-ajc-junit-tagfile)
+           with table = (car ajc-plain-method-tables)
+           for method in methods
+           for key = (and (>= (length method) 3) (substring method 0 3))
+           for value = (and key (gethash key table))
+           for value-lst = (and value (mapcar #'substring-no-properties value))
+           when key
+           do (progn
+                (should (not (null value)))
+                (should (member-if (lambda (e)
+                                     (string-match (concat method "(") e))
+                                   value-lst)))))))
+
+(defun test-ajc-collect-all-methods (tagfile)
+  (let ((ret nil))
+    (with-temp-buffer
+      (insert-file-contents-literally (expand-file-name tagfile))
+      (goto-char (point-min))
+      (forward-line
+       (string-to-number
+        (save-excursion
+          (goto-char (point-min))
+          (forward-line 4)
+          (buffer-substring-no-properties
+           (line-beginning-position) (line-end-position)))))
+      (beginning-of-line)
+      (while (re-search-forward "\\(^[a-z][^`]+\\)`.*$" nil t)
+        (push (match-string-no-properties 1) ret)))
+    ret))
 
 (defvar test-ajc-plain-method-tables nil)
 
@@ -987,6 +1020,7 @@
                     (gethash "wai" (car tables))))))
        (setq test-ajc-plain-method-tables tables)
        ))))
+
 (setq test-ajc-plain-method-tables nil)
 
 (ert-deftest test-ajc-plain-method-candidates-1 ()
