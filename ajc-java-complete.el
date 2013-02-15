@@ -689,7 +689,7 @@ variables."
     (setq ajc-two-char-tbl (ajc-sort-class ajc-tag-buffer-list))
     (setq ajc-package-in-tags-cache-tbl
           (ajc-build-package-in-tags-cache-tbl ajc-tag-buffer-list))
-    (ajc-load-or-build-plain-method-tables)
+    (ajc-load-or-build-plain-method-tables force)
     (ajc-save-method-tables-cache)
     (add-to-list 'ac-sources 'ac-source-ajc-plain-method))
   (setq ajc-is-running t))
@@ -843,8 +843,10 @@ Otherwise return nil."
         (let* ((table nil))
           (with-current-buffer (find-file-noselect pathname)
             (goto-char (point-min))
+            (message "Loading cache from %s..." pathname)
             (setq table (read (current-buffer)))
             (kill-buffer))
+          (message "Loading cache from %s...done" pathname)
           table)
       nil)))
 
@@ -866,10 +868,12 @@ NOT an absolute pathname."
             tag-filename))
           ".ajc.cache"))
 
-(defun ajc-load-or-build-plain-method-tables ()
+(defun ajc-load-or-build-plain-method-tables (&optional force)
   "Load table from cache if exist or build one otherwise."
-  (when (and ajc-use-plain-method-completion
-             (null ajc-plain-method-tables))
+  (when (or force
+            (and ajc-use-plain-method-completion
+                 (null ajc-plain-method-tables)))
+    (setq ajc-plain-method-tables nil)
     ;; Iterate from the last so that we don't have to reverse the
     ;; result.
     (loop for ix from (1- (length ajc-tag-file-list)) downto 0
