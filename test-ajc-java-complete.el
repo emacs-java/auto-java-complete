@@ -1068,14 +1068,19 @@
                (ajc-get-cache-filename (car ajc-tag-file-list)))))))
 
 (ert-deftest test-ajc-construct-cache-filepath ()
-  (let ((ajc-method-table-cache-dir "./test/cache"))
+  (let* ((ajc-method-table-cache-dir "./test/cache")
+         (cache-fullpath
+          (expand-file-name
+           (concat (directory-file-name ajc-method-table-cache-dir)
+                   "/"
+                   "someclass.ajc.cache"))))
     (multiple-value-bind (filename full-pathname)
         (ajc-construct-cache-filepath test-ajc-someclass-tagfile)
       (should
        (string= "someclass.ajc.cache"
                 filename))
       (should
-       (string= "e:/cygwin/home/whitypig/repos/git_repos/ajc-java-complete/test/cache/someclass.ajc.cache"
+       (string= cache-fullpath
                 full-pathname)))))
 
 (ert-deftest test-ajc-plain-method-candidates-1-from-cache ()
