@@ -745,10 +745,11 @@ FILENAME."
                (not (member file ajc-tag-file-list)))
       (push file ajc-tag-file-list)
       (ajc-init t)
-      (push (ajc-build-plain-method-table-1
-             (make-hash-table :test #'equal)
-             (car ajc-tag-buffer-list)
-             0)
+      (push (or (ajc-load-method-table-cache file 0)
+                (ajc-build-plain-method-table-1
+                 (make-hash-table :test #'equal)
+                 (car ajc-tag-buffer-list)
+                 0))
             ajc-plain-method-tables))))
 
 (defun ajc-unload-tag-file (filename)
@@ -815,9 +816,10 @@ The next completion is done without tag file FILENAME."
         (progress-reporter-done reporter)))
     table))
 
-(defun ajc-save-method-table-cache (index)
+(defun ajc-save-method-table-cache (tag-filename index)
+  "Save method hash table corresponding to TAG-FILENAME into cache."
   (multiple-value-bind (filename pathname)
-      (ajc-construct-cache-filepath index)
+      (ajc-construct-cache-filepath tag-filename)
     (let ((table (nth index ajc-plain-method-tables)))
       (unless (file-directory-p ajc-method-table-cache-dir)
         (make-directory (expand-file-name ajc-method-table-cache-dir)))
@@ -827,14 +829,16 @@ The next completion is done without tag file FILENAME."
         nil)
        ((file-directory-p ajc-method-table-cache-dir)
           (with-temp-file pathname
-          (let ((print-circle t))
-            (prin1 table (current-buffer)))))
+            (let ((print-circle t))
+              (prin1 table (current-buffer)))))
        (t
         (message "ajc-write-method-table-cache, cache dir doesnt exist"))))))
 
-(defun ajc-load-method-table-cache (index)
+(defun ajc-load-method-table-cache (tag-filename index)
+  "Load and Return a hash table from cache file if exists.
+Otherwise return nil."
   (multiple-value-bind (filename pathname)
-      (ajc-construct-cache-filepath index)
+      (ajc-construct-cache-filepath tag-filename)
     (if (file-exists-p pathname)
         (let* ((table nil))
           (with-current-buffer (find-file-noselect pathname)
@@ -844,18 +848,22 @@ The next completion is done without tag file FILENAME."
           table)
       nil)))
 
-(defun ajc-construct-cache-filepath (index)
-  (let* ((filename (ajc-get-cache-filename index))
-         (pathname (expand-file-name
-                    (concat (directory-file-name ajc-method-table-cache-dir)
-                            "/"
-                            filename))))
-    (values filename pathname)))
+(defun ajc-construct-cache-filepath (tag-filename)
+  "Return cache file name and its full pathname."
+  (let* ((filename (ajc-get-cache-filename tag-filename))
+         (full-pathname
+          (expand-file-name
+           (concat (directory-file-name ajc-method-table-cache-dir)
+                   "/"
+                   filename))))
+    (values filename full-pathname)))
 
-(defun ajc-get-cache-filename (index)
+(defun ajc-get-cache-filename (tag-filename)
+  "Return cache filename for TAG-FILENAME. Returned filename is
+NOT an absolute pathname."
   (concat (file-name-sans-extension
            (file-name-nondirectory
-            (nth index ajc-tag-file-list)))
+            tag-filename))
           ".ajc.cache"))
 
 (defun ajc-load-or-build-plain-method-tables ()
@@ -865,17 +873,19 @@ The next completion is done without tag file FILENAME."
     ;; Iterate from the last so that we don't have to reverse the
     ;; result.
     (loop for ix from (1- (length ajc-tag-file-list)) downto 0
-          do (push (or (ajc-load-method-table-cache ix)
+          for tag-filename in (reverse ajc-tag-file-list)
+          do (push (or (ajc-load-method-table-cache tag-filename ix)
                        (ajc-build-plain-method-table-1
                         (make-hash-table :test #'equal)
-                        ajc-tag-buffer-list
+                        (nth ix ajc-tag-buffer-list)
                         ix))
                    ajc-plain-method-tables))))
 
 (defun ajc-save-method-tables-cache ()
   "Save each hash table in TABLES into cache."
   (loop for i from 0 below (length ajc-tag-file-list)
-        do (ajc-save-method-table-cache i)))
+        for tag-filename in ajc-tag-file-list
+        do (ajc-save-method-table-cache tag-filename i)))
 
 ;;;###autoload
 (defun ajc-reload ()

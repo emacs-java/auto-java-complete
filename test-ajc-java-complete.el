@@ -28,7 +28,8 @@
         (ajc-matched-class-items-cache nil)
         (ajc-sorted-class-buffer-name-list nil)
         (ajc-complete-method-candidates-cache-stack-list nil)
-        (ajc-plain-method-tables nil))
+        (ajc-plain-method-tables nil)
+        (ajc-method-table-cache-dir "./test/cache"))
     (unwind-protect
         (progn
           (ajc-init t)
@@ -1035,16 +1036,28 @@
         (not (null (ajc-plain-method-candidates-1 "assertT" (cadr tables) 50))))
        ))))
 
-(ert-deftest test-ajc-write-meothod-table-cache ()
+(ert-deftest test-ajc-save-and-load-meothod-table-cache ()
   (test-ajc-fixture
    `(,test-ajc-someclass-tagfile)
    (lambda ()
      (let ((table1 (car ajc-plain-method-tables))
            (table2 nil))
        (should (hash-table-p table1))
-       (ajc-save-method-table-cache 0)
-       (setq table2 (ajc-load-method-table-cache 0))
-       (should (hash-table-p table2))))))
+       (should
+        (gethash "equ" table1))
+       (should
+        (gethash "wai" table1))
+       (should
+        (gethash "get" table1))
+       (ajc-save-method-table-cache (car ajc-tag-file-list) 0)
+       (setq table2 (ajc-load-method-table-cache (car ajc-tag-file-list) 0))
+       (should (hash-table-p table2))
+       (should
+        (gethash "equ" table2))
+       (should
+        (gethash "wai" table2))
+       (should
+        (gethash "get" table2))))))
 
 (ert-deftest test-ajc-get-cache-filename ()
   (test-ajc-fixture
@@ -1052,4 +1065,30 @@
    (lambda ()
      (should
       (string= "someclass.ajc.cache"
-               (ajc-get-cache-filename 0))))))
+               (ajc-get-cache-filename (car ajc-tag-file-list)))))))
+
+(ert-deftest test-ajc-construct-cache-filepath ()
+  (let ((ajc-method-table-cache-dir "./test/cache"))
+    (multiple-value-bind (filename full-pathname)
+        (ajc-construct-cache-filepath test-ajc-someclass-tagfile)
+      (should
+       (string= "someclass.ajc.cache"
+                filename))
+      (should
+       (string= "e:/cygwin/home/whitypig/repos/git_repos/ajc-java-complete/test/cache/someclass.ajc.cache"
+                full-pathname)))))
+
+(ert-deftest test-ajc-plain-method-candidates-1-from-cache ()
+  (test-ajc-fixture
+   `(,test-ajc-someclass-tagfile
+     ,test-ajc-junit-tagfile)
+   (lambda ()
+     (should
+      (not (null (ajc-plain-method-candidates-1 "wai"
+                                                (car ajc-plain-method-tables)
+                                                50))))
+     (should
+      (not (null (ajc-plain-method-candidates-1 "assertT"
+                                                (cadr ajc-plain-method-tables)
+                                                50))))
+     )))
