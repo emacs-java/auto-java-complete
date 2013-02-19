@@ -1199,6 +1199,7 @@ This should return, for example, (\"java.lang\" \"java.ref\")."
            nil t)
         (setq prefix-string (match-string-no-properties 3))
         (when (and ajc-matched-import-cache-list
+                   (stringp prefix-string)
                    (string-match (concat "^" ajc-previous-matched-import-prefix) prefix-string))
           (setq matched-pkg-strings (all-completions prefix-string ajc-matched-import-cache-list)))
         (when (zerop (length matched-pkg-strings))
@@ -1750,10 +1751,10 @@ find out the type name."
 (defun ajc-is-available-4-complete-class-p ()
   "Return t if current-word begins like classname and set
 `ajc-current-class-prefix-4-complete-class'."
-  (let ((class-prefix (current-word))
+  (let ((class-prefix ac-prefix)
         (is-available)
         (case-fold-search nil))
-    (when (and class-prefix
+    (when (and (stringp class-prefix)
                (> (length class-prefix) 0)
                (string-match "^[A-Z][a-zA-Z0-9_]*$" class-prefix))
       (setq ajc-current-class-prefix-4-complete-class class-prefix)
@@ -1858,10 +1859,11 @@ in a source file, String will be returned."
                                           (line-end-position)))
             (setq variable-line-string
                   (buffer-substring-no-properties (line-beginning-position)
-                                                  (line-end-position)))))
-            (throw 'found t)))
+                                                  (line-end-position)))
+            (throw 'found t)))))
     ;;(message "DEBUG: variable-line-string=%s" variable-line-string)
-    (ajc-parse-variable-line-string variable-name variable-line-string)))
+    (and (stringp variable-line-string)
+         (ajc-parse-variable-line-string variable-name variable-line-string))))
 
 (defun ajc-parse-variable-line-string (variable-name variable-line-string)
   "Return type-name of VARIABLE-NAME by parsing VARIABLE-LINE-STRING."
@@ -1926,13 +1928,15 @@ in a source file, String will be returned."
          (not (string-match-p "^[[:space:]]*//" line)))))
 
 (defun ajc-plain-method-candidates ()
-  (when (string-match "^[a-z][a-z]..*$" ac-prefix)
-    (loop for table in ajc-plain-method-tables
-          with each-limits = (/ ajc-plain-method-candidates-limit
-                                (length ajc-plain-method-tables))
-          append (ajc-plain-method-candidates-1 ac-prefix
-                                                table
-                                                each-limits))))
+  (let ((case-fold-search nil))
+    (when (and (stringp ac-prefix)
+               (string-match "^[a-z][a-z]..*$" ac-prefix))
+      (loop for table in ajc-plain-method-tables
+            with each-limits = (/ ajc-plain-method-candidates-limit
+                                  (length ajc-plain-method-tables))
+            append (ajc-plain-method-candidates-1 ac-prefix
+                                                  table
+                                                  each-limits)))))
 
 (defun ajc-plain-method-candidates-1 (prefix table nlimits)
   (let* ((candidates
@@ -1963,6 +1967,7 @@ in a source file, String will be returned."
 Suppose previous (current-line)==\"Systema.aaa\" but it failed to get
 any candidates, and now (current-line)==\"Systema.aaab\" It would not
 get any candidates too, we needn't try to complete it."
+  ;;(message "DEBUG: ajc-complete-method-is-available, line-string=%s" line-string)
   (let ((stack-list (ajc-get-validated-stack-list-or-nil-4-method-complete
                      (ajc-parse-splited-line-4-complete-method line-string)))
         (is-available t))
