@@ -1,0 +1,34 @@
+diff --git a/popup.el b/popup.el
+index 7bd3ad8..518972a 100644
+--- a/popup.el
++++ b/popup.el
+@@ -143,7 +143,9 @@ untouched."
+   (loop with tab-width = 4
+         for item in list
+         for summary = (popup-item-summary item)
+-        maximize (string-width (popup-x-to-string item)) into width
++        maximize (string-width (popup-x-to-string
++                                (or (get-text-property 0 'view item)
++                                    item))) into width
+         if (stringp summary)
+         maximize (+ (string-width summary) 2) into summary-width
+         finally return
+@@ -436,7 +438,8 @@ usual."
+                                 (+ summary-width 2)
+                               0))))
+          (string (car (popup-substring-by-width string content-width)))
+-         (string-width (string-width string))
++         (string-width (string-width (or (get-text-property 0 'view string)
++                                         string)))
+          (spacing (max (- popup-width string-width summary-width)
+                        (if (> popup-width string-width) 1 0)))
+          (truncated-summary
+@@ -446,7 +449,7 @@ usual."
+       (put-text-property 0 (length truncated-summary)
+                          'face summary-face truncated-summary))
+     (concat margin-left
+-            string
++            (or (get-text-property 0 'view string) string)
+             (make-string spacing ? )
+             truncated-summary
+             symbol

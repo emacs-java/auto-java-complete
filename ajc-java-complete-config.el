@@ -36,13 +36,13 @@
 
 ;; sources for auto complete
 (ac-define-source ajc-import
-  '((candidates . (ajc-import-package-candidates))
+  '((candidates . ajc-import-package-candidates)
     (prefix . prefix-support-jsp-importing)))
 
 (defun ajc-fqn-prefix ()
   (save-excursion
     (when (re-search-backward "\\([[:space:](]\\|^\\)"
-                              (save-excursion (beginning-of-line) (point))
+                              (line-beginning-position)
                               t)
       (match-end 1))))
 
@@ -50,9 +50,9 @@
 ;; Whey did i use ajc-fqn-prefix as prefix of ac-source-ajc-class????
 ;; Check older version!!
 (ac-define-source ajc-class
-  '((candidates . (ajc-complete-class-candidates))
-   (prefix . ajc-fqn-prefix)
-   (cache)))
+  '((candidates . ajc-complete-class-candidates)
+    (prefix . ajc-fqn-prefix)
+    (cache)))
 
 (defun ajc-constructor-prefix ()
   (let ((case-fold-search nil))
@@ -71,29 +71,29 @@
         (match-beginning 1)))))
 
 (ac-define-source ajc-constructor
-  '((candidates . (ajc-complete-constructor-candidates))
-   (cache)
-   (requires . 3)
-   (prefix . ajc-constructor-prefix)
-   (action . ajc-expand-yasnippet-template-with-ac)))
+  '((candidates . ajc-complete-constructor-candidates)
+    (cache)
+    (requires . 3)
+    (prefix . ajc-constructor-prefix)
+    (action . ajc-expand-yasnippet-template-with-ac)))
 
 (ac-define-source ajc-method
-  '((candidates . (ajc-complete-method-candidates))
+  '((candidates . ajc-complete-method-candidates)
     (cache)
     (requires . 0)
     (prefix . "\\.\\(.*\\)")
     (action . ajc-expand-yasnippet-template-with-ac)))
 
 (ac-define-source ajc-keywords
-  '((candidates . (ajc-java-keywords-candidates))))
+  '((candidates . ajc-java-keywords-candidates)))
 
 (ac-define-source ajc-fqn
-  '((candidates . (ajc-fqn-candidates))
+  '((candidates . ajc-fqn-candidates)
     (prefix . ajc-fqn-prefix)
     (cache)))
 
 (ac-define-source ajc-plain-method
-  '((candidates . (ajc-plain-method-candidates))
+  '((candidates . ajc-plain-method-candidates)
     (cache)
     (requires . 3)
     (prefix . ajc-fqn-prefix)

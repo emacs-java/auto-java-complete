@@ -3,7 +3,7 @@
 (require 'cl)
 
 (defvar test-ajc-someclass-tagfile "test/someclass.tag")
-(defvar test-ajc-junit-tagfile "test/junit.tag")
+(defvar test-ajc-junit-tagfile "test/junit.ajctag")
 (defvar test-ajc-javart-tagifle "test/javart.tag")
 
 (defun test-ajc-unpropertize-text (text prop-lst)
