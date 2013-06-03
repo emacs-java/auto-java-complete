@@ -6,8 +6,6 @@
 
 * page on github.com
   https://github.com/emacs-java/auto-java-complete
-* old repos
-  Moved from https://github.com/jixiuf/ajc-java-complete
 * whitypig make a fork on 
            https://github.com/whitypig/ajc-java-complete
            and this fork support multiple tag files
