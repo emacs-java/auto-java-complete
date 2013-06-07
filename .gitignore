@@ -1,3 +1,15 @@
 *.elc
 *.class
 *~
+my_java_base.tag
+.gitignore
+bottleneck.txt
+TagsTest.java
+java_base.tag
+java_base2.tag
+Tags.java.orig
+test/CheckFileExists.java
+*.jar
+test/*
+TODO.txt
+memo.txt

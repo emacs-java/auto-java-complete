@@ -1,0 +1,136 @@
+<project name="ajc-java-complete" default="make.jar"
+         xmlns:ivy="antlib:org.apache.ivy.ant">
+  <property file="build.properties"/>
+  <property name="src.dir" location="src"/>
+  <property name="src.java.dir" location="${src.dir}/main/java"/>
+  <property name="src.test.dir" location="${src.dir}/test/java"/>
+  <property name="target.dir" location="target"/>
+  <property name="target.classes.java.dir" location="${target.dir}/classes/main/java"/>
+  <property name="target.classes.test.dir" location="${target.dir}/classes/test/java"/>
+  <property name="lib.dir" location="lib"/>
+  <property name="junit.jar" location="${lib.dir}/junit-4.7.jar"/>
+  <property name="someclass.jar" location="test/someclass.jar"/>
+  <property name="someclass.tag" location="test/someclass.tag"/>
+  <property name="another.jar" location="test/another.jar"/>
+  <property name="another.tag" location="test/another.tag"/>
+
+  <target name="resolve" description="--> retrieve dependencies with ivy">
+    <ivy:retrieve file="./ivy.xml" sync="true"/>
+  </target>
+
+  <target name="make.another.jar">
+    <javac encoding="utf-8" srcdir="test/ajc/anotherpackage"
+           includeantruntime="false" fork="true">
+      <compilerarg value="-J-Duser.language=en"/>
+      <compilerarg value="-Xlint:unchecked"/>
+      <include name="ClassA.java"/>
+      <classpath>
+        <pathelement location="test"/>
+      </classpath>
+    </javac>
+    <jar destfile="test/another.jar"
+         basedir="test"
+         includes="ajc/anotherpackage/*.class"
+         excludes="*"/>
+  </target>
+
+  <target name="make.another.tag" depends="make.another.jar">
+    <java classname="TagsJar"
+          dir="${target.classes.java.dir}"
+          fork="true">
+      <jvmarg value="-Duser.language=en"/>
+      <arg value="${another.tag}"/>
+      <arg value="${another.jar}"/>
+      <classpath>
+        <pathelement location="test/another.jar"/>
+        <pathelement location="${target.classes.java.dir}"/>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="make.someclass.jar">
+    <javac encoding="utf-8" srcdir="test/ajc/somepackage"
+           includeantruntime="false" fork="true">
+      <compilerarg value="-J-Duser.language=en"/>
+      <compilerarg value="-Xlint:unchecked"/>
+      <include name="SomeClass.java"/>
+      <include name="AnotherClass.java"/>
+      <classpath>
+        <pathelement location="test"/>
+      </classpath>
+    </javac>
+    <jar destfile="test/someclass.jar"
+         basedir="test"
+         includes="**/*.class"
+         excludes="*"/>
+  </target>
+
+  <target name="make.someclass.tag" depends="make.someclass.jar">
+    <java classname="TagsJar"
+          dir="${target.classes.java.dir}"
+          fork="true">
+      <jvmarg value="-Duser.language=en"/>
+      <arg value="${someclass.tag}"/>
+      <arg value="${someclass.jar}"/>
+      <classpath>
+        <pathelement location="test/someclass.jar"/>
+        <pathelement location="${target.classes.java.dir}"/>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="compile.java">
+    <mkdir dir="${target.classes.java.dir}"/>
+    <javac encoding="utf-8" srcdir="${src.java.dir}" destdir="${target.classes.java.dir}"
+           includeantruntime="false" fork="true">
+      <compilerarg value="-J-Duser.language=en"/>
+      <compilerarg value="-Xlint:unchecked"/>
+      <include name="Tags.java"/>
+      <include name="TagsMain.java"/>
+      <include name="TagsJar.java"/>
+      <classpath>
+        <pathelement location="${target.classes.java.dir}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="compile.test" depends="resolve, compile.java">
+    <mkdir dir="${target.classes.test.dir}"/>
+    <javac encoding="utf-8" srcdir="${src.test.dir}" destdir="${target.classes.test.dir}"
+           includeantruntime="false" fork="true">
+      <compilerarg value="-J-Duser.language=en"/>
+      <compilerarg value="-Xlint:unchecked"/>
+      <compilerarg value="-Xlint:deprecation"/>
+      <include name="TestTags.java"/>
+      <include name="TestTagsMain.java"/>
+      <include name="TestTagsJar.java"/>
+      <classpath>
+        <pathelement location="${target.classes.java.dir}"/>
+        <pathelement location="${junit.jar}"/>
+        <pathelement location="${someclass.jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="run.test" depends="compile.test">
+    <junit printsummary="true" fork="true" haltonerror="true" haltonfailure="true">
+      <formatter type="plain" usefile="false"/>
+      <test name="TestTags"/>
+      <test name="TestTagsJar"/>
+      <test name="TestTagsMain"/>
+      <classpath>
+        <pathelement location="${target.classes.java.dir}"/>
+        <pathelement location="${target.classes.test.dir}"/>
+        <pathelement location="${junit.jar}"/>
+        <pathelement location="${someclass.jar}"/>
+      </classpath>
+    </junit>
+  </target>
+
+  <target name="make.jar" depends="compile.java">
+    <jar destfile="Tags.jar"
+         basedir="${target.classes.java.dir}"
+         includes="*.class"/>
+  </target>
+
+</project>

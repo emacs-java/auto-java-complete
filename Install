@@ -1,54 +1,108 @@
-;; 1. generate the tag file .
+;; 1. Generate the tag file.
 ;;
-;;     Tags.java use JDK reflection to generate a tag file by
-;;     loading all class in classpath ,what you need to do is
-;;     just add your jars to $CLASSPATH.  now it is easy to use 
-;;     Tags.java .
-;;     suppose you put all you jar files in /path/to/jars/
+;;     Tags.java uses JDK reflection to generate a tag file by
+;;     loading all classes in classpath. What you need to do is
+;;     just add your jars to $CLASSPATH. Now it is easy to use 
+;;     Tags.java.
+;;     Suppose you put all you jar files in /path/to/jars/
 ;;     even in subdirectory of this directory
-;;     and you put  all class files are in /project/WEB-INF/classes/
+;;     and you put all class files in /project/WEB-INF/classes/
 ;;     then you can
 ;;     export CLASSPATH=$CLASSPATH:/path/to/jars/:/project/WEB-INF/classes/
 ;;     or 
 ;;     export CLASSPATH=$JAVA_HOME:/path/to/jars/:/project/WEB-INF/classes/
-;;     this even  will tag all jars in $JAVA_HOME.
-;;     it need about 3~10 min depending on the count of jars.
-;;     during it ,you may see some exceptions ,if it don't kill
-;;     the program ,just ignore it .
-;;     run 
-;;                 javac Tags.java 
-;;                 java  Tags
-;;     maybe you need :
-;;                 java  -XX:MaxPermSize=512m  Tags
-;;
-;;     to generate the tag file ~/.java_base.tag 
+;;     This even will tag all jars in $JAVA_HOME.
+;;     It needs about 3~10 mins depending on the number of jars.
+;;     During this process, you may see some exceptions. If it doesn't kill
+;;     the program, just ignore them.
+;;     To generate tag file run
+;;                 > ant
+;;     This will create Tags.jar.
+;;     Then run
+;;                 > java -cp Tags.jar TagsMain
+;;     or maybe you need to do:
+;;                 > java -cp Tags.jar -XX:MaxPermSize=512m TagsMain
 ;;     or
-;;                 java  Tags "org\.hello,org\.world"
+;;                 > java -cp Tags.jar TagsMain "org\.hello,org\.world"
 ;;
-;;     it would not tag those class name match "org.hello" or "org.world"
+;;     This would not tag those class names that match
+;;     "org.hello" or "org.world".
+;;     This creates tag file "~/.java_base.tag".
 ;;
-;;     if it can't work on you computer ,use my tag file
-;;     java_base.tag.bz2, just uncompress and rename it to
+;;     If it can't work on your computer, use my tag file
+;;     java_base.tag.bz2. Just uncompress and rename it to
 ;;     .java_base.tag and put it in your home directory.
-;;     of course you can change the name by customing
-;;                 `ajc-tag-file'
-;;     sometimes AJC can't find the tag file on
-;;     windows for its ugly path like
-;;     'C:\Documents and Settings\Administrator'
-;;     you'd bettte custom 'ajc-tag-file'  on windows
 
+;;     Sometimes AJC can't find the tag file on
+;;     Windows for its ugly path like
+;;     'C:\Documents and Settings\Administrator'.
 
-;;  2. you should have installed  auto-complete and yasnippet.
-;;     about how to install and config them ,you should find
-;;     it on the net.
+;;  2. You should have installed auto-complete and yasnippet.
+;;     About how to install and config them, you should find
+;;     those on the net.
 
-;;  3. then  add this lines  in .emacs
+;;  3. Then add these lines in .emacs or youre emacs setting file.
 
+;;       Put ajc-java-complete.el and ajc-java-complete-config.el in a
+;;       directory which load-path holds, or add the ajc-java-complete
+;;       directory into load-path.
+;;
 ;;       (add-to-list 'load-path "~/.emacs.d/ajc-java-complete/")
 ;;       (require 'ajc-java-complete-config)
 ;;       (add-hook 'java-mode-hook 'ajc-java-complete-mode)
 ;;       (add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
-;;       read ajc-java-complete-config.el  for more info .
 
+;;  4. Set the variables.
+;;       You need to set `ajc-tag-file-list' to use ajc-java-complete.
+;;       This variable holds tag filename as an absolute pathname.
+;;       Therefore if your tag file is ~/.java_base.tag,
+;;       write the following in your emacs setting file.
+;;
+;;       (setq ajc-tag-file-list (list (expand-file-name "~/.java_base.tag")))
 
-;;     restart your emacs ,and enjoy.
+;;  5. When you want to tag other jar files.
+;;       Sometimes you have to use other libraries and want to tag
+;;       those libraries. In cases like this or another, use TagsJar
+;;       command. TagsJar tags multiple jar files and write tag info
+;;       to the file given as a parameter.
+;;
+;;       Usage: java -cp Tags.jar TagsJar [tagfilename] [jarfiles]...
+;;
+;;       If you want to tag libA.jar, libB.jar, then...
+;;
+;;       > java -cp Tags.jar TagsJar example.tag libA.jar libB.jar
+;;
+;;       This will create a tag file named "example.tag" in the
+;;       current directory.
+;;
+;;       Next you need to add this tag file to `ajc-tag-file-list'.
+;;       To do this, use M-x ajc-load-tag-file and specify that tag file,
+;;       and wait for ajc-java-complete to create index or something.
+;;
+;;       On a later day, maybe you won't need those libraries tags.
+;;       If so, use M-x ajc-unload-tag-file and specifiy that tag file.
+;;       This will remove information of that tag file so that the
+;;       next completion is done without that tag file's information.
+
+;;  6. About ajc-use-plain-method-completion.
+;;       In this context, plain method completion is to do completion
+;;       when the input is something that begins with only alphabets.
+;;       Without plain method completion, ajc-java-complete does not
+;;       complete when your input is like "get" or "add".
+;;
+;;       With `ajc-use-plain-method-completion' being non-nil, you can
+;;       use plain method completion. So if you want to use this function,
+;;       add (setq ajc-use-plain-method-completion t) to your emacs setting file.
+;;       Warning:
+;;       Creating method completion table is very time-consuming and
+;;       probably takes a few minutes or more, so be paitient.
+;;       We need this process to take place only when you load a new
+;;       tag file.
+
+;;  7. If you want to use multiple tag files from the start.
+;;       Just set `ajc-tag-file-list' to a list containing all tag
+;;       files you need to use.
+;;       As an example:
+;;       (setq ajc-tag-file-list
+;;         (list (expand-file-name "~/.java_base.tag")
+;;               (expand-file-name "~/some/dir/some/tag/file.tag")))
