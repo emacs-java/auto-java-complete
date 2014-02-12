@@ -6,12 +6,11 @@
 
 * page on github.com
   https://github.com/emacs-java/auto-java-complete
-* whitypig make a fork on 
+* whitypig make a fork on
            https://github.com/whitypig/ajc-java-complete
            and this fork support multiple tag files
 * Mail List:
   emacsjava@googlegroups.com
 
-* Video demo (2.8M ,5M)
-  http://screencast-repos.googlecode.com/files/auto-java-complete-demo-editing-jsp-2011-01-20.mp4
-  http://screencast-repos.googlecode.com/files/auto-java-complete-demo-2010-12-25.mp4.bz2
+* Video demo
+  https://www.dropbox.com/s/p5x7olfijeoqa4b/auto-java-complete.mov.7z
