@@ -13,4 +13,4 @@
   emacsjava@googlegroups.com
 
 * Video demo
-  https://www.dropbox.com/s/p5x7olfijeoqa4b/auto-java-complete.mov.7z
+  https://www.dropbox.com/s/f8dr9utzhh0usay/auto-java-complete.mp4.7z
