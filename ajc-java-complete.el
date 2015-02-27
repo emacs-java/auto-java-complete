@@ -416,16 +416,15 @@ can be a method item ,or a field item"
     (if (= 2   (length field-or-method-item ));; lenth of field is 2 (only field and returntype )
         (let ((field-full-string (ajc-field-to-string field-or-method-item t))
               (field-short-string (ajc-field-to-string field-or-method-item nil)))
-          (setq candidate (propertize field-short-string 'view field-full-string))
+          (setq candidate (cons field-full-string field-short-string))
           )
       (let((method-full-string  (ajc-method-to-string field-or-method-item t))
            (method-short-string (ajc-method-to-string field-or-method-item nil)))
         (setq candidate
-               (propertize method-short-string
-                           'view method-full-string
-                           'templete field-or-method-item
-                           'templete-type 'method)
-              )))
+              (cons (propertize method-full-string
+                                'templete field-or-method-item
+                                'templete-type 'method)
+                    method-short-string))))
     candidate))
 
 (defun ajc-split-method ( method-line-string )
@@ -1036,10 +1035,10 @@ return a list of each line string (exclude keyword 'import') "
           (let ((constructor-full-string (ajc-constructor-to-string constructor t))
                 (constructor-short-string (ajc-constructor-to-string constructor nil)))
             (add-to-list 'return-complete-list
-                         (propertize constructor-short-string
-                                     'view constructor-full-string
-                                     'templete-type 'constructor
-                                     'templete constructor)
+                         (cons (propertize constructor-full-string
+                                           'templete-type 'constructor
+                                           'templete constructor)
+                               constructor-short-string)
                          t)
             ))))
     return-complete-list))
@@ -1063,10 +1062,9 @@ return a list of each line string (exclude keyword 'import') "
           (class-items (ajc-complete-class-with-cache ajc-current-class-prefix-4-complete-class)))
       (dolist (class-item class-items)
         (setq candidate  (car class-item))
-        (add-to-list 'candidates
-                     (propertize candidate 'view (ajc-class-to-string class-item t))
-                     t)
-        ) candidates)))
+        (add-to-list 'candidates (cons (ajc-class-to-string class-item t) candidate) t)
+        )
+      candidates)))
 
 (defun ajc-complete-class-with-cache ( class-prefix )
   "find out class name starts with class-prefix ,before search tag file ,it first

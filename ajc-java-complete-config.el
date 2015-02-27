@@ -13,7 +13,8 @@
   (let* ((last-complete-string (cdr ac-last-completion))
          (yasnippet-templete (get-text-property 0 'templete last-complete-string))
          templete-type)
-    (when  yasnippet-templete
+    (if (null   yasnippet-templete)
+        (ajc-expand)
       (setq templete-type  (get-text-property 0 'templete-type last-complete-string))
       (delete-char (- 0 (length last-complete-string)))
       (cond
@@ -25,6 +26,12 @@
         (yas-expand-snippet (ajc-constructor-to-yasnippet-templete yasnippet-templete))
         )))))
 
+(defun ajc-expand()
+  (let* ((last-complete-string (cdr ac-last-completion))
+         (value (get-text-property 0 'value last-complete-string))
+         )
+    (delete-char (- 0 (length last-complete-string)))
+    (insert value)))
 
 ;;add support for jsp when import ,but you should trigger it by key-binding
 ;;for example (define-key ac-mode-map (kbd "M-1") 'auto-complete)
@@ -41,6 +48,7 @@
 (ac-define-source ajc-class
   '((candidates . (ajc-complete-class-candidates ))
    (prefix . "\\b\\([A-Z][a-zA-Z0-9_]*\\)")
+   (action . ajc-expand)
    (cache)))
 
 (ac-define-source ajc-constructor
